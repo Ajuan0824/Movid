@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #242432;
+  --violet: #7657dd;
+}
+
+* { box-sizing: border-box; }
+
+html { background: #f8f7fb; }
+
+body {
+  margin: 0;
+  background: #f8f7fb;
+  color: var(--ink);
+  font-family: var(--font-dm-sans), Arial, sans-serif;
+}
+
+button { -webkit-tap-highlight-color: transparent; }
+
+.font-display { font-family: var(--font-space-grotesk), Arial, sans-serif; }
+
+.dot-grid {
+  background-image: radial-gradient(#d8d5e1 0.75px, transparent 0.75px);
+  background-size: 19px 19px;
+  mask-image: linear-gradient(180deg, black, transparent 72%);
+}
+
+.ambient-orb { position: absolute; width: 420px; height: 420px; border-radius: 50%; filter: blur(1px); opacity: .28; pointer-events: none; }
+.ambient-orb-left { top: 22%; left: -310px; background: radial-gradient(circle, #bb9cff 0%, rgba(195,169,255,.15) 40%, transparent 70%); }
+.ambient-orb-right { top: -170px; right: -190px; background: radial-gradient(circle, #ffd0db 0%, rgba(255,208,219,.15) 42%, transparent 70%); }
+
+.glass-panel { border: 1px solid rgba(255,255,255,.92); background: rgba(255,255,255,.68); backdrop-filter: blur(16px); }
+.shadow-panel { box-shadow: 0 24px 70px rgba(62, 50, 104, .13), 0 3px 10px rgba(46, 41, 62, .05); }
+
+.text-gradient { background: linear-gradient(104deg, #7959e4 5%, #9c74ef 45%, #f15b7c 98%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+.primary-button, .secondary-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: .6rem; border-radius: 999px; padding: .9rem 1.2rem; font-size: .875rem; font-weight: 700; transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.primary-button { border: 1px solid #252334; color: white; background: #252334; box-shadow: 0 9px 22px rgba(37,35,52,.23); }
+.primary-button:hover { transform: translateY(-2px); box-shadow: 0 13px 28px rgba(37,35,52,.28); background: #373447; }
+.primary-button:active, .secondary-button:active { transform: translateY(0) scale(.98); }
+.secondary-button { border: 1px solid #e2dfe8; color: #4f4d5a; background: rgba(255,255,255,.74); box-shadow: 0 4px 14px rgba(50,45,68,.05); }
+.secondary-button:hover { border-color: #cfc8df; background: white; transform: translateY(-1px); }
+
+.record-dot { width: .55rem; height: .55rem; border-radius: 999px; background: #ff6680; box-shadow: 0 0 0 3px rgba(255,100,128,.13); }
+.camera-wash { position: absolute; inset: 0; background: linear-gradient(120deg, #1d1b28, #403650 45%, #252335); }
+.recording-pulse { width: .45rem; height: .45rem; border-radius: 999px; background: #f24669; animation: pulse 1.35s infinite; }
+
+.analysis-orbit { position: relative; display: grid; width: 132px; height: 132px; place-items: center; border: 1px solid rgba(118,87,221,.18); border-radius: 50%; background: radial-gradient(circle, rgba(245,241,255,1) 0%, rgba(240,236,255,.68) 43%, rgba(240,236,255,0) 70%); animation: slowSpin 8s linear infinite; }
+.analysis-orbit::before, .analysis-orbit::after { content: ""; position: absolute; border-radius: 50%; border: 1px solid rgba(118,87,221,.19); }
+.analysis-orbit::before { inset: 12px; border-style: dashed; }
+.analysis-orbit::after { inset: -11px; border-color: rgba(255,97,128,.18); }
+.analysis-orbit-inner { display: grid; height: 68px; width: 68px; place-items: center; border-radius: 25px; color: #7657dd; background: white; box-shadow: 0 12px 30px rgba(103,72,183,.18); animation: counterSpin 8s linear infinite; }
+.analysis-spark { position: absolute; display: block; width: 8px; height: 8px; border-radius: 50%; background: #ff6480; box-shadow: 0 0 14px #ff6480; }
+.analysis-spark-one { top: 10px; left: 33px; }.analysis-spark-two { bottom: 14px; right: 18px; width: 5px; height: 5px; background: #7657dd; }.analysis-spark-three { top: 49px; right: -3px; width: 6px; height: 6px; background: #f5b64a; }
+
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(242,70,105,.4); } 70% { box-shadow: 0 0 0 7px rgba(242,70,105,0); } }
+@keyframes slowSpin { to { transform: rotate(360deg); } }
+@keyframes counterSpin { to { transform: rotate(-360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
