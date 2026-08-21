@@ -9,7 +9,7 @@ import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
 import { ProfileModal } from "./profile-modal";
 
-export function AccountMenu({ copy }: { copy: AppCopy }) {
+export function AccountMenu({ copy, onManageAccount }: { copy: AppCopy; onManageAccount: () => void }) {
   const { status, user } = useAuth();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -71,7 +71,7 @@ export function AccountMenu({ copy }: { copy: AppCopy }) {
           </motion.div>
         ) : null}
       </AnimatePresence>
-      <AnimatePresence>{profileOpen ? <ProfileModal copy={copy} onClose={() => setProfileOpen(false)} /> : null}</AnimatePresence>
+      <AnimatePresence>{profileOpen ? <ProfileModal copy={copy} onClose={() => setProfileOpen(false)} onManageAccount={onManageAccount} /> : null}</AnimatePresence>
     </div>
   );
 }

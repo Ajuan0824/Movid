@@ -222,7 +222,7 @@ export default function Home() {
           <Brand />
           <div className="flex items-center gap-2">
             <LanguageSwitcher locale={locale} copy={copy} onChange={setLocale} />
-            <AccountMenu copy={copy} />
+            <AccountMenu copy={copy} onManageAccount={() => setTab("cuenta")} />
             <div className="hidden items-center gap-2 rounded-full border border-white bg-white/70 px-4 py-2 text-xs font-semibold text-[#666474] shadow-sm backdrop-blur-sm sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-[#ff5c82]" />SHIPATON 2026</div>
           </div>
         </header>

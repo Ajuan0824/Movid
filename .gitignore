@@ -21,3 +21,4 @@ scripts/gemini-highlights/output/
 
 # Local Claude Code settings (machine-specific)
 .claude/settings.local.json
+.vercel
