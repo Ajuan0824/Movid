@@ -34,6 +34,10 @@ export function IntroScreen({ copy, recordInputRef, uploadInputRef, onRecord, on
           <div className="camera-wash" />
           <div className="absolute left-[16%] top-[16%] h-28 w-28 rounded-full bg-[#ff637a]/30 blur-2xl" />
           <div className="absolute bottom-[10%] right-[16%] h-36 w-36 rounded-full bg-[#9466ff]/35 blur-3xl" />
+          <div className="scan-sweep" />
+          <div className="pointer-events-none absolute left-3.5 top-3.5 h-[18px] w-[18px] rounded-tl-md border-l-2 border-t-2 border-white/40" />
+          <div className="pointer-events-none absolute right-3.5 top-3.5 h-[18px] w-[18px] rounded-tr-md border-r-2 border-t-2 border-white/40" />
+          <span className="absolute left-1/2 top-3.5 -translate-x-1/2 flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 font-mono text-[10px] font-bold text-white backdrop-blur-md"><span className="h-1.5 w-1.5 rounded-full bg-[#cdbdff]" />{copy.hero.aiReady}</span>
           <div className="relative grid h-24 w-24 place-items-center rounded-[32px] border border-white/20 bg-white/10 text-white shadow-[0_20px_50px_rgba(0,0,0,.25)] backdrop-blur-md"><Camera size={34} strokeWidth={1.5} /></div>
           <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/50 to-transparent px-6 pb-5 pt-12 text-white/80">
             <div className="flex items-center gap-2 text-xs font-semibold"><span className="h-2 w-2 rounded-full bg-[#ff5d78]" />{copy.hero.maxLength}</div><span className="font-mono text-xs">00:00.0</span>

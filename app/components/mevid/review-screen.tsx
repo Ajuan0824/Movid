@@ -1,7 +1,7 @@
 import { ArrowRight, Check, RotateCcw, WandSparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import type { AppCopy } from "../../../lib/mevid/copy";
-import { heroTextItemVariants, heroTextVariants, screenTransition } from "../../../lib/mevid/motion";
+import { heroTextItemVariants, heroTextVariants, screenTransition, tapScale } from "../../../lib/mevid/motion";
 import { formatTime } from "../../../lib/mevid/video";
 
 type ReviewScreenProps = {
@@ -20,8 +20,8 @@ export function ReviewScreen({ copy, videoUrl, duration, onRetry, onAnalyse }: R
         <motion.h1 variants={heroTextItemVariants} className="font-display text-4xl font-bold tracking-[-0.06em] sm:text-5xl">{copy.review.title}</motion.h1>
         <motion.p variants={heroTextItemVariants} className="mt-2 text-sm text-[#767381]">{copy.review.description}</motion.p>
       </motion.div>
-      <div className="glass-panel mx-auto w-full max-w-[820px] overflow-hidden rounded-[34px] p-3 shadow-panel"><div className="relative aspect-[9/16] overflow-hidden rounded-[25px] bg-[#17151f]"><video src={videoUrl} className="h-full w-full object-contain" controls playsInline /><div className="absolute left-4 top-4 rounded-full bg-black/45 px-3 py-1.5 font-mono text-xs font-semibold text-white backdrop-blur-sm">{formatTime(duration)}</div></div></div>
-      <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row"><button onClick={onRetry} className="secondary-button"><RotateCcw size={16} />{copy.review.retry}</button><button onClick={onAnalyse} className="primary-button px-6"><WandSparkles size={17} />{copy.review.analyse}<ArrowRight size={17} /></button></div>
+      <motion.div initial={{ opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ ...screenTransition, delay: 0.2 }} className="glass-panel mx-auto w-full max-w-[820px] overflow-hidden rounded-[34px] p-3 shadow-panel"><div className="relative aspect-[9/16] overflow-hidden rounded-[25px] bg-[#17151f]"><video src={videoUrl} className="h-full w-full object-contain" controls playsInline /><div className="absolute left-4 top-4 rounded-full bg-black/45 px-3 py-1.5 font-mono text-xs font-semibold text-white backdrop-blur-sm">{formatTime(duration)}</div></div></motion.div>
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ ...screenTransition, delay: 0.32 }} className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row"><motion.button whileTap={{ scale: tapScale }} onClick={onRetry} className="secondary-button"><RotateCcw size={16} />{copy.review.retry}</motion.button><motion.button whileTap={{ scale: tapScale }} onClick={onAnalyse} className="primary-button px-6"><WandSparkles size={17} />{copy.review.analyse}<ArrowRight size={17} /></motion.button></motion.div>
     </motion.section>
   );
 }

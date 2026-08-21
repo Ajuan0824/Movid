@@ -29,8 +29,13 @@ button { -webkit-tap-highlight-color: transparent; }
 }
 
 .ambient-orb { position: absolute; width: 420px; height: 420px; border-radius: 50%; filter: blur(1px); opacity: .28; pointer-events: none; }
-.ambient-orb-left { top: 22%; left: -310px; background: radial-gradient(circle, #bb9cff 0%, rgba(195,169,255,.15) 40%, transparent 70%); }
-.ambient-orb-right { top: -170px; right: -190px; background: radial-gradient(circle, #ffd0db 0%, rgba(255,208,219,.15) 42%, transparent 70%); }
+.ambient-orb-left { top: 22%; left: -310px; background: radial-gradient(circle, #bb9cff 0%, rgba(195,169,255,.15) 40%, transparent 70%); animation: floatOrb 18s ease-in-out infinite; }
+.ambient-orb-right { top: -170px; right: -190px; background: radial-gradient(circle, #ffd0db 0%, rgba(255,208,219,.15) 42%, transparent 70%); animation: floatOrb 24s ease-in-out infinite reverse; }
+
+.scan-sweep { position: absolute; inset: 0 0 auto 0; height: 44%; background: linear-gradient(to bottom, rgba(205,189,255,0), rgba(205,189,255,.22), rgba(205,189,255,0)); animation: scanSweep 4.6s cubic-bezier(.45,0,.55,1) infinite; pointer-events: none; }
+
+@keyframes floatOrb { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(14px,-18px,0) scale(1.08); } }
+@keyframes scanSweep { 0% { transform: translateY(-120%); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { transform: translateY(220%); opacity: 0; } }
 
 .glass-panel { border: 1px solid rgba(255,255,255,.92); background: rgba(255,255,255,.68); backdrop-filter: blur(16px); }
 .shadow-panel { box-shadow: 0 24px 70px rgba(62, 50, 104, .13), 0 3px 10px rgba(46, 41, 62, .05); }
@@ -102,8 +107,8 @@ button { -webkit-tap-highlight-color: transparent; }
 .ios-input {
   width: 100%;
   border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.7);
-  background: rgba(255,255,255,.55);
+  border: 1px solid #e2dfe8;
+  background: #fff;
   padding: .95rem 1.1rem;
   font-size: 16px;
   color: #232331;
@@ -112,7 +117,7 @@ button { -webkit-tap-highlight-color: transparent; }
   transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
 }
 .ios-input::placeholder { color: #9996a4; }
-.ios-input:focus { outline: none; border-color: #a992ff; background: rgba(255,255,255,.8); box-shadow: 0 0 0 4px rgba(118,87,221,.14); }
+.ios-input:focus { outline: none; border-color: #a992ff; box-shadow: 0 0 0 4px rgba(118,87,221,.14); }
 .ios-input-error { border-color: #ff8fa3; box-shadow: 0 0 0 4px rgba(255,92,130,.12); }
 
 .liquid-shimmer { position: relative; overflow: hidden; }

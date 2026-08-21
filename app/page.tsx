@@ -1,8 +1,9 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { AccountScreen } from "./components/mevid/account-screen";
 import { AnalysisScreen } from "./components/mevid/analysis-screen";
 import { AccountMenu } from "./components/mevid/account-menu";
 import { AuthGate } from "./components/auth/auth-gate";
@@ -11,20 +12,26 @@ import { DesktopGate } from "./components/mevid/desktop-gate";
 import { DotGrid } from "./components/mevid/dot-grid";
 import { IntroScreen } from "./components/mevid/intro-screen";
 import { LanguageSwitcher } from "./components/mevid/language-switcher";
+import { ProScreen } from "./components/mevid/pro-screen";
 import { ResultsScreen } from "./components/mevid/results-screen";
 import { ReviewScreen } from "./components/mevid/review-screen";
+import { TabBar, type AppTab } from "./components/mevid/tab-bar";
+import { useAuth } from "../hooks/use-auth";
 import { useIsMobile } from "../hooks/use-is-mobile";
 import { getCopy } from "../lib/mevid/copy";
 import { getFallbackHighlights } from "../lib/mevid/highlights";
+import { heroTextItemVariants, heroTextVariants, screenTransition, tapScale } from "../lib/mevid/motion";
 import type { AnalysisResponse, Locale, VideoHighlight } from "../lib/mevid/types";
 import { extractFrames, getVideoDuration, hydrateHighlightImages, MAX_VIDEO_SECONDS } from "../lib/mevid/video";
 
-type View = "idle" | "review" | "analysing" | "results";
+type FlowView = "idle" | "review" | "analysing";
 
 export default function Home() {
   const mobileState = useIsMobile();
+  const { status: authStatus } = useAuth();
   const [locale, setLocale] = useState<Locale>("en");
-  const [view, setView] = useState<View>("idle");
+  const [tab, setTab] = useState<AppTab>("home");
+  const [flowView, setFlowView] = useState<FlowView>("idle");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoDuration, setVideoDuration] = useState(MAX_VIDEO_SECONDS);
   const [highlights, setHighlights] = useState<VideoHighlight[]>([]);
@@ -32,6 +39,7 @@ export default function Home() {
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [analysisStep, setAnalysisStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const recordInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
@@ -51,12 +59,18 @@ export default function Home() {
     urlRef.current = nextUrl;
     setVideoUrl(nextUrl);
     setVideoDuration(Math.min(duration, MAX_VIDEO_SECONDS));
-    setView("review");
+    setFlowView("review");
   }, [clearVideo]);
 
   useEffect(() => () => {
     if (urlRef.current) URL.revokeObjectURL(urlRef.current);
   }, []);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = window.setTimeout(() => setNotice(null), 2400);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
 
   /** Shared by both the native-camera capture input and the gallery upload input. */
   const handleVideoFile = async (file: File) => {
@@ -86,7 +100,7 @@ export default function Home() {
   const analyseVideo = async () => {
     if (!videoUrl) return;
     setError(null);
-    setView("analysing");
+    setFlowView("analysing");
     setAnalysisStep(0);
     const interval = window.setInterval(() => {
       setAnalysisStep((current) => Math.min(current + 1, copy.analysis.steps.length - 1));
@@ -113,7 +127,8 @@ export default function Home() {
       window.clearInterval(interval);
       setSelected(0);
       setChecked(new Set());
-      setView("results");
+      setFlowView("idle");
+      setTab("momentos");
     }
   };
 
@@ -139,7 +154,8 @@ export default function Home() {
     setHighlights([]);
     setSelected(0);
     setChecked(new Set());
-    setView("idle");
+    setFlowView("idle");
+    setTab("home");
   };
 
   /** useShare tries the native share sheet first (nice for a single image); batches skip it so multiple picks download reliably without repeated share prompts. */
@@ -201,7 +217,7 @@ export default function Home() {
       <DotGrid />
       <div className="ambient-orb ambient-orb-left" />
       <div className="ambient-orb ambient-orb-right" />
-      <div className="relative mx-auto flex min-h-dvh w-full max-w-xl flex-col pb-[calc(1.5rem+env(safe-area-inset-bottom))] pl-[calc(1.25rem+env(safe-area-inset-left))] pr-[calc(1.25rem+env(safe-area-inset-right))] pt-[calc(1.25rem+env(safe-area-inset-top))] sm:pl-[calc(2rem+env(safe-area-inset-left))] sm:pr-[calc(2rem+env(safe-area-inset-right))]">
+      <div className={`relative mx-auto flex min-h-dvh w-full max-w-xl flex-col pl-[calc(1.25rem+env(safe-area-inset-left))] pr-[calc(1.25rem+env(safe-area-inset-right))] pt-[calc(1.25rem+env(safe-area-inset-top))] sm:pl-[calc(2rem+env(safe-area-inset-left))] sm:pr-[calc(2rem+env(safe-area-inset-right))] ${authStatus === "signed-in" ? "pb-[calc(6rem+env(safe-area-inset-bottom))]" : "pb-[calc(1.5rem+env(safe-area-inset-bottom))]"}`}>
         <header className="flex items-center justify-between">
           <Brand />
           <div className="flex items-center gap-2">
@@ -213,9 +229,9 @@ export default function Home() {
 
         <AuthGate copy={copy}>
           <AnimatePresence mode="wait">
-            {view === "idle" ? (
+            {tab === "home" && flowView === "idle" ? (
               <IntroScreen
-                key="idle"
+                key="home-idle"
                 copy={copy}
                 recordInputRef={recordInputRef}
                 uploadInputRef={uploadInputRef}
@@ -225,15 +241,48 @@ export default function Home() {
                 onUploadFileChange={handleFileInputChange}
               />
             ) : null}
-            {view === "review" && videoUrl ? <ReviewScreen key="review" copy={copy} videoUrl={videoUrl} duration={videoDuration} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
-            {view === "analysing" ? <AnalysisScreen key="analysing" copy={copy} step={analysisStep} /> : null}
-            {view === "results" && videoUrl ? <ResultsScreen key="results" copy={copy} videoUrl={videoUrl} duration={videoDuration} highlights={highlights} selected={selected} checked={checked} videoRef={resultVideoRef} onNewVideo={startOver} onSelect={selectHighlight} onToggleCheck={toggleChecked} onDownloadChecked={downloadChecked} /> : null}
+            {tab === "home" && flowView === "review" && videoUrl ? <ReviewScreen key="home-review" copy={copy} videoUrl={videoUrl} duration={videoDuration} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
+            {tab === "home" && flowView === "analysing" ? <AnalysisScreen key="home-analysing" copy={copy} step={analysisStep} /> : null}
+
+            {tab === "momentos" && highlights.length > 0 && videoUrl ? (
+              <ResultsScreen
+                key="momentos"
+                copy={copy}
+                videoUrl={videoUrl}
+                duration={videoDuration}
+                highlights={highlights}
+                selected={selected}
+                checked={checked}
+                videoRef={resultVideoRef}
+                onNewVideo={startOver}
+                onSelect={selectHighlight}
+                onToggleCheck={toggleChecked}
+                onDownloadOne={(highlight) => void exportHighlight(highlight, true)}
+                onDownloadChecked={downloadChecked}
+              />
+            ) : null}
+            {tab === "momentos" && !(highlights.length > 0 && videoUrl) ? (
+              <motion.section key="momentos-empty" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={screenTransition} className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center py-16 text-center">
+                <motion.div variants={heroTextVariants} initial="hidden" animate="visible">
+                  <motion.div variants={heroTextItemVariants} className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] px-3 py-1.5 text-xs font-bold text-[#7657dd]"><Sparkles size={13} />{copy.results.eyebrow}</motion.div>
+                  <motion.h1 variants={heroTextItemVariants} className="font-display text-3xl font-bold tracking-[-0.06em]">{copy.momentsEmpty.title}</motion.h1>
+                  <motion.p variants={heroTextItemVariants} className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#6d6b79]">{copy.momentsEmpty.description}</motion.p>
+                </motion.div>
+                <motion.button whileTap={{ scale: tapScale }} onClick={() => setTab("home")} className="primary-button mt-6">{copy.momentsEmpty.cta}</motion.button>
+              </motion.section>
+            ) : null}
+
+            {tab === "pro" ? <ProScreen key="pro" copy={copy} onCta={() => setNotice(copy.pro.comingSoon)} /> : null}
+            {tab === "cuenta" ? <AccountScreen key="cuenta" copy={copy} onGoPro={() => setTab("pro")} /> : null}
           </AnimatePresence>
+
+          <TabBar copy={copy} tab={tab} onChange={setTab} />
         </AuthGate>
 
         <footer className="mt-auto flex items-center justify-between pt-5 text-[11px] font-medium text-[#aaa7b1]"><span>{copy.footer.left}</span><span className="hidden sm:block">{copy.footer.right}</span></footer>
       </div>
-      <AnimatePresence>{error && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-[#ffc8d3] bg-white px-4 py-3 text-sm text-[#9d3450] shadow-xl"><span>{error}</span><button aria-label="Dismiss" onClick={() => setError(null)}><X size={16} /></button></motion.div>}</AnimatePresence>
+      <AnimatePresence>{error && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-[#ffc8d3] bg-white px-4 py-3 text-sm text-[#9d3450] shadow-xl"><span>{error}</span><button aria-label="Dismiss" onClick={() => setError(null)}><X size={16} /></button></motion.div>}</AnimatePresence>
+      <AnimatePresence>{notice && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-[#dfd4ff] bg-[#f0ecff] px-4 py-3 text-sm font-semibold text-[#5c3fc4] shadow-xl"><span>{notice}</span><button aria-label="Dismiss" onClick={() => setNotice(null)}><X size={16} /></button></motion.div>}</AnimatePresence>
     </main>
   );
 }
