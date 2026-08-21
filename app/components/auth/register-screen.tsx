@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useState } from "react";
 import { resolveAuthErrorKey } from "../../../lib/firebase/auth-errors";
 import { signInWithApple, signInWithGoogle, signUpWithEmail } from "../../../lib/firebase/auth";
@@ -19,9 +20,15 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(null);
+
+  const strength = password.length >= 12 ? 3 : password.length >= 8 ? 2 : password.length > 0 ? 1 : 0;
+  const strengthLabel = [t.strengthWeak, t.strengthWeak, t.strengthGood, t.strengthStrong][strength];
+  const strengthWidth = ["4%", "34%", "68%", "100%"][strength];
+  const strengthColor = strength >= 3 ? "#1f7a4d" : strength === 2 ? "#7657dd" : "#f5b64a";
 
   const submit = async () => {
     if (!email || !password || !confirm) {
@@ -30,6 +37,10 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
     }
     if (password !== confirm) {
       setError(copy.auth.errors.passwordMismatch);
+      return;
+    }
+    if (!terms) {
+      setError(copy.auth.errors.termsRequired);
       return;
     }
     setError(null);
@@ -78,8 +89,28 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
         }}
       >
         <GlassTextField label={t.emailLabel} type="email" value={email} onChange={setEmail} autoComplete="email" />
-        <GlassTextField label={t.passwordLabel} type="password" value={password} onChange={setPassword} autoComplete="new-password" />
+        <div>
+          <GlassTextField label={t.passwordLabel} type="password" value={password} onChange={setPassword} autoComplete="new-password" />
+          {password ? (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#ece9f2]"><span className="block h-full rounded-full transition-all" style={{ width: strengthWidth, background: strengthColor }} /></span>
+              <span className="font-mono text-[10px] font-bold text-[#85818f]">{strengthLabel}</span>
+            </div>
+          ) : null}
+        </div>
         <GlassTextField label={t.confirmLabel} type="password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
+
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={terms}
+          onClick={() => setTerms((current) => !current)}
+          className="flex items-center gap-2.5 text-left"
+        >
+          <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-[7px] border-2 transition ${terms ? "border-[#7657dd] bg-[#7657dd] text-white" : "border-[#cfc8df] text-transparent"}`}><Check size={12} strokeWidth={3} /></span>
+          <span className="text-xs leading-4 text-[#6d6b79]">{t.termsText}</span>
+        </button>
+
         <AuthSubmitButton loading={loading} onTap={() => tapHaptic()}>{t.submit}</AuthSubmitButton>
       </form>
       <div className="my-5 flex items-center gap-3 text-xs font-medium text-[#aaa7b1]">
