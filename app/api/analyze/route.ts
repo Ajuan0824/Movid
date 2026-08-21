@@ -1,7 +1,6 @@
 import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultHighlightLabels, getFallbackHighlights } from "../../../lib/mevid/highlights";
-import { addMomentVisuals } from "../../../lib/server/moment-visuals";
 import { logServerError } from "../../../lib/server/log";
 import type { Locale, VideoHighlight } from "../../../lib/mevid/types";
 
@@ -20,15 +19,13 @@ function parseHighlights(raw: string, duration: number, locale: Locale): VideoHi
       const highlight = item as Partial<VideoHighlight>;
       const start = Math.max(0, Math.min(Number(highlight.start) || 0, duration));
       const end = Math.max(start + 0.2, Math.min(Number(highlight.end) || start + 1, duration));
-      const title = String(highlight.title || defaults[index][0]).slice(0, 36);
-      const reason = String(highlight.reason || defaults[index][1]).slice(0, 90);
+      const peakTime = Math.max(start, Math.min(Number(highlight.peakTime) || (start + end) / 2, end));
+      const title = String(highlight.title || defaults[index]).slice(0, 36);
       return {
         start: Number(start.toFixed(1)),
         end: Number(end.toFixed(1)),
-        score: Math.max(1, Math.min(100, Math.round(Number(highlight.score) || 90 - index * 4))),
+        peakTime: Number(peakTime.toFixed(2)),
         title,
-        reason,
-        visualPrompt: String(highlight.visualPrompt || `${title}. ${reason}`).slice(0, 360),
         image: "",
       };
     });
@@ -46,7 +43,7 @@ export async function POST(request: NextRequest) {
     const frames = (body.frames ?? []).filter((frame) => typeof frame.time === "number" && typeof frame.image === "string").slice(0, 10);
 
     if (!process.env.OPENAI_API_KEY || frames.length === 0) {
-      return NextResponse.json({ highlights: getFallbackHighlights(duration, locale), source: "local", visualSource: "placeholder" });
+      return NextResponse.json({ highlights: getFallbackHighlights(duration, locale), source: "local" });
     }
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -59,7 +56,7 @@ export async function POST(request: NextRequest) {
         content: [
           {
             type: "input_text",
-            text: `You are a social video editor. Analyse these frames from a ${duration.toFixed(1)}-second video. Select exactly 5 visually distinct, memorable and shareable micro-moments. Every moment must last from 0.5 to 3 seconds, fall between 0 and ${duration.toFixed(1)}, and avoid overlapping substantially. ${manifest}. Return ONLY valid JSON in this shape: {"highlights":[{"start":number,"end":number,"score":number,"title":string,"reason":string,"visualPrompt":string}]}. visualPrompt is a precise visual description of what happened in that moment, suitable to generate an image; do not mention frame, screenshot, UI or timestamps. Write title, reason and visualPrompt in ${language}; title has a maximum of 4 words and reason a maximum of 12 words.`,
+            text: `You are a social video editor picking the best real frames to keep — you are not generating new artwork. Analyse these frames sampled from a ${duration.toFixed(1)}-second video. Select exactly 5 visually distinct, memorable and shareable micro-moments where the actual footage looks best: a clear face or expression, a decisive action, a strong composition, or a natural peak. Every moment must last from 0.5 to 3 seconds, fall between 0 and ${duration.toFixed(1)}, and avoid overlapping substantially. ${manifest}. Return ONLY valid JSON in this shape: {"highlights":[{"start":number,"end":number,"peakTime":number,"title":string}]}. peakTime must sit inside [start,end] and mark the single sharpest, most expressive instant to freeze-frame in that window. Write title in ${language}, maximum 4 words.`,
           },
           ...frames.map((frame) => ({ type: "input_image" as const, image_url: frame.image, detail: "low" as const })),
         ],
@@ -69,12 +66,11 @@ export async function POST(request: NextRequest) {
 
     const highlights = parseHighlights(response.output_text, duration, locale);
     if (!highlights) {
-      return NextResponse.json({ highlights: getFallbackHighlights(duration, locale), source: "local", visualSource: "placeholder" });
+      return NextResponse.json({ highlights: getFallbackHighlights(duration, locale), source: "local" });
     }
-    const visualised = await addMomentVisuals(client, highlights, locale);
-    return NextResponse.json({ highlights: visualised.highlights, source: "openai", visualSource: visualised.visualSource });
+    return NextResponse.json({ highlights, source: "openai" });
   } catch (error) {
     logServerError("analyze:request", error);
-    return NextResponse.json({ highlights: getFallbackHighlights(15, "en"), source: "local", visualSource: "placeholder" });
+    return NextResponse.json({ highlights: getFallbackHighlights(15, "en"), source: "local" });
   }
 }

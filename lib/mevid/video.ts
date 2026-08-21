@@ -42,22 +42,31 @@ export async function getVideoDuration(file: File) {
   }
 }
 
-export async function extractFrames(source: string, durationHint: number): Promise<VideoFrame[]> {
+async function loadVideoElement(source: string): Promise<HTMLVideoElement> {
   const video = document.createElement("video");
   video.muted = true;
   video.playsInline = true;
   video.preload = "auto";
   video.src = source;
   await waitForEvent(video, "loadedmetadata");
+  return video;
+}
 
-  const duration = Number.isFinite(video.duration) ? video.duration : durationHint;
-  const sampleCount = 10;
+function createCanvas(video: HTMLVideoElement, maxWidth: number) {
   const canvas = document.createElement("canvas");
   const aspectRatio = video.videoWidth / video.videoHeight || 9 / 16;
-  canvas.width = Math.min(480, video.videoWidth || 480);
+  canvas.width = Math.min(maxWidth, video.videoWidth || maxWidth);
   canvas.height = Math.round(canvas.width / aspectRatio);
   const context = canvas.getContext("2d", { alpha: false });
   if (!context) throw new Error("Frame sampling is not supported in this browser.");
+  return { canvas, context };
+}
+
+export async function extractFrames(source: string, durationHint: number): Promise<VideoFrame[]> {
+  const video = await loadVideoElement(source);
+  const duration = Number.isFinite(video.duration) ? video.duration : durationHint;
+  const sampleCount = 10;
+  const { canvas, context } = createCanvas(video, 480);
 
   const frames: VideoFrame[] = [];
   for (let index = 0; index < sampleCount; index += 1) {
@@ -70,4 +79,28 @@ export async function extractFrames(source: string, durationHint: number): Promi
   video.removeAttribute("src");
   video.load();
   return frames;
+}
+
+/** Re-opens the original video and grabs one full-resolution JPEG at each highlight's peak instant, so results show real footage instead of AI-generated art. */
+export async function hydrateHighlightImages<T extends { start: number; peakTime: number }>(
+  source: string,
+  highlights: T[],
+  durationHint: number,
+): Promise<(T & { image: string })[]> {
+  const video = await loadVideoElement(source);
+  const duration = Number.isFinite(video.duration) ? video.duration : durationHint;
+  const { canvas, context } = createCanvas(video, 1280);
+
+  const hydrated: (T & { image: string })[] = [];
+  for (const highlight of highlights) {
+    const target = Number.isFinite(highlight.peakTime) ? highlight.peakTime : highlight.start;
+    const time = Math.min(duration - 0.05, Math.max(0, target));
+    video.currentTime = time;
+    await waitForEvent(video, "seeked");
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    hydrated.push({ ...highlight, image: canvas.toDataURL("image/jpeg", 0.92) });
+  }
+  video.removeAttribute("src");
+  video.load();
+  return hydrated;
 }

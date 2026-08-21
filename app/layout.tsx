@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Space_Grotesk } from "next/font/google";
+import { ClientBootstrap } from "./components/mevid/client-bootstrap";
 import "./globals.css";
+import { AuthProvider } from "../hooks/use-auth";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -26,7 +28,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body className={`${dmSans.variable} ${spaceGrotesk.variable}`}>{children}</body>
+      <body className={`${dmSans.variable} ${spaceGrotesk.variable}`}>
+        <ClientBootstrap />
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

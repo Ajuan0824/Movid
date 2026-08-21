@@ -4,20 +4,20 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { AnalysisScreen } from "./components/mevid/analysis-screen";
+import { AccountMenu } from "./components/mevid/account-menu";
+import { AuthGate } from "./components/auth/auth-gate";
 import { Brand } from "./components/mevid/brand";
 import { DesktopGate } from "./components/mevid/desktop-gate";
 import { DotGrid } from "./components/mevid/dot-grid";
 import { IntroScreen } from "./components/mevid/intro-screen";
 import { LanguageSwitcher } from "./components/mevid/language-switcher";
-import { RecordingScreen } from "./components/mevid/recording-screen";
 import { ResultsScreen } from "./components/mevid/results-screen";
 import { ReviewScreen } from "./components/mevid/review-screen";
 import { useIsMobile } from "../hooks/use-is-mobile";
-import { useVideoRecorder } from "../hooks/use-video-recorder";
 import { getCopy } from "../lib/mevid/copy";
 import { getFallbackHighlights } from "../lib/mevid/highlights";
-import type { AnalysisResponse, Locale, VideoHighlight, VisualSource } from "../lib/mevid/types";
-import { extractFrames, getVideoDuration, MAX_VIDEO_SECONDS } from "../lib/mevid/video";
+import type { AnalysisResponse, Locale, VideoHighlight } from "../lib/mevid/types";
+import { extractFrames, getVideoDuration, hydrateHighlightImages, MAX_VIDEO_SECONDS } from "../lib/mevid/video";
 
 type View = "idle" | "review" | "analysing" | "results";
 
@@ -29,11 +29,12 @@ export default function Home() {
   const [videoDuration, setVideoDuration] = useState(MAX_VIDEO_SECONDS);
   const [highlights, setHighlights] = useState<VideoHighlight[]>([]);
   const [selected, setSelected] = useState(0);
+  const [checked, setChecked] = useState<Set<number>>(new Set());
   const [analysisStep, setAnalysisStep] = useState(0);
-  const [visualSource, setVisualSource] = useState<VisualSource>("placeholder");
   const [error, setError] = useState<string | null>(null);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const recordInputRef = useRef<HTMLInputElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
   const resultVideoRef = useRef<HTMLVideoElement>(null);
   const urlRef = useRef<string | null>(null);
   const copy = getCopy(locale);
@@ -53,20 +54,12 @@ export default function Home() {
     setView("review");
   }, [clearVideo]);
 
-  const handleRecorderError = useCallback((recorderError: Error) => {
-    setError(recorderError.message === "unsupported" ? getCopy(locale).errors.unsupported : getCopy(locale).errors.camera);
-  }, [locale]);
-
-  const recorder = useVideoRecorder({ onComplete: displayVideo, onError: handleRecorderError });
-
   useEffect(() => () => {
     if (urlRef.current) URL.revokeObjectURL(urlRef.current);
   }, []);
 
-  const handleUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
+  /** Shared by both the native-camera capture input and the gallery upload input. */
+  const handleVideoFile = async (file: File) => {
     setError(null);
     if (!file.type.startsWith("video/")) {
       setError(copy.errors.notVideo);
@@ -82,6 +75,12 @@ export default function Home() {
     } catch {
       setError(copy.errors.unreadable);
     }
+  };
+
+  const handleFileInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) void handleVideoFile(file);
   };
 
   const analyseVideo = async () => {
@@ -101,16 +100,30 @@ export default function Home() {
       });
       if (!response.ok) throw new Error("Analysis request failed");
       const data = (await response.json()) as AnalysisResponse;
-      setHighlights(data.highlights);
-      setVisualSource(data.visualSource);
+      const hydrated = await hydrateHighlightImages(videoUrl, data.highlights, videoDuration);
+      setHighlights(hydrated);
     } catch {
-      setHighlights(getFallbackHighlights(videoDuration, locale));
-      setVisualSource("placeholder");
+      try {
+        const fallback = await hydrateHighlightImages(videoUrl, getFallbackHighlights(videoDuration, locale), videoDuration);
+        setHighlights(fallback);
+      } catch {
+        setHighlights(getFallbackHighlights(videoDuration, locale));
+      }
     } finally {
       window.clearInterval(interval);
       setSelected(0);
+      setChecked(new Set());
       setView("results");
     }
+  };
+
+  const toggleChecked = (index: number) => {
+    setChecked((current) => {
+      const next = new Set(current);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
   };
 
   const selectHighlight = (highlight: VideoHighlight, index: number) => {
@@ -122,14 +135,15 @@ export default function Home() {
   };
 
   const startOver = () => {
-    recorder.stopTracks();
     clearVideo();
     setHighlights([]);
     setSelected(0);
+    setChecked(new Set());
     setView("idle");
   };
 
-  const exportSelection = async (highlight: VideoHighlight) => {
+  /** useShare tries the native share sheet first (nice for a single image); batches skip it so multiple picks download reliably without repeated share prompts. */
+  const exportHighlight = async (highlight: VideoHighlight, useShare = true) => {
     if (!highlight?.image) return;
     const slug = highlight.title
       .toLowerCase()
@@ -142,18 +156,20 @@ export default function Home() {
     const extension = subtype === "svg+xml" ? "svg" : subtype;
     const filename = `mevid-${slug}.${extension}`;
 
-    try {
-      const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
-      if (nav.share && nav.canShare) {
-        const blob = await (await fetch(highlight.image)).blob();
-        const file = new File([blob], filename, { type: blob.type || `image/${extension}` });
-        if (nav.canShare({ files: [file] })) {
-          await nav.share({ files: [file], title: highlight.title });
-          return;
+    if (useShare) {
+      try {
+        const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
+        if (nav.share && nav.canShare) {
+          const blob = await (await fetch(highlight.image)).blob();
+          const file = new File([blob], filename, { type: blob.type || `image/${extension}` });
+          if (nav.canShare({ files: [file] })) {
+            await nav.share({ files: [file], title: highlight.title });
+            return;
+          }
         }
+      } catch (shareError) {
+        if (shareError instanceof DOMException && shareError.name === "AbortError") return;
       }
-    } catch (shareError) {
-      if (shareError instanceof DOMException && shareError.name === "AbortError") return;
     }
 
     const link = document.createElement("a");
@@ -162,6 +178,14 @@ export default function Home() {
     document.body.appendChild(link);
     link.click();
     link.remove();
+  };
+
+  const downloadChecked = async () => {
+    const selection = highlights.filter((_, index) => checked.has(index));
+    const useShare = selection.length === 1;
+    for (const highlight of selection) {
+      await exportHighlight(highlight, useShare);
+    }
   };
 
   if (mobileState === "checking") {
@@ -182,17 +206,30 @@ export default function Home() {
           <Brand />
           <div className="flex items-center gap-2">
             <LanguageSwitcher locale={locale} copy={copy} onChange={setLocale} />
+            <AccountMenu copy={copy} />
             <div className="hidden items-center gap-2 rounded-full border border-white bg-white/70 px-4 py-2 text-xs font-semibold text-[#666474] shadow-sm backdrop-blur-sm sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-[#ff5c82]" />SHIPATON 2026</div>
           </div>
         </header>
 
-        <AnimatePresence mode="wait">
-          {recorder.isRecording ? <RecordingScreen key="recording" copy={copy} elapsed={recorder.elapsed} videoRef={recorder.liveVideoRef} onCancel={recorder.cancelRecording} onStop={recorder.stopRecording} /> : null}
-          {!recorder.isRecording && view === "idle" ? <IntroScreen key="idle" copy={copy} inputRef={inputRef} onRecord={recorder.startRecording} onUpload={() => inputRef.current?.click()} onFileChange={handleUpload} /> : null}
-          {!recorder.isRecording && view === "review" && videoUrl ? <ReviewScreen key="review" copy={copy} videoUrl={videoUrl} duration={videoDuration} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
-          {!recorder.isRecording && view === "analysing" ? <AnalysisScreen key="analysing" copy={copy} step={analysisStep} /> : null}
-          {!recorder.isRecording && view === "results" && videoUrl ? <ResultsScreen key="results" copy={copy} videoUrl={videoUrl} duration={videoDuration} highlights={highlights} selected={selected} visualSource={visualSource} videoRef={resultVideoRef} onNewVideo={startOver} onSelect={selectHighlight} onExport={exportSelection} /> : null}
-        </AnimatePresence>
+        <AuthGate copy={copy}>
+          <AnimatePresence mode="wait">
+            {view === "idle" ? (
+              <IntroScreen
+                key="idle"
+                copy={copy}
+                recordInputRef={recordInputRef}
+                uploadInputRef={uploadInputRef}
+                onRecord={() => recordInputRef.current?.click()}
+                onUpload={() => uploadInputRef.current?.click()}
+                onRecordFileChange={handleFileInputChange}
+                onUploadFileChange={handleFileInputChange}
+              />
+            ) : null}
+            {view === "review" && videoUrl ? <ReviewScreen key="review" copy={copy} videoUrl={videoUrl} duration={videoDuration} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
+            {view === "analysing" ? <AnalysisScreen key="analysing" copy={copy} step={analysisStep} /> : null}
+            {view === "results" && videoUrl ? <ResultsScreen key="results" copy={copy} videoUrl={videoUrl} duration={videoDuration} highlights={highlights} selected={selected} checked={checked} videoRef={resultVideoRef} onNewVideo={startOver} onSelect={selectHighlight} onToggleCheck={toggleChecked} onDownloadChecked={downloadChecked} /> : null}
+          </AnimatePresence>
+        </AuthGate>
 
         <footer className="mt-auto flex items-center justify-between pt-5 text-[11px] font-medium text-[#aaa7b1]"><span>{copy.footer.left}</span><span className="hidden sm:block">{copy.footer.right}</span></footer>
       </div>
