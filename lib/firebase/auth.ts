@@ -56,12 +56,21 @@ export async function changePassword(email: string, currentPassword: string, new
   await FirebaseAuthentication.updatePassword({ newPassword });
 }
 
-/** Returns an unsubscribe function, mirroring the shape React effects expect. */
+/**
+ * Returns an unsubscribe function, mirroring the shape React effects expect.
+ * If the listener itself fails to register (e.g. misconfigured Firebase env
+ * vars), falls back to reporting "signed out" instead of leaving callers
+ * stuck waiting forever on a "loading" state.
+ */
 export function onAuthStateChange(callback: (user: User | null) => void) {
   const handlePromise = FirebaseAuthentication.addListener("authStateChange", (change) => {
     callback(change.user ?? null);
+  }).catch((error) => {
+    console.error("Failed to start Firebase auth listener", error);
+    callback(null);
+    return undefined;
   });
   return () => {
-    void handlePromise.then((handle) => handle.remove());
+    void handlePromise.then((handle) => handle?.remove());
   };
 }
