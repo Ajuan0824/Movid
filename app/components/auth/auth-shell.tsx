@@ -23,14 +23,14 @@ export function AuthShell({ eyebrow, title, description, children, footer }: Aut
       className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-8"
     >
       <div className="mb-6 text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#e5ddff] bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-[#7657dd] shadow-[0_5px_18px_rgba(101,74,180,.08)]">
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#e5ddff] dark:border-[#4a3f73] bg-white/80 dark:bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-[#7657dd] dark:text-[#c4b3ff] shadow-[0_5px_18px_rgba(101,74,180,.08)]">
           <Sparkles size={13} />{eyebrow}
         </div>
-        <h1 className="font-display text-3xl font-bold leading-[1.02] tracking-[-0.05em] text-[#232331]">{title}</h1>
-        <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#6d6b79]">{description}</p>
+        <h1 className="font-display text-3xl font-bold leading-[1.02] tracking-[-0.05em] text-[#232331] dark:text-[#f1eff7]">{title}</h1>
+        <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#6d6b79] dark:text-[#a79fb5]">{description}</p>
       </div>
       <div className="liquid-glass rounded-[30px] p-6">{children}</div>
-      {footer ? <div className="mt-6 text-center text-sm text-[#6d6b79]">{footer}</div> : null}
+      {footer ? <div className="mt-6 text-center text-sm text-[#6d6b79] dark:text-[#a79fb5]">{footer}</div> : null}
     </motion.section>
   );
 }
@@ -90,7 +90,7 @@ export function AuthErrorBanner({ message }: { message: string }) {
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      className="mb-4 rounded-2xl border border-[#ffc8d3] bg-[#fff3f6] px-4 py-2.5 text-sm font-medium text-[#9d3450]"
+      className="mb-4 rounded-2xl border border-[#ffc8d3] dark:border-[#5c2f3d] bg-[#fff3f6] dark:bg-[#2e2030] px-4 py-2.5 text-sm font-medium text-[#9d3450] dark:text-[#ffb4c8]"
     >
       {message}
     </motion.p>

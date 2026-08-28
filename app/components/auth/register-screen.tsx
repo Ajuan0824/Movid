@@ -76,7 +76,7 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
       footer={
         <>
           {t.haveAccount}{" "}
-          <button onClick={() => onNavigate("login")} className="font-semibold text-[#7657dd] hover:underline">{t.signIn}</button>
+          <button onClick={() => onNavigate("login")} className="font-semibold text-[#7657dd] dark:text-[#c4b3ff] hover:underline">{t.signIn}</button>
         </>
       }
     >
@@ -93,8 +93,8 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
           <GlassTextField label={t.passwordLabel} type="password" value={password} onChange={setPassword} autoComplete="new-password" />
           {password ? (
             <div className="mt-2 flex items-center gap-2">
-              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#ece9f2]"><span className="block h-full rounded-full transition-all" style={{ width: strengthWidth, background: strengthColor }} /></span>
-              <span className="font-mono text-[10px] font-bold text-[#85818f]">{strengthLabel}</span>
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#ece9f2] dark:bg-[#2a2636]"><span className="block h-full rounded-full transition-all" style={{ width: strengthWidth, background: strengthColor }} /></span>
+              <span className="font-mono text-[10px] font-bold text-[#85818f] dark:text-[#a49fb0]">{strengthLabel}</span>
             </div>
           ) : null}
         </div>
@@ -108,12 +108,12 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
           className="flex items-center gap-2.5 text-left"
         >
           <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-[7px] border-2 transition ${terms ? "border-[#7657dd] bg-[#7657dd] text-white" : "border-[#cfc8df] text-transparent"}`}><Check size={12} strokeWidth={3} /></span>
-          <span className="text-xs leading-4 text-[#6d6b79]">{t.termsText}</span>
+          <span className="text-xs leading-4 text-[#6d6b79] dark:text-[#a79fb5]">{t.termsText}</span>
         </button>
 
         <AuthSubmitButton loading={loading} onTap={() => tapHaptic()}>{t.submit}</AuthSubmitButton>
       </form>
-      <div className="my-5 flex items-center gap-3 text-xs font-medium text-[#aaa7b1]">
+      <div className="my-5 flex items-center gap-3 text-xs font-medium text-[#aaa7b1] dark:text-[#948fa0]">
         <div className="h-px flex-1 bg-[#e7e3ee]" />{copy.auth.login.orDivider}<div className="h-px flex-1 bg-[#e7e3ee]" />
       </div>
       <div className="flex flex-col gap-3">

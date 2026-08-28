@@ -19,7 +19,7 @@ type AccountScreenProps = {
 
 function SuccessNote({ message }: { message: string }) {
   return (
-    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#3aa16b]">
+    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#3aa16b] dark:text-[#6fd39a]">
       <Check size={13} />{message}
     </motion.p>
   );
@@ -86,9 +86,9 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
   };
 
   return (
-    <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={screenTransition} className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center py-9">
+    <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={screenTransition} className="mx-auto flex w-full max-w-lg flex-1 flex-col py-9">
       <motion.div className="mb-6" variants={heroTextVariants} initial="hidden" animate="visible">
-        <motion.div variants={heroTextItemVariants} className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] px-3 py-1.5 text-xs font-bold text-[#7657dd]"><Sparkles size={13} />{copy.account.eyebrow}</motion.div>
+        <motion.div variants={heroTextItemVariants} className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] dark:bg-[#2c2740] px-3 py-1.5 text-xs font-bold text-[#7657dd] dark:text-[#c4b3ff]"><Sparkles size={13} />{copy.account.eyebrow}</motion.div>
         <motion.h1 variants={heroTextItemVariants} className="font-display text-4xl font-bold tracking-[-0.06em]">{copy.account.title}</motion.h1>
       </motion.div>
 
@@ -102,19 +102,19 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-bold text-[#242432]">{user.displayName ?? user.email}</p>
-          <p className="truncate text-xs text-[#85818f]">{user.email}</p>
+          <p className="truncate text-base font-bold text-[#242432] dark:text-[#f2f0f8]">{user.displayName ?? user.email}</p>
+          <p className="truncate text-xs text-[#85818f] dark:text-[#a49fb0]">{user.email}</p>
         </div>
-        <span className="shrink-0 rounded-full bg-[#efedf4] px-2.5 py-1 font-mono text-[10px] font-bold text-[#6d6b79]">{copy.account.plan}</span>
+        <span className="shrink-0 rounded-full bg-[#efedf4] dark:bg-[#2a2636] px-2.5 py-1 font-mono text-[10px] font-bold text-[#6d6b79] dark:text-[#a79fb5]">{copy.account.plan}</span>
       </div>
 
-      <button type="button" onClick={onGoPro} className="mt-3 flex w-full items-center gap-3 rounded-[22px] border border-[#dfd4ff] bg-[#f0ecff] p-4 text-left transition hover:-translate-y-0.5">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#7657dd]"><Sparkles size={15} /></span>
+      <button type="button" onClick={onGoPro} className="mt-3 flex w-full items-center gap-3 rounded-[22px] border border-[#dfd4ff] dark:border-[#4a3f73] bg-[#f0ecff] dark:bg-[#2c2740] p-4 text-left transition hover:-translate-y-0.5">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white dark:bg-[#211e2c] text-[#7657dd] dark:text-[#c4b3ff]"><Sparkles size={15} /></span>
         <span className="flex-1">
-          <span className="block text-sm font-bold text-[#5c3fc4]">{copy.account.upgrade}</span>
-          <span className="mt-0.5 block text-xs text-[#6d6b79]">{copy.account.upgradeSub}</span>
+          <span className="block text-sm font-bold text-[#5c3fc4] dark:text-[#b9a6ff]">{copy.account.upgrade}</span>
+          <span className="mt-0.5 block text-xs text-[#6d6b79] dark:text-[#a79fb5]">{copy.account.upgradeSub}</span>
         </span>
-        <ChevronRight size={16} className="shrink-0 text-[#7657dd]" />
+        <ChevronRight size={16} className="shrink-0 text-[#7657dd] dark:text-[#c4b3ff]" />
       </button>
 
       <div className="glass-panel mt-3 rounded-[26px] p-5 shadow-panel">
@@ -132,7 +132,7 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
       {canChangePassword ? (
         <div className="glass-panel mt-3 rounded-[26px] p-5 shadow-panel">
           <p className="font-display text-lg font-bold tracking-[-0.03em]">{t.passwordTitle}</p>
-          <p className="mt-1 text-xs text-[#6d6b79]">{t.passwordDescription}</p>
+          <p className="mt-1 text-xs text-[#6d6b79] dark:text-[#a79fb5]">{t.passwordDescription}</p>
           <div className="mt-4 flex flex-col gap-3">
             <GlassTextField label={t.currentPasswordLabel} type="password" value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" />
             <GlassTextField label={t.newPasswordLabel} type="password" value={newPassword} onChange={setNewPassword} autoComplete="new-password" />
@@ -145,13 +145,13 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
           <AnimatePresence>{passwordSaved ? <SuccessNote message={t.passwordSaved} /> : null}</AnimatePresence>
         </div>
       ) : (
-        <p className="mt-3 rounded-2xl bg-white/60 px-4 py-3 text-xs leading-5 text-[#6d6b79]">{t.noPasswordProvider}</p>
+        <p className="mt-3 rounded-2xl bg-white/60 dark:bg-white/5 px-4 py-3 text-xs leading-5 text-[#6d6b79] dark:text-[#a79fb5]">{t.noPasswordProvider}</p>
       )}
 
       <motion.button
         whileTap={{ scale: tapScale }}
         onClick={() => { tapHaptic(); void signOutUser(); }}
-        className="secondary-button mt-3 w-full !text-[#e0507a]"
+        className="secondary-button mt-3 w-full !text-[#e0507a] dark:text-[#ff8fae]"
       >
         <LogOut size={16} />{copy.auth.account.signOut}
       </motion.button>

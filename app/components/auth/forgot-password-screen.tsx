@@ -45,14 +45,14 @@ export function ForgotPasswordScreen({ copy, onNavigate }: ForgotPasswordScreenP
       title={t.title}
       description={t.description}
       footer={
-        <button onClick={() => onNavigate("login")} className="font-semibold text-[#7657dd] hover:underline">{t.back}</button>
+        <button onClick={() => onNavigate("login")} className="font-semibold text-[#7657dd] dark:text-[#c4b3ff] hover:underline">{t.back}</button>
       }
     >
       {error ? <AuthErrorBanner message={error} /> : null}
       {sent ? (
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center gap-3 py-4 text-center">
-          <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f0ecff] text-[#7657dd]"><MailCheck size={26} /></div>
-          <p className="text-sm leading-6 text-[#4f4d5a]">{t.sent}</p>
+          <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f0ecff] dark:bg-[#2c2740] text-[#7657dd] dark:text-[#c4b3ff]"><MailCheck size={26} /></div>
+          <p className="text-sm leading-6 text-[#4f4d5a] dark:text-[#d8d3e2]">{t.sent}</p>
         </motion.div>
       ) : (
         <form
