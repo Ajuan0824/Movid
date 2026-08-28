@@ -1,8 +1,9 @@
 import type { Locale } from "./types";
 
 export type AppCopy = {
-  language: { label: string; english: string; spanish: string };
-  hero: { eyebrow: string; title: string; titleAccent: string; description: string; maxLength: string; record: string; upload: string; private: string; aiReady: string };
+  language: { label: string; english: string; spanish: string; system: string };
+  appearance: { label: string; system: string; light: string; dark: string };
+  hero: { title: string; titleAccent: string; description: string; maxLength: string; record: string; upload: string; private: string; aiReady: string };
   review: { eyebrow: string; title: string; description: string; retry: string; analyse: string };
   analysis: { eyebrow: string; title: string; steps: string[] };
   results: { eyebrow: string; title: string; newVideo: string; moments: string; tipStart: string; tipEnd: string; selectHint: string; download: string; downloadEmpty: string; downloadOne: string; topFive: string; moment: string };
@@ -15,7 +16,6 @@ export type AppCopy = {
     ctaMonthly: string; ctaYearly: string; trial: string; comingSoon: string;
   };
   account: { eyebrow: string; title: string; plan: string; upgrade: string; upgradeSub: string };
-  footer: { left: string; right: string };
   errors: { notVideo: string; tooLong: string; unreadable: string };
   desktopGate: { title: string; description: string };
   auth: {
@@ -34,9 +34,9 @@ export type AppCopy = {
 
 const dictionary: Record<Locale, AppCopy> = {
   en: {
-    language: { label: "Language", english: "English", spanish: "Spanish" },
+    language: { label: "Language", english: "English", spanish: "Spanish", system: "Automatic" },
+    appearance: { label: "Appearance", system: "Automatic", light: "Light", dark: "Dark" },
     hero: {
-      eyebrow: "YOUR MOMENT EDITOR",
       title: "Capture a moment.",
       titleAccent: "Keep the best part.",
       description: "Record or upload up to 15 seconds and let AI find your 5 most shareable moments.",
@@ -104,7 +104,6 @@ const dictionary: Record<Locale, AppCopy> = {
       upgrade: "Upgrade to Pro",
       upgradeSub: "Priority analysis and higher-resolution exports",
     },
-    footer: { left: "MADE FOR MOMENTS WORTH REPLAYING", right: "PRIVATE BY DESIGN" },
     errors: {
       notVideo: "Choose a video file to continue.",
       tooLong: "This clip is longer than 15 seconds. Trim it and try again.",
@@ -187,9 +186,9 @@ const dictionary: Record<Locale, AppCopy> = {
     },
   },
   es: {
-    language: { label: "Idioma", english: "Inglés", spanish: "Español" },
+    language: { label: "Idioma", english: "Inglés", spanish: "Español", system: "Automático" },
+    appearance: { label: "Apariencia", system: "Automático", light: "Claro", dark: "Oscuro" },
     hero: {
-      eyebrow: "TU EDITOR DE MOMENTOS",
       title: "Graba un momento.",
       titleAccent: "Quédate con lo mejor.",
       description: "Graba o sube hasta 15 segundos y deja que la IA encuentre tus 5 instantes más compartibles.",
@@ -257,7 +256,6 @@ const dictionary: Record<Locale, AppCopy> = {
       upgrade: "Mejorar a Pro",
       upgradeSub: "Análisis prioritario y exportación en mayor resolución",
     },
-    footer: { left: "HECHO PARA MOMENTOS QUE MERECEN REPETIRSE", right: "PRIVATE BY DESIGN" },
     errors: {
       notVideo: "Elige un archivo de vídeo para continuar.",
       tooLong: "Este clip dura más de 15 segundos. Recórtalo y vuelve a intentarlo.",

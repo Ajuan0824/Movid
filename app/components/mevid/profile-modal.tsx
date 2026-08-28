@@ -20,7 +20,7 @@ type ProfileModalProps = {
 
 function SuccessNote({ message }: { message: string }) {
   return (
-    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#3aa16b]">
+    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#3aa16b] dark:text-[#6fd39a]">
       <Check size={13} />{message}
     </motion.p>
   );
@@ -80,10 +80,10 @@ export function ProfileModal({ copy, onClose, onManageAccount }: ProfileModalPro
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="truncate font-display text-lg font-bold tracking-[-0.03em] text-[#232331]">{t.title}</h2>
-            <p className="truncate text-xs text-[#85818f]">{user.email}</p>
+            <h2 className="truncate font-display text-lg font-bold tracking-[-0.03em] text-[#232331] dark:text-[#f1eff7]">{t.title}</h2>
+            <p className="truncate text-xs text-[#85818f] dark:text-[#a49fb0]">{user.email}</p>
           </div>
-          <button onClick={onClose} aria-label={t.close} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/70 text-[#6d6b79] hover:bg-white">
+          <button onClick={onClose} aria-label={t.close} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/70 dark:bg-white/5 text-[#6d6b79] dark:text-[#a79fb5] hover:bg-white dark:hover:bg-white/15">
             <X size={16} />
           </button>
         </div>
@@ -105,16 +105,16 @@ export function ProfileModal({ copy, onClose, onManageAccount }: ProfileModalPro
               onClose();
               onManageAccount();
             }}
-            className="mt-3 flex w-full items-center gap-3 rounded-2xl bg-white/60 p-3.5 text-left transition hover:bg-white"
+            className="mt-3 flex w-full items-center gap-3 rounded-2xl bg-white/60 dark:bg-white/5 p-3.5 text-left transition hover:bg-white dark:hover:bg-white/15"
           >
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold text-[#232331]">{t.passwordTitle}</span>
-              <span className="mt-0.5 block truncate text-xs text-[#6d6b79]">{t.passwordDescription}</span>
+              <span className="block text-sm font-bold text-[#232331] dark:text-[#f1eff7]">{t.passwordTitle}</span>
+              <span className="mt-0.5 block truncate text-xs text-[#6d6b79] dark:text-[#a79fb5]">{t.passwordDescription}</span>
             </span>
-            <ChevronRight size={16} className="shrink-0 text-[#7657dd]" />
+            <ChevronRight size={16} className="shrink-0 text-[#7657dd] dark:text-[#c4b3ff]" />
           </button>
         ) : (
-          <p className="mt-3 rounded-2xl bg-[#f3f1fa] px-4 py-3 text-xs leading-5 text-[#6d6b79]">{t.noPasswordProvider}</p>
+          <p className="mt-3 rounded-2xl bg-[#f3f1fa] dark:bg-[#26222f] px-4 py-3 text-xs leading-5 text-[#6d6b79] dark:text-[#a79fb5]">{t.noPasswordProvider}</p>
         )}
       </motion.div>
     </motion.div>

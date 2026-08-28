@@ -11,17 +11,18 @@ import { Brand } from "./components/mevid/brand";
 import { DesktopGate } from "./components/mevid/desktop-gate";
 import { DotGrid } from "./components/mevid/dot-grid";
 import { IntroScreen } from "./components/mevid/intro-screen";
-import { LanguageSwitcher } from "./components/mevid/language-switcher";
 import { ProScreen } from "./components/mevid/pro-screen";
 import { ResultsScreen } from "./components/mevid/results-screen";
 import { ReviewScreen } from "./components/mevid/review-screen";
 import { TabBar, type AppTab } from "./components/mevid/tab-bar";
 import { useAuth } from "../hooks/use-auth";
 import { useIsMobile } from "../hooks/use-is-mobile";
+import { useLocalePref } from "../hooks/use-locale-pref";
+import { useThemePref } from "../hooks/use-theme-pref";
 import { getCopy } from "../lib/mevid/copy";
 import { getFallbackHighlights } from "../lib/mevid/highlights";
 import { heroTextItemVariants, heroTextVariants, screenTransition, tapScale } from "../lib/mevid/motion";
-import type { AnalysisResponse, Locale, VideoHighlight } from "../lib/mevid/types";
+import type { AnalysisResponse, VideoHighlight } from "../lib/mevid/types";
 import { extractFrames, getVideoDuration, hydrateHighlightImages, MAX_VIDEO_SECONDS } from "../lib/mevid/video";
 
 type FlowView = "idle" | "review" | "analysing";
@@ -29,7 +30,8 @@ type FlowView = "idle" | "review" | "analysing";
 export default function Home() {
   const mobileState = useIsMobile();
   const { status: authStatus } = useAuth();
-  const [locale, setLocale] = useState<Locale>("en");
+  const { pref: localePref, locale, setPref: setLocalePref, ready: localeReady } = useLocalePref();
+  const { pref: themePref, setPref: setThemePref } = useThemePref();
   const [tab, setTab] = useState<AppTab>("home");
   const [flowView, setFlowView] = useState<FlowView>("idle");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -141,12 +143,8 @@ export default function Home() {
     });
   };
 
-  const selectHighlight = (highlight: VideoHighlight, index: number) => {
+  const selectHighlight = (_highlight: VideoHighlight, index: number) => {
     setSelected(index);
-    if (resultVideoRef.current) {
-      resultVideoRef.current.currentTime = highlight.start;
-      void resultVideoRef.current.play();
-    }
   };
 
   const startOver = () => {
@@ -204,8 +202,8 @@ export default function Home() {
     }
   };
 
-  if (mobileState === "checking") {
-    return <main className="min-h-dvh bg-[#f8f7fb]" />;
+  if (mobileState === "checking" || !localeReady) {
+    return <main className="min-h-dvh bg-[#f8f7fb] dark:bg-[#121018]" />;
   }
 
   if (mobileState === "desktop") {
@@ -213,21 +211,28 @@ export default function Home() {
   }
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[#f8f7fb] text-[#232331]">
+    <main className="relative h-dvh overflow-hidden bg-[#f8f7fb] dark:bg-[#121018] text-[#232331] dark:text-[#f1eff7]">
       <DotGrid />
       <div className="ambient-orb ambient-orb-left" />
       <div className="ambient-orb ambient-orb-right" />
-      <div className={`relative mx-auto flex min-h-dvh w-full max-w-xl flex-col pl-[calc(1.25rem+env(safe-area-inset-left))] pr-[calc(1.25rem+env(safe-area-inset-right))] pt-[calc(1.25rem+env(safe-area-inset-top))] sm:pl-[calc(2rem+env(safe-area-inset-left))] sm:pr-[calc(2rem+env(safe-area-inset-right))] ${authStatus === "signed-in" ? "pb-[calc(6rem+env(safe-area-inset-bottom))]" : "pb-[calc(1.5rem+env(safe-area-inset-bottom))]"}`}>
-        <header className="flex items-center justify-between">
+      <div className="relative mx-auto flex h-dvh w-full max-w-xl flex-col pl-[calc(1.25rem+env(safe-area-inset-left))] pr-[calc(1.25rem+env(safe-area-inset-right))] pt-[calc(1.25rem+env(safe-area-inset-top))] sm:pl-[calc(2rem+env(safe-area-inset-left))] sm:pr-[calc(2rem+env(safe-area-inset-right))]">
+        <header className="flex shrink-0 items-center justify-between">
           <Brand />
           <div className="flex items-center gap-2">
-            <LanguageSwitcher locale={locale} copy={copy} onChange={setLocale} />
-            <AccountMenu copy={copy} onManageAccount={() => setTab("cuenta")} />
-            <div className="hidden items-center gap-2 rounded-full border border-white bg-white/70 px-4 py-2 text-xs font-semibold text-[#666474] shadow-sm backdrop-blur-sm sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-[#ff5c82]" />SHIPATON 2026</div>
+            <AccountMenu
+              copy={copy}
+              onManageAccount={() => setTab("cuenta")}
+              localePref={localePref}
+              onLocalePrefChange={setLocalePref}
+              themePref={themePref}
+              onThemePrefChange={setThemePref}
+            />
+            <div className="hidden items-center gap-2 rounded-full border border-white dark:border-white/10 bg-white/70 dark:bg-white/5 px-4 py-2 text-xs font-semibold text-[#666474] dark:text-[#b3aec0] shadow-sm backdrop-blur-sm sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-[#ff5c82]" />SHIPATON 2026</div>
           </div>
         </header>
 
         <AuthGate copy={copy}>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(6rem+env(safe-area-inset-bottom))]">
           <AnimatePresence mode="wait">
             {tab === "home" && flowView === "idle" ? (
               <IntroScreen
@@ -264,9 +269,9 @@ export default function Home() {
             {tab === "momentos" && !(highlights.length > 0 && videoUrl) ? (
               <motion.section key="momentos-empty" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={screenTransition} className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center py-16 text-center">
                 <motion.div variants={heroTextVariants} initial="hidden" animate="visible">
-                  <motion.div variants={heroTextItemVariants} className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] px-3 py-1.5 text-xs font-bold text-[#7657dd]"><Sparkles size={13} />{copy.results.eyebrow}</motion.div>
+                  <motion.div variants={heroTextItemVariants} className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] dark:bg-[#2c2740] px-3 py-1.5 text-xs font-bold text-[#7657dd] dark:text-[#c4b3ff]"><Sparkles size={13} />{copy.results.eyebrow}</motion.div>
                   <motion.h1 variants={heroTextItemVariants} className="font-display text-3xl font-bold tracking-[-0.06em]">{copy.momentsEmpty.title}</motion.h1>
-                  <motion.p variants={heroTextItemVariants} className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#6d6b79]">{copy.momentsEmpty.description}</motion.p>
+                  <motion.p variants={heroTextItemVariants} className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#6d6b79] dark:text-[#a79fb5]">{copy.momentsEmpty.description}</motion.p>
                 </motion.div>
                 <motion.button whileTap={{ scale: tapScale }} onClick={() => setTab("home")} className="primary-button mt-6">{copy.momentsEmpty.cta}</motion.button>
               </motion.section>
@@ -275,14 +280,13 @@ export default function Home() {
             {tab === "pro" ? <ProScreen key="pro" copy={copy} onCta={() => setNotice(copy.pro.comingSoon)} /> : null}
             {tab === "cuenta" ? <AccountScreen key="cuenta" copy={copy} onGoPro={() => setTab("pro")} /> : null}
           </AnimatePresence>
+          </div>
 
           <TabBar copy={copy} tab={tab} onChange={setTab} />
         </AuthGate>
-
-        <footer className="mt-auto flex items-center justify-between pt-5 text-[11px] font-medium text-[#aaa7b1]"><span>{copy.footer.left}</span><span className="hidden sm:block">{copy.footer.right}</span></footer>
       </div>
-      <AnimatePresence>{error && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-[#ffc8d3] bg-white px-4 py-3 text-sm text-[#9d3450] shadow-xl"><span>{error}</span><button aria-label="Dismiss" onClick={() => setError(null)}><X size={16} /></button></motion.div>}</AnimatePresence>
-      <AnimatePresence>{notice && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-[#dfd4ff] bg-[#f0ecff] px-4 py-3 text-sm font-semibold text-[#5c3fc4] shadow-xl"><span>{notice}</span><button aria-label="Dismiss" onClick={() => setNotice(null)}><X size={16} /></button></motion.div>}</AnimatePresence>
+      <AnimatePresence>{error && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-[#ffc8d3] dark:border-[#5c2f3d] bg-white dark:bg-[#211e2c] px-4 py-3 text-sm text-[#9d3450] dark:text-[#ffb4c8] shadow-xl"><span>{error}</span><button aria-label="Dismiss" onClick={() => setError(null)}><X size={16} /></button></motion.div>}</AnimatePresence>
+      <AnimatePresence>{notice && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-[#dfd4ff] dark:border-[#4a3f73] bg-[#f0ecff] dark:bg-[#2c2740] px-4 py-3 text-sm font-semibold text-[#5c3fc4] dark:text-[#b9a6ff] shadow-xl"><span>{notice}</span><button aria-label="Dismiss" onClick={() => setNotice(null)}><X size={16} /></button></motion.div>}</AnimatePresence>
     </main>
   );
 }
