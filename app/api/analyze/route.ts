@@ -82,16 +82,66 @@ Every moment must last 0.5 to 3 seconds, fall between 0 and ${duration.toFixed(1
 
 ${manifest}.
 
-Return ONLY valid JSON in this shape: {"highlights":[{"start":number,"end":number,"peakTime":number,"title":string}]}. peakTime must sit inside [start,end] and mark the single sharpest, most expressive instant to freeze-frame — be precise, it is used to pick the exact still. Write title in ${language}, maximum 4 words.`,
+Return the 5 moments. peakTime must sit inside [start,end] and mark the single sharpest, most expressive instant to freeze-frame — be precise, it is used to pick the exact still. Write title in ${language}, maximum 4 words.`,
           },
           ...frames.map((frame) => ({ type: "input_image" as const, image_url: frame.image, detail: "low" as const })),
         ],
       }],
-      max_output_tokens: 700,
+      // Low effort keeps latency under Vercel's function ceiling and stops
+      // reasoning tokens from eating the whole output budget.
+      reasoning: { effort: "low" },
+      // Structured Outputs: the model is forced to emit JSON matching this
+      // schema and stops the moment the object is closed, so the output is
+      // always parseable and only ~200 tokens long regardless of the cap.
+      text: {
+        format: {
+          type: "json_schema",
+          name: "highlights",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["highlights"],
+            properties: {
+              highlights: {
+                type: "array",
+                minItems: 5,
+                maxItems: 5,
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["start", "end", "peakTime", "title"],
+                  properties: {
+                    start: { type: "number" },
+                    end: { type: "number" },
+                    peakTime: { type: "number" },
+                    title: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      // Only the JSON is billed against this now (~200 tokens). The rest is
+      // headroom for the model's reasoning, which "low" effort keeps small.
+      max_output_tokens: 3000,
     });
+
+    // A reasoning model that hits the token ceiling returns status
+    // "incomplete" with an empty output_text — surface that plainly instead of
+    // letting it fall through as a vague JSON parse error.
+    if (response.status === "incomplete") {
+      logServerError(
+        "analyze:incomplete",
+        new Error(`response cut off: ${response.incomplete_details?.reason ?? "unknown"}`),
+      );
+      return NextResponse.json({ error: "incomplete" }, { status: 502 });
+    }
 
     const highlights = parseHighlights(response.output_text, duration, locale);
     if (!highlights) {
+      logServerError("analyze:unparseable", new Error(`output_text length ${response.output_text?.length ?? 0}`));
       return NextResponse.json({ error: "unparseable" }, { status: 502 });
     }
     return NextResponse.json({ highlights });
