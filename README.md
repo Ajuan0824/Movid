@@ -121,6 +121,26 @@ con movimiento ese fotograma sale borroso a menudo.
 Cada candidato cuesta un salto y una decodificación, así que subir
 `REFINE_CANDIDATES` mejora la nitidez a cambio de tiempo de proceso en el móvil.
 
+### Recuperar contraseña
+
+Antes de enviar el correo se fija el código de idioma
+(`FirebaseAuthentication.setLanguageCode`) con el idioma activo de la app, así
+que Firebase usa su plantilla en español o en inglés según corresponda. Ese
+mismo idioma se aplica a la página que abre el enlace.
+
+La pantalla de éxito **no afirma que el correo se haya enviado**, porque la app
+no puede saberlo: el proyecto tiene activada la *protección de enumeración de
+correo*, y con ella Firebase responde con éxito exista la cuenta o no. Decir
+"te lo hemos enviado" sería adivinar. También avisa de que las cuentas de
+Google/Apple no tienen contraseña que restablecer.
+
+> **Entregabilidad.** El remitente por defecto es
+> `noreply@movid-76127.firebaseapp.com`, un dominio compartido que Gmail marca
+> como spam con frecuencia — y Gmail **desactiva los enlaces** de los mensajes
+> en spam, que es lo que hace que el enlace parezca roto. El arreglo real es
+> configurar un dominio propio en Authentication → Templates → personalizar
+> dominio, con sus registros DNS.
+
 ### Foto de perfil
 
 La imagen elegida en la galería **se reduce en el móvil antes de subirla**

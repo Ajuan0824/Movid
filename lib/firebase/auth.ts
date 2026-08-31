@@ -1,5 +1,6 @@
 import { FirebaseAuthentication, type User } from "@capacitor-firebase/authentication";
 import { ensureFirebaseApp } from "./config";
+import type { Locale } from "../mevid/types";
 
 export type { User };
 
@@ -25,7 +26,19 @@ export async function signInWithApple() {
   return user;
 }
 
-export async function sendPasswordReset(email: string) {
+/**
+ * Firebase ships its own localised default templates and picks one from the
+ * language code, so setting it here is what makes the reset email arrive in
+ * the language the person is actually using the app in. It also localises the
+ * hosted page the link opens.
+ */
+export async function sendPasswordReset(email: string, locale: Locale) {
+  try {
+    await FirebaseAuthentication.setLanguageCode({ languageCode: locale });
+  } catch (error) {
+    // Not worth failing the reset over — it just falls back to English.
+    console.error("Could not set the auth language", error);
+  }
   await FirebaseAuthentication.sendPasswordResetEmail({ email });
 }
 

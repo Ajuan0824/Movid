@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { type ReactNode, useState } from "react";
 import { useAuth } from "../../../hooks/use-auth";
 import type { AppCopy } from "../../../lib/mevid/copy";
+import type { Locale } from "../../../lib/mevid/types";
 import { ForgotPasswordScreen } from "./forgot-password-screen";
 import { LoginScreen } from "./login-screen";
 import { RegisterScreen } from "./register-screen";
@@ -12,10 +13,11 @@ type AuthView = "login" | "register" | "forgot";
 
 type AuthGateProps = {
   copy: AppCopy;
+  locale: Locale;
   children: ReactNode;
 };
 
-export function AuthGate({ copy, children }: AuthGateProps) {
+export function AuthGate({ copy, locale, children }: AuthGateProps) {
   const { status } = useAuth();
   const [view, setView] = useState<AuthView>("login");
 
@@ -37,7 +39,7 @@ export function AuthGate({ copy, children }: AuthGateProps) {
     <AnimatePresence mode="wait">
       {view === "login" ? <LoginScreen key="login" copy={copy} onNavigate={setView} /> : null}
       {view === "register" ? <RegisterScreen key="register" copy={copy} onNavigate={setView} /> : null}
-      {view === "forgot" ? <ForgotPasswordScreen key="forgot" copy={copy} onNavigate={setView} /> : null}
+      {view === "forgot" ? <ForgotPasswordScreen key="forgot" copy={copy} locale={locale} onNavigate={setView} /> : null}
     </AnimatePresence>
   );
 }

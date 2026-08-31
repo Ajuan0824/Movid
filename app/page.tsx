@@ -321,7 +321,7 @@ export default function Home() {
           </div>
         </header>
 
-        <AuthGate copy={copy}>
+        <AuthGate copy={copy} locale={locale}>
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(6rem+env(safe-area-inset-bottom))]">
           <AnimatePresence mode="wait">
             {tab === "home" && flowView === "idle" ? (

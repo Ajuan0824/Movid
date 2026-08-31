@@ -6,16 +6,18 @@ import { useState } from "react";
 import { sendPasswordReset } from "../../../lib/firebase/auth";
 import { resolveAuthErrorKey } from "../../../lib/firebase/auth-errors";
 import type { AppCopy } from "../../../lib/mevid/copy";
+import type { Locale } from "../../../lib/mevid/types";
 import { tapHaptic } from "../../../lib/mevid/haptics";
 import { AuthErrorBanner, AuthShell, AuthSubmitButton } from "./auth-shell";
 import { GlassTextField } from "./glass-text-field";
 
 type ForgotPasswordScreenProps = {
   copy: AppCopy;
+  locale: Locale;
   onNavigate: (view: "login") => void;
 };
 
-export function ForgotPasswordScreen({ copy, onNavigate }: ForgotPasswordScreenProps) {
+export function ForgotPasswordScreen({ copy, locale, onNavigate }: ForgotPasswordScreenProps) {
   const t = copy.auth.forgot;
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +32,7 @@ export function ForgotPasswordScreen({ copy, onNavigate }: ForgotPasswordScreenP
     setError(null);
     setLoading(true);
     try {
-      await sendPasswordReset(email);
+      await sendPasswordReset(email, locale);
       setSent(true);
     } catch (err) {
       setError(copy.auth.errors[resolveAuthErrorKey(err)]);
