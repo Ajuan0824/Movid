@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import type { ChangeEvent, RefObject } from "react";
 import type { AppCopy } from "../../../lib/mevid/copy";
 import { heroTextItemVariants, heroTextVariants, screenTransition, tapScale } from "../../../lib/mevid/motion";
+import { StarMeter, StarMeterPlaceholder } from "./star-meter";
 
 type IntroScreenProps = {
   copy: AppCopy;
@@ -12,9 +13,12 @@ type IntroScreenProps = {
   onUpload: () => void;
   onRecordFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onUploadFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  planReady: boolean;
+  starsLeft: number;
+  starsTotal: number;
 };
 
-export function IntroScreen({ copy, recordInputRef, uploadInputRef, onRecord, onUpload, onRecordFileChange, onUploadFileChange }: IntroScreenProps) {
+export function IntroScreen({ copy, recordInputRef, uploadInputRef, onRecord, onUpload, onRecordFileChange, onUploadFileChange, planReady, starsLeft, starsTotal }: IntroScreenProps) {
   return (
     <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={screenTransition} className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center py-2">
       <motion.div className="mb-4 text-center" variants={heroTextVariants} initial="hidden" animate="visible">
@@ -54,6 +58,14 @@ export function IntroScreen({ copy, recordInputRef, uploadInputRef, onRecord, on
         {/* `capture` makes iOS/Android open the native camera app directly instead of the file/photo picker. */}
         <input ref={recordInputRef} type="file" accept="video/*" capture="user" className="hidden" onChange={onRecordFileChange} />
         <input ref={uploadInputRef} type="file" accept="video/*" className="hidden" onChange={onUploadFileChange} />
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...screenTransition, delay: 0.42 }}
+        className="mt-3.5"
+      >
+        {planReady ? <StarMeter copy={copy} left={starsLeft} total={starsTotal} /> : <StarMeterPlaceholder />}
       </motion.div>
       <motion.p
         initial={{ opacity: 0 }}

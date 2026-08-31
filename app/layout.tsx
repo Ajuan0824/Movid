@@ -3,6 +3,7 @@ import { DM_Sans, Space_Grotesk } from "next/font/google";
 import { ClientBootstrap } from "./components/mevid/client-bootstrap";
 import "./globals.css";
 import { AuthProvider } from "../hooks/use-auth";
+import { PlanProvider } from "../hooks/use-plan";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -44,7 +45,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className={`${dmSans.variable} ${spaceGrotesk.variable}`}>
         <ClientBootstrap />
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <PlanProvider>{children}</PlanProvider>
+        </AuthProvider>
       </body>
     </html>
   );

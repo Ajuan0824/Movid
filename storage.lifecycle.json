@@ -1,0 +1,24 @@
+{
+  "_comment": [
+    "Backstop for the 30-day retention on saved generations. The app already",
+    "prunes a user's expired clips when they open it (lib/firebase/generations.ts),",
+    "but that never runs for an abandoned account — this sweeps those too.",
+    "",
+    "Only the generations/ prefix is matched, so profile photos under users/",
+    "are never touched. Keep the age in sync with RETENTION_DAYS.",
+    "",
+    "Apply with:  gcloud storage buckets update gs://movid-76127.firebasestorage.app --lifecycle-file=storage.lifecycle.json",
+    "(or Google Cloud console -> Cloud Storage -> the bucket -> Lifecycle -> Add a rule)"
+  ],
+  "lifecycle": {
+    "rule": [
+      {
+        "action": { "type": "Delete" },
+        "condition": {
+          "age": 30,
+          "matchesPrefix": ["generations/"]
+        }
+      }
+    ]
+  }
+}

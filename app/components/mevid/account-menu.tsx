@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Languages, LogOut, Moon, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../hooks/use-auth";
+import { usePlan } from "../../../hooks/use-plan";
+import { PlanBadge } from "./plan-badge";
 import { signOutUser } from "../../../lib/firebase/auth";
 import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
@@ -52,6 +54,7 @@ type AccountMenuProps = {
 
 export function AccountMenu({ copy, onManageAccount, localePref, onLocalePrefChange, themePref, onThemePrefChange }: AccountMenuProps) {
   const { status, user } = useAuth();
+  const { plan, ready: planReady } = usePlan();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [imgFailed, setImgFailed] = useState(false);
@@ -101,7 +104,10 @@ export function AccountMenu({ copy, onManageAccount, localePref, onLocalePrefCha
             className="liquid-glass-strong absolute right-0 top-11 z-40 w-64 rounded-2xl p-3"
           >
             <p className="truncate px-1 text-xs text-[#6d6b79] dark:text-[#a79fb5]">{copy.auth.account.signedInAs}</p>
-            <p className="mb-3 truncate px-1 text-sm font-semibold text-[#232331] dark:text-[#f1eff7]">{user.displayName ?? user.email}</p>
+            <div className="mb-3 flex items-center gap-2 px-1">
+              <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[#232331] dark:text-[#f1eff7]">{user.displayName ?? user.email}</p>
+              {planReady ? <PlanBadge copy={copy} plan={plan} /> : null}
+            </div>
 
             <SettingsRow icon={<Languages size={12} />} label={copy.language.label} value={localePref} options={languageOptions} onChange={onLocalePrefChange} />
             <SettingsRow icon={<Moon size={12} />} label={copy.appearance.label} value={themePref} options={appearanceOptions} onChange={onThemePrefChange} />

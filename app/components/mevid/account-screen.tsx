@@ -4,6 +4,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronRight, LogOut, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../../hooks/use-auth";
+import { usePlan } from "../../../hooks/use-plan";
+import { PlanBadge } from "./plan-badge";
+import { StarMeter } from "./star-meter";
 import { AuthErrorBanner, AuthSubmitButton } from "../auth/auth-shell";
 import { GlassTextField } from "../auth/glass-text-field";
 import { changePassword, hasPasswordProvider, signOutUser, updateUserProfile } from "../../../lib/firebase/auth";
@@ -28,6 +31,7 @@ function SuccessNote({ message }: { message: string }) {
 export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
   const t = copy.auth.profile;
   const { user, refreshUser } = useAuth();
+  const { plan, limit, starsLeft, ready: planReady } = usePlan();
 
   const [name, setName] = useState(user?.displayName ?? "");
   const [nameLoading, setNameLoading] = useState(false);
@@ -105,9 +109,16 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
           <p className="truncate text-base font-bold text-[#242432] dark:text-[#f2f0f8]">{user.displayName ?? user.email}</p>
           <p className="truncate text-xs text-[#85818f] dark:text-[#a49fb0]">{user.email}</p>
         </div>
-        <span className="shrink-0 rounded-full bg-[#efedf4] dark:bg-[#2a2636] px-2.5 py-1 font-mono text-[10px] font-bold text-[#6d6b79] dark:text-[#a79fb5]">{copy.account.plan}</span>
+        {planReady ? <PlanBadge copy={copy} plan={plan} /> : null}
       </div>
 
+      {planReady ? (
+        <div className="glass-panel mt-3 rounded-[26px] p-4 shadow-panel">
+          <StarMeter copy={copy} left={starsLeft} total={limit} />
+        </div>
+      ) : null}
+
+      {planReady && plan === "pro" ? null : (
       <button type="button" onClick={onGoPro} className="mt-3 flex w-full items-center gap-3 rounded-[22px] border border-[#dfd4ff] dark:border-[#4a3f73] bg-[#f0ecff] dark:bg-[#2c2740] p-4 text-left transition hover:-translate-y-0.5">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white dark:bg-[#211e2c] text-[#7657dd] dark:text-[#c4b3ff]"><Sparkles size={15} /></span>
         <span className="flex-1">
@@ -116,6 +127,7 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
         </span>
         <ChevronRight size={16} className="shrink-0 text-[#7657dd] dark:text-[#c4b3ff]" />
       </button>
+      )}
 
       <div className="glass-panel mt-3 rounded-[26px] p-5 shadow-panel">
         <p className="font-display text-lg font-bold tracking-[-0.03em]">{t.title}</p>

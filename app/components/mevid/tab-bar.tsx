@@ -4,6 +4,7 @@ import { Clapperboard, Gem, Home, UserRound } from "lucide-react";
 import { motion } from "framer-motion";
 import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
+import { usePlan } from "../../../hooks/use-plan";
 
 export type AppTab = "home" | "momentos" | "pro" | "cuenta";
 
@@ -21,12 +22,17 @@ const TABS: Array<{ key: AppTab; icon: typeof Home }> = [
 ];
 
 export function TabBar({ copy, tab, onChange }: TabBarProps) {
+  const { plan, ready } = usePlan();
+  // Nothing to upsell to a subscriber. Only filter once the plan is known, so
+  // free users don't watch the tab pop in.
+  const tabs = ready && plan === "pro" ? TABS.filter(({ key }) => key !== "pro") : TABS;
+
   return (
     <nav
       aria-label={copy.tabs.nav}
       className="liquid-glass !fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-20 mx-auto flex max-w-xl items-center justify-between gap-1 rounded-[26px] p-1.5"
     >
-      {TABS.map(({ key, icon: Icon }) => {
+      {tabs.map(({ key, icon: Icon }) => {
         const active = tab === key;
         return (
           <motion.button

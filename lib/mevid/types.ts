@@ -13,9 +13,20 @@ export type VideoHighlight = {
   image: string;
 };
 
-export type AnalysisSource = "openai" | "local";
+/**
+ * One saved run of the analyser. `videoUrl` and each highlight's `image` are
+ * remote download URLs once stored, or local object/data URLs while the upload
+ * is still in flight (`pending`).
+ */
+export type StoredGeneration = {
+  id: string;
+  createdAt: Date;
+  duration: number;
+  videoUrl: string;
+  highlights: VideoHighlight[];
+  pending?: boolean;
+};
 
 export type AnalysisResponse = {
   highlights: VideoHighlight[];
-  source: AnalysisSource;
 };
