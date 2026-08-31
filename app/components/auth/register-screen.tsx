@@ -6,6 +6,8 @@ import { resolveAuthErrorKey } from "../../../lib/firebase/auth-errors";
 import { signInWithApple, signInWithGoogle, signUpWithEmail } from "../../../lib/firebase/auth";
 import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
+import { supportsAppleSignIn } from "../../../lib/mevid/platform";
+import { usePlatform } from "../../../hooks/use-platform";
 import { AuthErrorBanner, AuthShell, AuthSubmitButton } from "./auth-shell";
 import { GlassTextField } from "./glass-text-field";
 import { SocialButton } from "./social-button";
@@ -17,6 +19,7 @@ type RegisterScreenProps = {
 
 export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
   const t = copy.auth.register;
+  const showApple = supportsAppleSignIn(usePlatform());
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -118,7 +121,9 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
       </div>
       <div className="flex flex-col gap-3">
         <SocialButton provider="google" loading={socialLoading === "google"} disabled={socialLoading !== null} onClick={() => void withSocial("google", signInWithGoogle)}>{copy.auth.login.google}</SocialButton>
-        <SocialButton provider="apple" loading={socialLoading === "apple"} disabled={socialLoading !== null} onClick={() => void withSocial("apple", signInWithApple)}>{copy.auth.login.apple}</SocialButton>
+        {showApple ? (
+          <SocialButton provider="apple" loading={socialLoading === "apple"} disabled={socialLoading !== null} onClick={() => void withSocial("apple", signInWithApple)}>{copy.auth.login.apple}</SocialButton>
+        ) : null}
       </div>
     </AuthShell>
   );

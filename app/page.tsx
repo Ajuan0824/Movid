@@ -1,53 +1,62 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles, X } from "lucide-react";
+import { X } from "lucide-react";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { AccountScreen } from "./components/mevid/account-screen";
 import { AnalysisScreen } from "./components/mevid/analysis-screen";
 import { AccountMenu } from "./components/mevid/account-menu";
 import { AuthGate } from "./components/auth/auth-gate";
 import { Brand } from "./components/mevid/brand";
+import { CameraRecorder } from "./components/mevid/camera-recorder";
 import { DesktopGate } from "./components/mevid/desktop-gate";
 import { DotGrid } from "./components/mevid/dot-grid";
 import { IntroScreen } from "./components/mevid/intro-screen";
+import { MomentsLibrary } from "./components/mevid/moments-library";
 import { ProScreen } from "./components/mevid/pro-screen";
 import { ResultsScreen } from "./components/mevid/results-screen";
 import { ReviewScreen } from "./components/mevid/review-screen";
+import { StarsEmptyModal } from "./components/mevid/stars-empty-modal";
 import { TabBar, type AppTab } from "./components/mevid/tab-bar";
-import { useAuth } from "../hooks/use-auth";
+import { useGenerations } from "../hooks/use-generations";
+import { usePlan } from "../hooks/use-plan";
 import { useIsMobile } from "../hooks/use-is-mobile";
 import { useLocalePref } from "../hooks/use-locale-pref";
 import { useThemePref } from "../hooks/use-theme-pref";
 import { getCopy } from "../lib/mevid/copy";
-import { getFallbackHighlights } from "../lib/mevid/highlights";
-import { heroTextItemVariants, heroTextVariants, screenTransition, tapScale } from "../lib/mevid/motion";
-import type { AnalysisResponse, VideoHighlight } from "../lib/mevid/types";
+import { isInAppCameraSupported } from "../lib/mevid/recorder";
+import type { AnalysisResponse, StoredGeneration, VideoHighlight } from "../lib/mevid/types";
 import { extractFrames, getVideoDuration, hydrateHighlightImages, MAX_VIDEO_SECONDS } from "../lib/mevid/video";
 
 type FlowView = "idle" | "review" | "analysing";
 
 export default function Home() {
   const mobileState = useIsMobile();
-  const { status: authStatus } = useAuth();
+  const { plan, limit: starsTotal, starsLeft, ready: planReady, spend: spendStar } = usePlan();
   const { pref: localePref, locale, setPref: setLocalePref, ready: localeReady } = useLocalePref();
   const { pref: themePref, setPref: setThemePref } = useThemePref();
   const [tab, setTab] = useState<AppTab>("home");
   const [flowView, setFlowView] = useState<FlowView>("idle");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoDuration, setVideoDuration] = useState(MAX_VIDEO_SECONDS);
-  const [highlights, setHighlights] = useState<VideoHighlight[]>([]);
+  const [openGenerationId, setOpenGenerationId] = useState<string | null>(null);
   const [selected, setSelected] = useState(0);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [analysisStep, setAnalysisStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [starsEmptyOpen, setStarsEmptyOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   const recordInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const resultVideoRef = useRef<HTMLVideoElement>(null);
   const urlRef = useRef<string | null>(null);
+  const videoBlobRef = useRef<Blob | null>(null);
   const copy = getCopy(locale);
+
+  const { generations, save: saveGeneration, remove: removeGeneration } = useGenerations();
+  const openGeneration = generations.find((entry) => entry.id === openGenerationId) ?? null;
 
   const clearVideo = useCallback(() => {
     if (urlRef.current) URL.revokeObjectURL(urlRef.current);
@@ -59,6 +68,7 @@ export default function Home() {
     clearVideo();
     const nextUrl = URL.createObjectURL(video);
     urlRef.current = nextUrl;
+    videoBlobRef.current = video;
     setVideoUrl(nextUrl);
     setVideoDuration(Math.min(duration, MAX_VIDEO_SECONDS));
     setFlowView("review");
@@ -67,6 +77,12 @@ export default function Home() {
   useEffect(() => () => {
     if (urlRef.current) URL.revokeObjectURL(urlRef.current);
   }, []);
+
+  // The Pro tab is hidden for subscribers, so don't strand one on it — it can
+  // still be the active tab if the plan resolved while they were viewing it.
+  useEffect(() => {
+    if (planReady && plan === "pro" && tab === "pro") setTab("home");
+  }, [planReady, plan, tab]);
 
   useEffect(() => {
     if (!notice) return;
@@ -93,6 +109,14 @@ export default function Home() {
     }
   };
 
+  /** In-app camera when the browser allows it, OS camera app otherwise (it
+   *  needs a secure context, which the plain-http dev server isn't). */
+  const startRecording = () => {
+    setError(null);
+    if (isInAppCameraSupported()) setCameraOpen(true);
+    else recordInputRef.current?.click();
+  };
+
   const handleFileInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -100,13 +124,23 @@ export default function Home() {
   };
 
   const analyseVideo = async () => {
-    if (!videoUrl) return;
+    const videoBlob = videoBlobRef.current;
+    if (!videoUrl || !videoBlob) return;
+    if (starsLeft <= 0) {
+      // starsLeft is only meaningful once the plan doc has loaded — before
+      // that it's 0 by default, which isn't the same as "out of stars".
+      if (planReady) setStarsEmptyOpen(true);
+      else setError(copy.auth.errors.unknown);
+      return;
+    }
     setError(null);
     setFlowView("analysing");
     setAnalysisStep(0);
     const interval = window.setInterval(() => {
       setAnalysisStep((current) => Math.min(current + 1, copy.analysis.steps.length - 1));
     }, 850);
+
+    let hydrated: VideoHighlight[];
     try {
       const capturedFrames = await extractFrames(videoUrl, videoDuration);
       const response = await fetch("/api/analyze", {
@@ -114,24 +148,31 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ frames: capturedFrames, duration: videoDuration, locale }),
       });
-      if (!response.ok) throw new Error("Analysis request failed");
+      if (!response.ok) throw new Error(`Analysis request failed (${response.status})`);
       const data = (await response.json()) as AnalysisResponse;
-      const hydrated = await hydrateHighlightImages(videoUrl, data.highlights, videoDuration);
-      setHighlights(hydrated);
-    } catch {
-      try {
-        const fallback = await hydrateHighlightImages(videoUrl, getFallbackHighlights(videoDuration, locale), videoDuration);
-        setHighlights(fallback);
-      } catch {
-        setHighlights(getFallbackHighlights(videoDuration, locale));
-      }
-    } finally {
+      hydrated = await hydrateHighlightImages(videoUrl, data.highlights, videoDuration);
+    } catch (analysisError) {
+      console.error("Analysis failed", analysisError);
       window.clearInterval(interval);
-      setSelected(0);
-      setChecked(new Set());
-      setFlowView("idle");
-      setTab("momentos");
+      // Back to the review screen with the clip intact, so retrying is one tap.
+      setFlowView("review");
+      setError(copy.errors.analysisFailed);
+      return;
     }
+    window.clearInterval(interval);
+
+    // Charged only now: billing a star for an analysis that failed would be
+    // wrong, and refunding one from the client would let anyone zero out their
+    // usage after already getting the result.
+    if (!(await spendStar())) console.error("Analysis succeeded but the star could not be spent");
+
+    // Renders straight away from local blobs; the upload settles in the background.
+    const generationId = saveGeneration({ video: videoBlob, duration: videoDuration, highlights: hydrated });
+    setSelected(0);
+    setChecked(new Set());
+    setOpenGenerationId(generationId);
+    setFlowView("idle");
+    setTab("momentos");
   };
 
   const toggleChecked = (index: number) => {
@@ -149,11 +190,18 @@ export default function Home() {
 
   const startOver = () => {
     clearVideo();
-    setHighlights([]);
+    videoBlobRef.current = null;
+    setOpenGenerationId(null);
     setSelected(0);
     setChecked(new Set());
     setFlowView("idle");
     setTab("home");
+  };
+
+  const openGenerationFromLibrary = (generation: StoredGeneration) => {
+    setSelected(0);
+    setChecked(new Set());
+    setOpenGenerationId(generation.id);
   };
 
   /** useShare tries the native share sheet first (nice for a single image); batches skip it so multiple picks download reliably without repeated share prompts. */
@@ -165,9 +213,10 @@ export default function Home() {
       .replace(/[̀-ͯ]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "") || "moment";
+    // Fresh results carry a data: URI; stored ones are remote JPEGs.
     const typeMatch = /^data:image\/([a-z0-9+.-]+)[;,]/i.exec(highlight.image);
-    const subtype = typeMatch?.[1]?.toLowerCase() ?? "png";
-    const extension = subtype === "svg+xml" ? "svg" : subtype;
+    const subtype = typeMatch?.[1]?.toLowerCase() ?? "jpeg";
+    const extension = subtype === "svg+xml" ? "svg" : subtype === "jpeg" ? "jpg" : subtype;
     const filename = `mevid-${slug}.${extension}`;
 
     if (useShare) {
@@ -195,7 +244,7 @@ export default function Home() {
   };
 
   const downloadChecked = async () => {
-    const selection = highlights.filter((_, index) => checked.has(index));
+    const selection = (openGeneration?.highlights ?? []).filter((_, index) => checked.has(index));
     const useShare = selection.length === 1;
     for (const highlight of selection) {
       await exportHighlight(highlight, useShare);
@@ -240,41 +289,45 @@ export default function Home() {
                 copy={copy}
                 recordInputRef={recordInputRef}
                 uploadInputRef={uploadInputRef}
-                onRecord={() => recordInputRef.current?.click()}
+                onRecord={startRecording}
                 onUpload={() => uploadInputRef.current?.click()}
                 onRecordFileChange={handleFileInputChange}
                 onUploadFileChange={handleFileInputChange}
+                planReady={planReady}
+                starsLeft={starsLeft}
+                starsTotal={starsTotal}
               />
             ) : null}
             {tab === "home" && flowView === "review" && videoUrl ? <ReviewScreen key="home-review" copy={copy} videoUrl={videoUrl} duration={videoDuration} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
             {tab === "home" && flowView === "analysing" ? <AnalysisScreen key="home-analysing" copy={copy} step={analysisStep} /> : null}
 
-            {tab === "momentos" && highlights.length > 0 && videoUrl ? (
+            {tab === "momentos" && openGeneration ? (
               <ResultsScreen
-                key="momentos"
+                key="momentos-detail"
                 copy={copy}
-                videoUrl={videoUrl}
-                duration={videoDuration}
-                highlights={highlights}
+                videoUrl={openGeneration.videoUrl}
+                duration={openGeneration.duration}
+                highlights={openGeneration.highlights}
                 selected={selected}
                 checked={checked}
                 videoRef={resultVideoRef}
-                onNewVideo={startOver}
+                onNewVideo={() => setOpenGenerationId(null)}
+                newVideoLabel={copy.library.back}
                 onSelect={selectHighlight}
                 onToggleCheck={toggleChecked}
                 onDownloadOne={(highlight) => void exportHighlight(highlight, true)}
                 onDownloadChecked={downloadChecked}
               />
             ) : null}
-            {tab === "momentos" && !(highlights.length > 0 && videoUrl) ? (
-              <motion.section key="momentos-empty" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={screenTransition} className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center py-16 text-center">
-                <motion.div variants={heroTextVariants} initial="hidden" animate="visible">
-                  <motion.div variants={heroTextItemVariants} className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] dark:bg-[#2c2740] px-3 py-1.5 text-xs font-bold text-[#7657dd] dark:text-[#c4b3ff]"><Sparkles size={13} />{copy.results.eyebrow}</motion.div>
-                  <motion.h1 variants={heroTextItemVariants} className="font-display text-3xl font-bold tracking-[-0.06em]">{copy.momentsEmpty.title}</motion.h1>
-                  <motion.p variants={heroTextItemVariants} className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#6d6b79] dark:text-[#a79fb5]">{copy.momentsEmpty.description}</motion.p>
-                </motion.div>
-                <motion.button whileTap={{ scale: tapScale }} onClick={() => setTab("home")} className="primary-button mt-6">{copy.momentsEmpty.cta}</motion.button>
-              </motion.section>
+            {tab === "momentos" && !openGeneration ? (
+              <MomentsLibrary
+                key="momentos-library"
+                copy={copy}
+                generations={generations}
+                onOpen={openGenerationFromLibrary}
+                onDelete={(generation) => void removeGeneration(generation)}
+                onGoHome={() => setTab("home")}
+              />
             ) : null}
 
             {tab === "pro" ? <ProScreen key="pro" copy={copy} onCta={() => setNotice(copy.pro.comingSoon)} /> : null}
@@ -283,8 +336,34 @@ export default function Home() {
           </div>
 
           <TabBar copy={copy} tab={tab} onChange={setTab} />
+          <AnimatePresence>
+            {starsEmptyOpen ? (
+              <StarsEmptyModal
+                copy={copy}
+                locale={locale}
+                plan={plan}
+                total={starsTotal}
+                onClose={() => setStarsEmptyOpen(false)}
+                onGoPro={() => setTab("pro")}
+              />
+            ) : null}
+          </AnimatePresence>
         </AuthGate>
       </div>
+      <AnimatePresence>
+        {cameraOpen ? (
+          <CameraRecorder
+            copy={copy}
+            onCancel={() => setCameraOpen(false)}
+            onRecorded={(video, duration) => {
+              setCameraOpen(false);
+              // Straight to displayVideo: a recording's own metadata has no
+              // duration, so re-measuring it here would read as "too long".
+              displayVideo(video, duration);
+            }}
+          />
+        ) : null}
+      </AnimatePresence>
       <AnimatePresence>{error && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-[#ffc8d3] dark:border-[#5c2f3d] bg-white dark:bg-[#211e2c] px-4 py-3 text-sm text-[#9d3450] dark:text-[#ffb4c8] shadow-xl"><span>{error}</span><button aria-label="Dismiss" onClick={() => setError(null)}><X size={16} /></button></motion.div>}</AnimatePresence>
       <AnimatePresence>{notice && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-[#dfd4ff] dark:border-[#4a3f73] bg-[#f0ecff] dark:bg-[#2c2740] px-4 py-3 text-sm font-semibold text-[#5c3fc4] dark:text-[#b9a6ff] shadow-xl"><span>{notice}</span><button aria-label="Dismiss" onClick={() => setNotice(null)}><X size={16} /></button></motion.div>}</AnimatePresence>
     </main>

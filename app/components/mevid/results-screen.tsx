@@ -20,13 +20,15 @@ type ResultsScreenProps = {
   checked: Set<number>;
   videoRef: RefObject<HTMLVideoElement | null>;
   onNewVideo: () => void;
+  /** Defaults to "new video"; the library detail view uses it to say "back". */
+  newVideoLabel?: string;
   onSelect: (highlight: VideoHighlight, index: number) => void;
   onToggleCheck: (index: number) => void;
   onDownloadOne: (highlight: VideoHighlight) => void;
   onDownloadChecked: () => void;
 };
 
-export function ResultsScreen({ copy, videoUrl, duration, highlights, selected, checked, videoRef, onNewVideo, onSelect, onToggleCheck, onDownloadOne, onDownloadChecked }: ResultsScreenProps) {
+export function ResultsScreen({ copy, videoUrl, duration, highlights, selected, checked, videoRef, onNewVideo, newVideoLabel, onSelect, onToggleCheck, onDownloadOne, onDownloadChecked }: ResultsScreenProps) {
   const [preview, setPreview] = useState<PreviewMode>(null);
   const activeHighlight = highlights[selected];
   const checkedCount = checked.size;
@@ -51,7 +53,7 @@ export function ResultsScreen({ copy, videoUrl, duration, highlights, selected, 
     <>
       <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={screenTransition} className="mx-auto flex w-full max-w-6xl flex-1 flex-col py-3">
         <motion.div className="mb-4" variants={heroTextVariants} initial="hidden" animate="visible">
-          <motion.button variants={heroTextItemVariants} whileTap={{ scale: tapScale }} onClick={onNewVideo} className="secondary-button !px-3 !py-1.5 mb-3 !text-xs"><RotateCcw size={13} />{copy.results.newVideo}</motion.button>
+          <motion.button variants={heroTextItemVariants} whileTap={{ scale: tapScale }} onClick={onNewVideo} className="secondary-button !px-3 !py-1.5 mb-3 !text-xs"><RotateCcw size={13} />{newVideoLabel ?? copy.results.newVideo}</motion.button>
           <motion.h1 variants={heroTextItemVariants} className="font-display text-3xl font-bold tracking-[-0.06em] sm:text-5xl">{copy.results.title}</motion.h1>
         </motion.div>
         <div className="flex flex-col gap-5">

@@ -8,7 +8,14 @@ export type AppCopy = {
   analysis: { eyebrow: string; title: string; steps: string[] };
   results: { eyebrow: string; title: string; newVideo: string; moments: string; tipStart: string; tipEnd: string; selectHint: string; download: string; downloadEmpty: string; downloadOne: string; topFive: string; moment: string };
   tabs: { home: string; momentos: string; pro: string; cuenta: string; nav: string };
+  camera: { flip: string; start: string; stop: string; maxHint: string; permissionDenied: string };
   momentsEmpty: { title: string; description: string; cta: string };
+  library: {
+    eyebrow: string; title: string; description: string;
+    open: string; back: string; delete: string; deleteConfirm: string;
+    saving: string; momentsCount: string; today: string; yesterday: string; daysAgo: string;
+    expiresIn: string; expiresToday: string;
+  };
   pro: {
     eyebrow: string; title: string; freeLabel: string; proLabel: string; popular: string; perMonth: string;
     freeFeatures: string[]; proFeatures: string[];
@@ -16,7 +23,14 @@ export type AppCopy = {
     ctaMonthly: string; ctaYearly: string; trial: string; comingSoon: string;
   };
   account: { eyebrow: string; title: string; plan: string; upgrade: string; upgradeSub: string };
-  errors: { notVideo: string; tooLong: string; unreadable: string };
+  plans: { free: string; pro: string };
+  stars: {
+    remaining: string; spent: string;
+    emptyFreeTitle: string; emptyFreeBody: string; emptyFreeCta: string;
+    emptyProTitle: string; emptyProBody: string;
+    refillsOn: string; dismiss: string;
+  };
+  errors: { notVideo: string; tooLong: string; unreadable: string; analysisFailed: string };
   desktopGate: { title: string; description: string };
   auth: {
     login: { eyebrow: string; title: string; description: string; emailLabel: string; passwordLabel: string; forgot: string; submit: string; noAccount: string; createAccount: string; orDivider: string; google: string; apple: string };
@@ -26,6 +40,7 @@ export type AppCopy = {
     account: { signedInAs: string; signOut: string; profile: string };
     profile: {
       title: string; description: string; close: string;
+      changePhoto: string; photoUpdated: string; photoTooLarge: string; photoInvalidType: string;
       nameLabel: string; saveName: string; nameSaved: string;
       passwordTitle: string; passwordDescription: string; currentPasswordLabel: string; newPasswordLabel: string; confirmPasswordLabel: string; changePassword: string; passwordSaved: string; noPasswordProvider: string;
     };
@@ -43,7 +58,7 @@ const dictionary: Record<Locale, AppCopy> = {
       maxLength: "15 SECONDS MAX.",
       record: "Start recording",
       upload: "Upload a video",
-      private: "No sign-up · Deleted when your session ends",
+      private: "Private to your account · Deleted after 30 days",
       aiReady: "AI READY",
     },
     review: {
@@ -73,10 +88,33 @@ const dictionary: Record<Locale, AppCopy> = {
       moment: "MOMENT",
     },
     tabs: { home: "Home", momentos: "Moments", pro: "Pro", cuenta: "Account", nav: "Main navigation" },
+    camera: {
+      flip: "Flip camera",
+      start: "Start recording",
+      stop: "Stop recording",
+      maxHint: "15s max",
+      permissionDenied: "We can’t reach your camera. Check that MeVid has camera and microphone permission, then try again.",
+    },
     momentsEmpty: {
       title: "No moments yet",
       description: "Record or upload a video from Home and AI will find your best moments.",
       cta: "Go to Home",
+    },
+    library: {
+      eyebrow: "LAST 30 DAYS",
+      title: "Your moments",
+      description: "Everything you've created in the last 30 days. Older videos are deleted automatically.",
+      open: "Open",
+      back: "All moments",
+      delete: "Delete",
+      deleteConfirm: "Delete this video and its moments?",
+      saving: "Saving…",
+      momentsCount: "{count} moments",
+      today: "Today",
+      yesterday: "Yesterday",
+      daysAgo: "{days} days ago",
+      expiresIn: "{days} days left",
+      expiresToday: "Expires today",
     },
     pro: {
       eyebrow: "MEVID PRO",
@@ -104,10 +142,23 @@ const dictionary: Record<Locale, AppCopy> = {
       upgrade: "Upgrade to Pro",
       upgradeSub: "Priority analysis and higher-resolution exports",
     },
+    plans: { free: "FREE", pro: "PRO" },
+    stars: {
+      remaining: "{left} of {total} stars left this week",
+      spent: "No stars left this week",
+      emptyFreeTitle: "You’re out of stars",
+      emptyFreeBody: "Free accounts get {total} videos a week. Go Pro for 7 a week and keep creating.",
+      emptyFreeCta: "See Pro",
+      emptyProTitle: "You’ve used all your stars",
+      emptyProBody: "You’ve used your {total} videos for this week. They refill automatically.",
+      refillsOn: "Back on {date}",
+      dismiss: "Got it",
+    },
     errors: {
       notVideo: "Choose a video file to continue.",
       tooLong: "This clip is longer than 15 seconds. Trim it and try again.",
       unreadable: "We couldn’t read that video. Please try another file.",
+      analysisFailed: "Something went wrong analysing your video. Please try again later — no star was used.",
     },
     desktopGate: {
       title: "Open this on your phone",
@@ -171,6 +222,10 @@ const dictionary: Record<Locale, AppCopy> = {
         title: "Your profile",
         description: "Update how you appear across MeVid.",
         close: "Close",
+        changePhoto: "Change photo",
+        photoUpdated: "Photo updated.",
+        photoTooLarge: "That image is too large. Choose one under 5 MB.",
+        photoInvalidType: "Choose an image file (JPG, PNG, WEBP...).",
         nameLabel: "Display name",
         saveName: "Save name",
         nameSaved: "Profile updated.",
@@ -195,7 +250,7 @@ const dictionary: Record<Locale, AppCopy> = {
       maxLength: "15 SEGUNDOS MÁX.",
       record: "Grabar ahora",
       upload: "Subir un vídeo",
-      private: "Sin registro · Se borra al cerrar la sesión",
+      private: "Privado en tu cuenta · Se borra a los 30 días",
       aiReady: "IA LISTA",
     },
     review: {
@@ -225,10 +280,33 @@ const dictionary: Record<Locale, AppCopy> = {
       moment: "MOMENTO",
     },
     tabs: { home: "Inicio", momentos: "Momentos", pro: "Pro", cuenta: "Cuenta", nav: "Navegación principal" },
+    camera: {
+      flip: "Cambiar cámara",
+      start: "Empezar a grabar",
+      stop: "Parar de grabar",
+      maxHint: "15s máx.",
+      permissionDenied: "No podemos acceder a tu cámara. Comprueba que MeVid tiene permiso de cámara y micrófono, y vuelve a intentarlo.",
+    },
     momentsEmpty: {
       title: "Aún no hay momentos",
       description: "Graba o sube un vídeo desde Inicio y la IA encontrará tus mejores momentos.",
       cta: "Ir a Inicio",
+    },
+    library: {
+      eyebrow: "ÚLTIMOS 30 DÍAS",
+      title: "Tus momentos",
+      description: "Todo lo que has creado en los últimos 30 días. Los vídeos más antiguos se borran automáticamente.",
+      open: "Abrir",
+      back: "Todos los momentos",
+      delete: "Eliminar",
+      deleteConfirm: "¿Eliminar este vídeo y sus momentos?",
+      saving: "Guardando…",
+      momentsCount: "{count} momentos",
+      today: "Hoy",
+      yesterday: "Ayer",
+      daysAgo: "Hace {days} días",
+      expiresIn: "Quedan {days} días",
+      expiresToday: "Caduca hoy",
     },
     pro: {
       eyebrow: "MEVID PRO",
@@ -256,10 +334,23 @@ const dictionary: Record<Locale, AppCopy> = {
       upgrade: "Mejorar a Pro",
       upgradeSub: "Análisis prioritario y exportación en mayor resolución",
     },
+    plans: { free: "FREE", pro: "PRO" },
+    stars: {
+      remaining: "Te quedan {left} de {total} estrellas esta semana",
+      spent: "Sin estrellas esta semana",
+      emptyFreeTitle: "Te has quedado sin estrellas",
+      emptyFreeBody: "Las cuentas free tienen {total} vídeos por semana. Pasa a Pro para tener 7 y seguir creando.",
+      emptyFreeCta: "Ver Pro",
+      emptyProTitle: "Has agotado tus estrellas",
+      emptyProBody: "Ya has usado tus {total} vídeos de esta semana. Se recargan automáticamente.",
+      refillsOn: "Vuelven el {date}",
+      dismiss: "Entendido",
+    },
     errors: {
       notVideo: "Elige un archivo de vídeo para continuar.",
       tooLong: "Este clip dura más de 15 segundos. Recórtalo y vuelve a intentarlo.",
       unreadable: "No hemos podido leer ese vídeo. Prueba con otro archivo.",
+      analysisFailed: "Se ha producido un error al analizar tu vídeo. Vuelve a intentarlo más tarde — no se ha gastado ninguna estrella.",
     },
     desktopGate: {
       title: "Abrí esto desde tu teléfono",
@@ -323,6 +414,10 @@ const dictionary: Record<Locale, AppCopy> = {
         title: "Tu perfil",
         description: "Actualiza cómo apareces en MeVid.",
         close: "Cerrar",
+        changePhoto: "Cambiar foto",
+        photoUpdated: "Foto actualizada.",
+        photoTooLarge: "Esa imagen pesa demasiado. Elige una de menos de 5 MB.",
+        photoInvalidType: "Elige un archivo de imagen (JPG, PNG, WEBP...).",
         nameLabel: "Nombre visible",
         saveName: "Guardar nombre",
         nameSaved: "Perfil actualizado.",
