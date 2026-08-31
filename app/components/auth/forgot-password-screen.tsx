@@ -52,7 +52,11 @@ export function ForgotPasswordScreen({ copy, onNavigate }: ForgotPasswordScreenP
       {sent ? (
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center gap-3 py-4 text-center">
           <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f0ecff] dark:bg-[#2c2740] text-[#7657dd] dark:text-[#c4b3ff]"><MailCheck size={26} /></div>
+          {/* Deliberately conditional: with email enumeration protection on,
+              Firebase reports success whether or not an account exists, so
+              claiming "we sent it" would be a guess. */}
           <p className="text-sm leading-6 text-[#4f4d5a] dark:text-[#d8d3e2]">{t.sent}</p>
+          <p className="rounded-2xl bg-[#f3f1fa] dark:bg-[#26222f] px-4 py-3 text-xs leading-5 text-[#6d6b79] dark:text-[#a79fb5]">{t.sentSocialHint}</p>
         </motion.div>
       ) : (
         <form

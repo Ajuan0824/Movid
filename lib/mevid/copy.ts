@@ -38,7 +38,7 @@ export type AppCopy = {
   auth: {
     login: { eyebrow: string; title: string; description: string; emailLabel: string; passwordLabel: string; forgot: string; submit: string; noAccount: string; createAccount: string; orDivider: string; google: string; apple: string };
     register: { eyebrow: string; title: string; description: string; emailLabel: string; passwordLabel: string; confirmLabel: string; submit: string; haveAccount: string; signIn: string; termsText: string; strengthWeak: string; strengthGood: string; strengthStrong: string };
-    forgot: { eyebrow: string; title: string; description: string; emailLabel: string; submit: string; back: string; sent: string };
+    forgot: { eyebrow: string; title: string; description: string; emailLabel: string; submit: string; back: string; sent: string; sentSocialHint: string };
     errors: { invalidEmail: string; userNotFound: string; wrongPassword: string; emailInUse: string; weakPassword: string; tooManyRequests: string; networkError: string; cancelled: string; unknown: string; passwordMismatch: string; required: string; termsRequired: string };
     account: { signedInAs: string; signOut: string; profile: string };
     profile: {
@@ -206,7 +206,8 @@ const dictionary: Record<Locale, AppCopy> = {
         emailLabel: "Email",
         submit: "Send reset link",
         back: "Back to sign in",
-        sent: "Check your inbox — we’ve sent a password reset link.",
+        sent: "If that address has a MeVid account with a password, the reset link is on its way. Check your spam folder too.",
+        sentSocialHint: "Signed up with Google or Apple? There’s no password to reset — go back and use that button instead.",
       },
       errors: {
         invalidEmail: "That email address doesn’t look right.",
@@ -401,7 +402,8 @@ const dictionary: Record<Locale, AppCopy> = {
         emailLabel: "Correo electrónico",
         submit: "Enviar enlace",
         back: "Volver a iniciar sesión",
-        sent: "Revisa tu correo — te hemos enviado un enlace para restablecer tu contraseña.",
+        sent: "Si esa dirección tiene una cuenta de MeVid con contraseña, el enlace va de camino. Mira también en la carpeta de spam.",
+        sentSocialHint: "¿Te registraste con Google o Apple? Entonces no hay contraseña que restablecer — vuelve atrás y entra con ese botón.",
       },
       errors: {
         invalidEmail: "Ese correo electrónico no parece válido.",
