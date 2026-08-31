@@ -30,6 +30,31 @@ import { extractFrames, getVideoDuration, hydrateHighlightImages, MAX_VIDEO_SECO
 
 type FlowView = "idle" | "review" | "analysing";
 
+/**
+ * Positioning lives on a plain wrapper, not on the animated element: Framer
+ * Motion writes its own inline `transform`, which overrides Tailwind's
+ * `-translate-x-1/2` and leaves the toast hanging off the right edge.
+ */
+function Toast({ tone, message, onDismiss }: { tone: "error" | "notice"; message: string; onDismiss: () => void }) {
+  const palette =
+    tone === "error"
+      ? "border-[#ffc8d3] dark:border-[#5c2f3d] bg-white dark:bg-[#211e2c] text-[#9d3450] dark:text-[#ffb4c8]"
+      : "border-[#dfd4ff] dark:border-[#4a3f73] bg-[#f0ecff] dark:bg-[#2c2740] font-semibold text-[#5c3fc4] dark:text-[#b9a6ff]";
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(6rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 12 }}
+        className={`pointer-events-auto flex w-full max-w-md items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-sm leading-5 shadow-xl ${palette}`}
+      >
+        <span className="min-w-0 flex-1">{message}</span>
+        <button aria-label="Dismiss" onClick={onDismiss} className="mt-0.5 shrink-0"><X size={16} /></button>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function Home() {
   const mobileState = useIsMobile();
   const { plan, limit: starsTotal, starsLeft, ready: planReady, spend: spendStar } = usePlan();
@@ -140,23 +165,39 @@ export default function Home() {
       setAnalysisStep((current) => Math.min(current + 1, copy.analysis.steps.length - 1));
     }, 850);
 
+    // Which stage failed decides what we can honestly tell the user — the
+    // three causes have completely different fixes.
+    let errorKey: "analysisFailed" | "analysisUnavailable" | "analysisVideoUnreadable" = "analysisFailed";
     let hydrated: VideoHighlight[];
     try {
-      const capturedFrames = await extractFrames(videoUrl, videoDuration);
+      let capturedFrames;
+      try {
+        capturedFrames = await extractFrames(videoUrl, videoDuration);
+      } catch (frameError) {
+        errorKey = "analysisVideoUnreadable";
+        throw frameError;
+      }
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ frames: capturedFrames, duration: videoDuration, locale }),
       });
-      if (!response.ok) throw new Error(`Analysis request failed (${response.status})`);
+      if (!response.ok) {
+        // 503 is the server telling us it has no OpenAI key — retrying won't
+        // help, so say so plainly instead of "try again later".
+        if (response.status === 503) errorKey = "analysisUnavailable";
+        throw new Error(`Analysis request failed (${response.status})`);
+      }
+
       const data = (await response.json()) as AnalysisResponse;
       hydrated = await hydrateHighlightImages(videoUrl, data.highlights, videoDuration);
     } catch (analysisError) {
-      console.error("Analysis failed", analysisError);
+      console.error(`Analysis failed [${errorKey}]`, analysisError);
       window.clearInterval(interval);
       // Back to the review screen with the clip intact, so retrying is one tap.
       setFlowView("review");
-      setError(copy.errors.analysisFailed);
+      setError(copy.errors[errorKey]);
       return;
     }
     window.clearInterval(interval);
@@ -364,8 +405,8 @@ export default function Home() {
           />
         ) : null}
       </AnimatePresence>
-      <AnimatePresence>{error && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-[#ffc8d3] dark:border-[#5c2f3d] bg-white dark:bg-[#211e2c] px-4 py-3 text-sm text-[#9d3450] dark:text-[#ffb4c8] shadow-xl"><span>{error}</span><button aria-label="Dismiss" onClick={() => setError(null)}><X size={16} /></button></motion.div>}</AnimatePresence>
-      <AnimatePresence>{notice && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 z-30 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-[#dfd4ff] dark:border-[#4a3f73] bg-[#f0ecff] dark:bg-[#2c2740] px-4 py-3 text-sm font-semibold text-[#5c3fc4] dark:text-[#b9a6ff] shadow-xl"><span>{notice}</span><button aria-label="Dismiss" onClick={() => setNotice(null)}><X size={16} /></button></motion.div>}</AnimatePresence>
+      <AnimatePresence>{error ? <Toast key="error" tone="error" message={error} onDismiss={() => setError(null)} /> : null}</AnimatePresence>
+      <AnimatePresence>{notice ? <Toast key="notice" tone="notice" message={notice} onDismiss={() => setNotice(null)} /> : null}</AnimatePresence>
     </main>
   );
 }

@@ -4,6 +4,12 @@ import { getDefaultHighlightLabels } from "../../../lib/mevid/highlights";
 import { logServerError } from "../../../lib/server/log";
 import type { Locale, VideoHighlight } from "../../../lib/mevid/types";
 
+/**
+ * A vision call over 16 frames regularly runs past Vercel's 10s default, which
+ * surfaces as a generic 500 on the client. 60s is the Hobby-plan ceiling.
+ */
+export const maxDuration = 60;
+
 type AnalyseRequest = {
   frames?: Array<{ time: number; image: string }>;
   duration?: number;

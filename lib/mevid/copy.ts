@@ -30,7 +30,10 @@ export type AppCopy = {
     emptyProTitle: string; emptyProBody: string;
     refillsOn: string; dismiss: string;
   };
-  errors: { notVideo: string; tooLong: string; unreadable: string; analysisFailed: string };
+  errors: {
+    notVideo: string; tooLong: string; unreadable: string;
+    analysisFailed: string; analysisUnavailable: string; analysisVideoUnreadable: string;
+  };
   desktopGate: { title: string; description: string };
   auth: {
     login: { eyebrow: string; title: string; description: string; emailLabel: string; passwordLabel: string; forgot: string; submit: string; noAccount: string; createAccount: string; orDivider: string; google: string; apple: string };
@@ -159,6 +162,8 @@ const dictionary: Record<Locale, AppCopy> = {
       tooLong: "This clip is longer than 15 seconds. Trim it and try again.",
       unreadable: "We couldn’t read that video. Please try another file.",
       analysisFailed: "Something went wrong analysing your video. Please try again later — no star was used.",
+      analysisUnavailable: "AI analysis isn’t available right now (the server has no OpenAI key configured). No star was used.",
+      analysisVideoUnreadable: "We couldn’t read the frames of that recording. Try recording again — no star was used.",
     },
     desktopGate: {
       title: "Open this on your phone",
@@ -351,6 +356,8 @@ const dictionary: Record<Locale, AppCopy> = {
       tooLong: "Este clip dura más de 15 segundos. Recórtalo y vuelve a intentarlo.",
       unreadable: "No hemos podido leer ese vídeo. Prueba con otro archivo.",
       analysisFailed: "Se ha producido un error al analizar tu vídeo. Vuelve a intentarlo más tarde — no se ha gastado ninguna estrella.",
+      analysisUnavailable: "El análisis con IA no está disponible ahora mismo (el servidor no tiene configurada la clave de OpenAI). No se ha gastado ninguna estrella.",
+      analysisVideoUnreadable: "No hemos podido leer los fotogramas de esa grabación. Prueba a grabar de nuevo — no se ha gastado ninguna estrella.",
     },
     desktopGate: {
       title: "Abrí esto desde tu teléfono",
