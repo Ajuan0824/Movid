@@ -11,9 +11,9 @@ ensureFirebaseApp();
  * the previous photo (the real format lives in the file's contentType) instead
  * of leaving an avatar.png next to an avatar.jpg.
  */
-export async function uploadProfilePhoto(uid: string, file: File): Promise<string> {
+export async function uploadProfilePhoto(uid: string, image: Blob): Promise<string> {
   const storage = getStorage();
   const photoRef = ref(storage, `users/${uid}/avatar`);
-  await uploadBytes(photoRef, file, { contentType: file.type });
+  await uploadBytes(photoRef, image, { contentType: image.type || "image/jpeg" });
   return getDownloadURL(photoRef);
 }

@@ -100,11 +100,19 @@ La calidad de las imágenes finales se reparte entre dos capas, a propósito:
    el desenfoque de movimiento, los sujetos cortados por el borde y los
    fotogramas casi negros o quemados.
 
-2. **El navegador** no captura a ciegas ese instante. Alrededor de cada
-   `peakTime`, y siempre dentro del `[start, end]` elegido, puntúa 5 fotogramas
-   candidatos y se queda con el mejor. La métrica es la **varianza del
-   laplaciano**, el detector de desenfoque estándar, atenuada por la exposición
-   para descartar también fotogramas negros o quemados.
+2. **El navegador** no captura a ciegas ese instante. Recorre todo el
+   `[start, end]` elegido puntuando 9 fotogramas candidatos y se queda con el
+   mejor. La métrica es la **varianza del laplaciano**, el detector de
+   desenfoque estándar, atenuada por la exposición para descartar también
+   fotogramas negros o quemados, y ponderada por cercanía al `peakTime`
+   (`PEAK_BIAS`) para no alejarse del instante elegido salvo que la ganancia de
+   nitidez lo justifique.
+
+   La puntuación se hace sobre un lienzo de **480px** de ancho, no menos: el
+   desenfoque es pérdida de detalle de alta frecuencia, y a tamaño miniatura un
+   fotograma algo blando y uno nítido se reducen casi a lo mismo. Medido sobre
+   contenido sintético, la separación entre nítido y ligeramente borroso pasa de
+   **1,8x puntuando a 192px a 7,7x puntuando a 480px**.
 
 Esto importa porque el modelo solo ve un muestreo del vídeo: el instante exacto
 que nombra es casi siempre un fotograma que nadie miró, y en cualquier escena
@@ -112,6 +120,25 @@ con movimiento ese fotograma sale borroso a menudo.
 
 Cada candidato cuesta un salto y una decodificación, así que subir
 `REFINE_CANDIDATES` mejora la nitidez a cambio de tiempo de proceso en el móvil.
+
+### Foto de perfil
+
+La imagen elegida en la galería **se reduce en el móvil antes de subirla**
+(`lib/mevid/image.ts`): se escala hasta que su lado más largo mide 512 px y se
+recodifica a JPEG. Una foto de 12 MP acaba pesando unos 50 KB.
+
+**No se recorta.** El avatar circular ya recorta al centro al pintarse
+(`object-cover`), así que recortar aquí se vería igual hoy pero tiraría los
+bordes para siempre.
+
+Se hace así en lugar de subir el original porque el avatar se muestra a ~44 px:
+guardar el archivo de cámara serían unas cincuenta veces más bytes de los que
+alguien llega a ver, pagados en cada carga y por cada persona que lo vea. Y de
+paso, cualquier foto de la galería vale, sin que el peso sea una lotería.
+
+El decodificado respeta la orientación EXIF; sin eso las fotos verticales del
+móvil se guardarían tumbadas. El límite de 5 MB de `storage.rules` se queda como
+red de seguridad: lo que se sube nunca se le acerca.
 
 ### Cámara integrada
 
@@ -317,8 +344,5 @@ node scripts/apply-google-plist.mjs
   llamadas a OpenAI sin gastar estrella (no obtiene resultado a cambio). La
   solución definitiva es mover la comprobación y el cobro al servidor, dentro de
   la API route, verificando el token de Firebase.
-- **Los avatares se suben sin redimensionar.** Se ha visto un PNG de 3,45 MB
-  para una imagen que se muestra a 44 px. Convendría escalar y recomprimir en el
-  cliente antes de subir.
 - **La lista de usuarios fundadores está escrita a mano** en las reglas y en
   `lib/mevid/plan.ts`. Es temporal, hasta que haya facturación.

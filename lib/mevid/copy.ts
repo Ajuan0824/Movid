@@ -43,7 +43,7 @@ export type AppCopy = {
     account: { signedInAs: string; signOut: string; profile: string };
     profile: {
       title: string; description: string; close: string;
-      changePhoto: string; photoUpdated: string; photoTooLarge: string; photoInvalidType: string;
+      changePhoto: string; photoUpdated: string; photoTooLarge: string; photoInvalidType: string; photoUnreadable: string;
       nameLabel: string; saveName: string; nameSaved: string;
       passwordTitle: string; passwordDescription: string; currentPasswordLabel: string; newPasswordLabel: string; confirmPasswordLabel: string; changePassword: string; passwordSaved: string; noPasswordProvider: string;
     };
@@ -229,8 +229,9 @@ const dictionary: Record<Locale, AppCopy> = {
         close: "Close",
         changePhoto: "Change photo",
         photoUpdated: "Photo updated.",
-        photoTooLarge: "That image is too large. Choose one under 5 MB.",
+        photoTooLarge: "That image is too large to open. Choose one under 30 MB.",
         photoInvalidType: "Choose an image file (JPG, PNG, WEBP...).",
+        photoUnreadable: "We couldn’t open that image. Try another one.",
         nameLabel: "Display name",
         saveName: "Save name",
         nameSaved: "Profile updated.",
@@ -423,8 +424,9 @@ const dictionary: Record<Locale, AppCopy> = {
         close: "Cerrar",
         changePhoto: "Cambiar foto",
         photoUpdated: "Foto actualizada.",
-        photoTooLarge: "Esa imagen pesa demasiado. Elige una de menos de 5 MB.",
+        photoTooLarge: "Esa imagen pesa demasiado para abrirla. Elige una de menos de 30 MB.",
         photoInvalidType: "Elige un archivo de imagen (JPG, PNG, WEBP...).",
+        photoUnreadable: "No hemos podido abrir esa imagen. Prueba con otra.",
         nameLabel: "Nombre visible",
         saveName: "Guardar nombre",
         nameSaved: "Perfil actualizado.",

@@ -10,13 +10,27 @@ export const MAX_VIDEO_SECONDS = 15;
  */
 export const SAMPLE_COUNT = 16;
 
-/** Candidate frames scored around the AI's chosen instant, and how far either
- *  side of it we're willing to look for a sharper one. Every candidate costs a
- *  seek and a decode, so this is deliberately modest — 5 across a 0.8s window
- *  lands roughly every 6 frames at 30fps. */
-const REFINE_CANDIDATES = 5;
-const REFINE_WINDOW_SECONDS = 0.4;
-const SCORING_WIDTH = 192;
+/**
+ * Candidate frames scored per highlight. Every one costs a seek and a decode,
+ * which is the whole cost of this pass, so the number is a straight trade of
+ * processing time for sharpness.
+ */
+const REFINE_CANDIDATES = 9;
+
+/**
+ * Blur is a loss of high-frequency detail, so the scoring canvas has to keep
+ * enough resolution for that detail to still exist. At thumbnail size a
+ * slightly soft frame and a crisp one downsample to nearly the same thing and
+ * the metric can't separate them.
+ */
+const SCORING_WIDTH = 480;
+
+/**
+ * How much a candidate far from the AI's chosen instant is discounted. Keeps
+ * the pick anchored to the moment that was actually chosen, while still
+ * letting a clearly sharper frame further out win.
+ */
+const PEAK_BIAS = 0.35;
 
 export function formatTime(value: number) {
   const seconds = Math.max(0, Math.min(value, MAX_VIDEO_SECONDS));
@@ -202,22 +216,26 @@ export async function hydrateHighlightImages<T extends { start: number; end: num
     const target = Number.isFinite(highlight.peakTime) ? highlight.peakTime : highlight.start;
     const centre = Math.min(latest, Math.max(0, target));
 
-    // Stay inside the moment the AI chose: a sharper frame from a different
-    // moment would be the wrong picture, however pretty.
-    const lower = Math.max(0, Number.isFinite(highlight.start) ? highlight.start : centre, centre - REFINE_WINDOW_SECONDS);
-    const upper = Math.min(latest, Number.isFinite(highlight.end) ? highlight.end : centre, centre + REFINE_WINDOW_SECONDS);
+    // Search the whole moment the AI chose, not a slice of it — a sharp frame
+    // anywhere inside it still shows that moment, and on shaky handheld
+    // footage the crisp frames can be a second away from the nominal peak.
+    // Straying outside [start, end] would be a different moment entirely.
+    const lower = Math.max(0, Number.isFinite(highlight.start) ? highlight.start : centre);
+    const upper = Math.min(latest, Number.isFinite(highlight.end) ? highlight.end : centre);
 
     let bestTime = centre;
     let bestScore = -1;
 
     if (upper > lower) {
+      const halfSpan = Math.max((upper - lower) / 2, 0.001);
       for (let index = 0; index < REFINE_CANDIDATES; index += 1) {
         const time = lower + ((upper - lower) * index) / (REFINE_CANDIDATES - 1);
         try {
           await seekTo(time);
           scoring.context.drawImage(video, 0, 0, scoring.canvas.width, scoring.canvas.height);
           const { data } = scoring.context.getImageData(0, 0, scoring.canvas.width, scoring.canvas.height);
-          const score = frameQuality(data, scoring.canvas.width, scoring.canvas.height);
+          const distance = Math.min(Math.abs(time - centre) / halfSpan, 1);
+          const score = frameQuality(data, scoring.canvas.width, scoring.canvas.height) * (1 - PEAK_BIAS * distance);
           if (score > bestScore) {
             bestScore = score;
             bestTime = time;

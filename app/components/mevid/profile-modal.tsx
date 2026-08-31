@@ -13,9 +13,8 @@ import { resolveAuthErrorKey } from "../../../lib/firebase/auth-errors";
 import { uploadProfilePhoto } from "../../../lib/firebase/storage";
 import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
+import { AVATAR_MAX_BYTES, prepareAvatar } from "../../../lib/mevid/image";
 import { iosSpring } from "../../../lib/mevid/motion";
-
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
 type ProfileModalProps = {
   copy: AppCopy;
@@ -68,25 +67,33 @@ export function ProfileModal({ copy, onClose, onManageAccount }: ProfileModalPro
       setPhotoError(t.photoInvalidType);
       return;
     }
-    if (file.size > MAX_PHOTO_BYTES) {
+    if (file.size > AVATAR_MAX_BYTES) {
       setPhotoError(t.photoTooLarge);
       return;
     }
 
-    const localPreview = URL.createObjectURL(file);
-    setPhotoPreview(localPreview);
     setPhotoLoading(true);
+    let localPreview: string | null = null;
+    let decoded = false;
     try {
-      const uid = user.uid;
-      const photoUrl = await uploadProfilePhoto(uid, file);
+      // Shrunk before anything else, so a 12MP gallery photo uploads as ~50 KB
+      // and the preview shows exactly what gets stored.
+      const avatar = await prepareAvatar(file);
+      decoded = true;
+
+      localPreview = URL.createObjectURL(avatar);
+      setPhotoPreview(localPreview);
+
+      const photoUrl = await uploadProfilePhoto(user.uid, avatar);
       await updateUserProfile({ photoUrl });
       await refreshUser();
       setPhotoSaved(true);
     } catch (err) {
-      setPhotoError(copy.auth.errors[resolveAuthErrorKey(err)]);
+      console.error("Avatar update failed", err);
+      setPhotoError(decoded ? copy.auth.errors[resolveAuthErrorKey(err)] : t.photoUnreadable);
     } finally {
       setPhotoLoading(false);
-      URL.revokeObjectURL(localPreview);
+      if (localPreview) URL.revokeObjectURL(localPreview);
       setPhotoPreview(null);
     }
   };
