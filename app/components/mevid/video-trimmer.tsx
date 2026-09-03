@@ -29,25 +29,28 @@ type Drag = { mode: DragMode; pointerId: number; originX: number; from: TrimValu
  * The window is clamped to [MIN_VIDEO_SECONDS, MAX_VIDEO_SECONDS]; the file is
  * never re-encoded — the parent stores the picked in-point and analyses only
  * that slice.
+ *
+ * Playback and the moving playhead are driven straight from the <video> via a
+ * single rAF loop that writes DOM styles — never React state — so the preview
+ * stays smooth and never fights a re-render on a phone.
  */
 export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }: VideoTrimmerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const playheadRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag | null>(null);
 
   const [frames, setFrames] = useState<VideoFrame[] | null>(null);
   const [stripFailed, setStripFailed] = useState(false);
   const [playing, setPlaying] = useState(false);
-  // Where the preview currently is, drawn as a moving line on the filmstrip.
-  const [playhead, setPlayhead] = useState(value.start);
   // Local while dragging so the parent tree doesn't re-render on every move.
   const [draft, setDraft] = useState(value);
-  const draftRef = useRef(draft);
-  draftRef.current = draft;
+  // Latest window for the rAF loop and pointer handlers without re-subscribing.
+  const winRef = useRef(draft);
+  winRef.current = draft;
 
   useEffect(() => {
     setDraft(value);
-    setPlayhead(value.start);
   }, [value.start, value.end]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -71,12 +74,33 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
     [sourceDuration],
   );
 
+  // One loop for the life of the component: keeps playback inside the window
+  // and paints the playhead from the real currentTime (covers scrubbing too).
+  useEffect(() => {
+    let raf = 0;
+    const paint = () => {
+      const node = videoRef.current;
+      const head = playheadRef.current;
+      if (node && head && sourceDuration > 0) {
+        const { start, end } = winRef.current;
+        if (!node.paused && node.currentTime >= end - 0.03) node.currentTime = start;
+        const t = Math.min(end, Math.max(start, node.currentTime || start));
+        head.style.left = `${(t / sourceDuration) * 100}%`;
+      }
+    };
+    const tick = () => {
+      paint();
+      raf = requestAnimationFrame(tick);
+    };
+    paint(); // no first-frame flash at the left edge
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [sourceDuration]);
+
   const scrubTo = useCallback((seconds: number) => {
     const node = videoRef.current;
     if (!node) return;
-    if (!node.paused) node.pause();
-    setPlaying(false);
-    setPlayhead(seconds);
+    node.pause();
     try {
       node.currentTime = seconds;
     } catch {
@@ -84,54 +108,43 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
     }
   }, []);
 
-  // Loop playback inside the selected window.
-  useEffect(() => {
+  const play = useCallback((from?: number) => {
     const node = videoRef.current;
     if (!node) return;
-    const onTime = () => {
-      if (node.currentTime >= draft.end - 0.03 || node.currentTime < draft.start - 0.25) {
-        node.currentTime = draft.start;
-      }
-    };
-    node.addEventListener("timeupdate", onTime);
-    return () => node.removeEventListener("timeupdate", onTime);
-  }, [draft.start, draft.end]);
-
-  // Follow the preview head smoothly while it plays (timeupdate alone is jerky).
-  useEffect(() => {
-    if (!playing) return;
-    const node = videoRef.current;
-    if (!node) return;
-    let raf = 0;
-    const tick = () => {
-      setPlayhead(node.currentTime);
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [playing]);
+    const { start, end } = winRef.current;
+    const target = from ?? (node.currentTime < start || node.currentTime >= end - 0.05 ? start : node.currentTime);
+    try {
+      node.currentTime = target;
+    } catch {
+      // ignore
+    }
+    node.play().catch(() => {
+      // Autoplay/interrupted — the button stays in its "play" state.
+    });
+  }, []);
 
   const togglePlay = () => {
     const node = videoRef.current;
     if (!node) return;
-    if (node.paused) {
-      if (node.currentTime < draft.start || node.currentTime >= draft.end - 0.05) node.currentTime = draft.start;
-      void node.play();
-      setPlaying(true);
-    } else {
-      node.pause();
-      setPlaying(false);
-    }
+    if (node.paused) play();
+    else node.pause();
   };
 
   const beginDrag = (mode: DragMode) => (event: ReactPointerEvent<HTMLElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    dragRef.current = { mode, pointerId: event.pointerId, originX: event.clientX, from: draft };
+    // Capture keeps moves flowing while the finger strays off the element; if
+    // the browser refuses it, the track-level listeners below still catch them.
+    try {
+      trackRef.current?.setPointerCapture(event.pointerId);
+    } catch {
+      // No active pointer / unsupported — fall back to bubbled events.
+    }
+    dragRef.current = { mode, pointerId: event.pointerId, originX: event.clientX, from: winRef.current };
     tapHaptic();
-    if (mode === "start") scrubTo(draft.start);
-    else if (mode === "end") scrubTo(Math.max(draft.start, draft.end - 0.1));
+    const { start, end } = winRef.current;
+    if (mode === "start") scrubTo(start);
+    else if (mode === "end") scrubTo(Math.max(start, end - 0.1));
   };
 
   const moveDrag = (event: ReactPointerEvent<HTMLElement>) => {
@@ -167,20 +180,21 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     try {
-      event.currentTarget.releasePointerCapture(event.pointerId);
+      trackRef.current?.releasePointerCapture(event.pointerId);
     } catch {
       // Already released.
     }
     dragRef.current = null;
-    onChange(draftRef.current);
+    onChange(winRef.current);
   };
 
-  const dragProps = (mode: DragMode) => ({
-    onPointerDown: beginDrag(mode),
+  // Move/up/cancel live on the track (an ancestor of every handle), so a
+  // captured pointer and a bubbled one both land here exactly once.
+  const trackDragProps = {
     onPointerMove: moveDrag,
     onPointerUp: endDrag,
     onPointerCancel: endDrag,
-  });
+  };
 
   const selectedLength = draft.end - draft.start;
 
@@ -188,7 +202,17 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
     <div className="mx-auto w-full max-w-[420px]">
       <div className="glass-panel overflow-hidden rounded-[28px] p-2 shadow-panel">
         <div className="relative aspect-[4/3] overflow-hidden rounded-[20px] bg-[#17151f]">
-          <video ref={videoRef} src={videoUrl} className="h-full w-full object-contain" playsInline muted preload="auto" />
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            className="h-full w-full object-contain"
+            playsInline
+            muted
+            preload="auto"
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+            onEnded={() => play(winRef.current.start)}
+          />
           <button
             type="button"
             onClick={togglePlay}
@@ -211,6 +235,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
         <div
           ref={trackRef}
           className="relative mt-2 h-16 touch-none select-none overflow-hidden rounded-[14px] bg-[#17151f]"
+          {...trackDragProps}
         >
           <div className="absolute inset-0 flex">
             {frames
@@ -232,9 +257,9 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
           />
 
           <div
-            className="absolute inset-y-0 cursor-grab border-y-[3px] border-[#ff5c82] active:cursor-grabbing"
+            className="absolute inset-y-0 cursor-grab touch-none border-y-[3px] border-[#ff5c82] active:cursor-grabbing"
             style={{ left: pct(draft.start), width: pct(selectedLength) }}
-            {...dragProps("window")}
+            onPointerDown={beginDrag("window")}
           />
 
           <button
@@ -242,7 +267,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
             aria-label={copy.review.trimStartHandle}
             className="absolute inset-y-0 grid w-7 -translate-x-1/2 cursor-ew-resize touch-none place-items-center rounded-l-[7px] bg-[#ff5c82] shadow-lg"
             style={{ left: pct(draft.start) }}
-            {...dragProps("start")}
+            onPointerDown={beginDrag("start")}
           >
             <span className="h-5 w-[3px] rounded-full bg-white" />
           </button>
@@ -251,14 +276,14 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
             aria-label={copy.review.trimEndHandle}
             className="absolute inset-y-0 grid w-7 -translate-x-1/2 cursor-ew-resize touch-none place-items-center rounded-r-[7px] bg-[#ff5c82] shadow-lg"
             style={{ left: pct(draft.end) }}
-            {...dragProps("end")}
+            onPointerDown={beginDrag("end")}
           >
             <span className="h-5 w-[3px] rounded-full bg-white" />
           </button>
 
           <div
-            className="pointer-events-none absolute inset-y-0 z-10 w-[2px] -translate-x-1/2 rounded-full bg-white shadow-[0_0_8px_rgba(0,0,0,0.7)]"
-            style={{ left: pct(Math.min(draft.end, Math.max(draft.start, playhead))) }}
+            ref={playheadRef}
+            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-[2px] -translate-x-1/2 rounded-full bg-white shadow-[0_0_8px_rgba(0,0,0,0.7)]"
           >
             <span className="absolute left-1/2 top-1 h-2 w-2 -translate-x-1/2 rounded-full bg-white" />
           </div>
