@@ -1,0 +1,8 @@
+ios
+android
+functions
+scripts
+.next
+node_modules
+.git
+*.tsbuildinfo
