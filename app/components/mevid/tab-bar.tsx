@@ -30,7 +30,7 @@ export function TabBar({ copy, tab, onChange }: TabBarProps) {
   return (
     <nav
       aria-label={copy.tabs.nav}
-      className="liquid-glass !fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-20 mx-auto flex max-w-xl items-center justify-between gap-1 rounded-[28px] p-2"
+      className="liquid-glass !fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-xl items-center justify-between gap-1 rounded-t-[28px] border-x-0 border-b-0 px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
     >
       {tabs.map(({ key, icon: Icon }) => {
         const active = tab === key;

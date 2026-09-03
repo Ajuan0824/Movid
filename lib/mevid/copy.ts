@@ -34,13 +34,15 @@ export type AppCopy = {
   errors: {
     notVideo: string; tooLong: string; unreadable: string;
     analysisFailed: string; analysisUnavailable: string; analysisVideoUnreadable: string;
-    planUnavailable: string;
+    planUnavailable: string; downloadFailed: string;
   };
   desktopGate: { title: string; description: string };
   auth: {
     login: { eyebrow: string; title: string; description: string; emailLabel: string; passwordLabel: string; forgot: string; submit: string; noAccount: string; createAccount: string; orDivider: string; google: string; apple: string };
     register: { eyebrow: string; title: string; description: string; emailLabel: string; passwordLabel: string; confirmLabel: string; submit: string; haveAccount: string; signIn: string; termsText: string; strengthWeak: string; strengthGood: string; strengthStrong: string };
     forgot: { eyebrow: string; title: string; description: string; emailLabel: string; submit: string; back: string; sent: string; sentSocialHint: string };
+    /** Label on the back chip that returns to the sign-in screen. */
+    backToLogin: string;
     errors: { invalidEmail: string; userNotFound: string; wrongPassword: string; emailInUse: string; weakPassword: string; tooManyRequests: string; networkError: string; cancelled: string; unknown: string; passwordMismatch: string; required: string; termsRequired: string };
     account: { signedInAs: string; signOut: string; profile: string };
     profile: {
@@ -174,6 +176,7 @@ const dictionary: Record<Locale, AppCopy> = {
       analysisUnavailable: "AI analysis isn’t available right now (the server has no OpenAI key configured). No star was used.",
       planUnavailable: "We couldn’t check your weekly stars. Check your connection and try again — no star was used.",
       analysisVideoUnreadable: "We couldn’t read the frames of that recording. Try recording again — no star was used.",
+      downloadFailed: "We couldn’t save those photos. Please try again.",
     },
     desktopGate: {
       title: "Open this on your phone",
@@ -197,7 +200,7 @@ const dictionary: Record<Locale, AppCopy> = {
       register: {
         eyebrow: "CREATE ACCOUNT",
         title: "Join Movid.",
-        description: "One quick step before you start capturing moments.",
+        description: "One quick step and you’re in.",
         emailLabel: "Email",
         passwordLabel: "Password",
         confirmLabel: "Confirm password",
@@ -219,6 +222,7 @@ const dictionary: Record<Locale, AppCopy> = {
         sent: "If that address has a Movid account with a password, the reset link is on its way. Check your spam folder too.",
         sentSocialHint: "Signed up with Google or Apple? There’s no password to reset — go back and use that button instead.",
       },
+      backToLogin: "Back to sign in",
       errors: {
         invalidEmail: "That email address doesn’t look right.",
         userNotFound: "We couldn’t find an account with that email.",
@@ -379,6 +383,7 @@ const dictionary: Record<Locale, AppCopy> = {
       analysisUnavailable: "El análisis con IA no está disponible ahora mismo (el servidor no tiene configurada la clave de OpenAI). No se ha gastado ninguna estrella.",
       analysisVideoUnreadable: "No hemos podido leer los fotogramas de esa grabación. Prueba a grabar de nuevo — no se ha gastado ninguna estrella.",
       planUnavailable: "No pudimos comprobar tus estrellas semanales. Revisa tu conexión y vuelve a intentarlo — no se ha gastado ninguna estrella.",
+      downloadFailed: "No hemos podido guardar esas fotos. Vuelve a intentarlo.",
     },
     desktopGate: {
       title: "Abrí esto desde tu teléfono",
@@ -402,7 +407,7 @@ const dictionary: Record<Locale, AppCopy> = {
       register: {
         eyebrow: "CREAR CUENTA",
         title: "Únete a Movid.",
-        description: "Un paso rápido antes de empezar a capturar momentos.",
+        description: "Un paso rápido y ya estamos.",
         emailLabel: "Correo electrónico",
         passwordLabel: "Contraseña",
         confirmLabel: "Confirmar contraseña",
@@ -424,6 +429,7 @@ const dictionary: Record<Locale, AppCopy> = {
         sent: "Si esa dirección tiene una cuenta de Movid con contraseña, el enlace va de camino. Mira también en la carpeta de spam.",
         sentSocialHint: "¿Te registraste con Google o Apple? Entonces no hay contraseña que restablecer — vuelve atrás y entra con ese botón.",
       },
+      backToLogin: "Volver a iniciar sesión",
       errors: {
         invalidEmail: "Ese correo electrónico no parece válido.",
         userNotFound: "No encontramos ninguna cuenta con ese correo.",

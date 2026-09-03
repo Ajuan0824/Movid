@@ -1,3 +1,6 @@
+import { Capacitor } from "@capacitor/core";
+import { StatusBar, Style } from "@capacitor/status-bar";
+
 export type ThemePref = "system" | "light" | "dark";
 export type ResolvedTheme = "light" | "dark";
 
@@ -23,8 +26,18 @@ export function storeThemePref(pref: ThemePref): void {
   window.localStorage.setItem(STORAGE_KEY, pref);
 }
 
-/** Toggles the `dark` class on <html> — the single source of truth Tailwind's dark: variant reads from. */
+/**
+ * Toggles the `dark` class on <html> — the single source of truth Tailwind's
+ * dark: variant reads from — and keeps the native status bar legible.
+ *
+ * The status bar overlays the web view, so its text colour has to follow the
+ * page behind it: `Style.Light` means *dark* glyphs (for our light background)
+ * and `Style.Dark` means *light* glyphs. Pinning it to one value left the clock
+ * and battery white-on-white in the light theme.
+ */
 export function applyResolvedTheme(resolved: ResolvedTheme): void {
   if (typeof document === "undefined") return;
   document.documentElement.classList.toggle("dark", resolved === "dark");
+  if (!Capacitor.isNativePlatform()) return;
+  void StatusBar.setStyle({ style: resolved === "dark" ? Style.Dark : Style.Light }).catch(() => {});
 }

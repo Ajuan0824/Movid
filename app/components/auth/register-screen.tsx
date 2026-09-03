@@ -75,16 +75,13 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
     <AuthShell
       title={t.title}
       description={t.description}
-      footer={
-        <>
-          {t.haveAccount}{" "}
-          <button onClick={() => onNavigate("login")} className="font-semibold text-[#7657dd] dark:text-[#c4b3ff] hover:underline">{t.signIn}</button>
-        </>
-      }
+      onBack={() => onNavigate("login")}
+      backLabel={copy.auth.backToLogin}
+      compact
     >
       {error ? <AuthErrorBanner message={error} /> : null}
       <form
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           void submit();
@@ -115,10 +112,10 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
 
         <AuthSubmitButton loading={loading} onTap={() => tapHaptic()}>{t.submit}</AuthSubmitButton>
       </form>
-      <div className="my-5 flex items-center gap-3 text-xs font-medium text-[#aaa7b1] dark:text-[#948fa0]">
+      <div className="my-4 flex items-center gap-3 text-xs font-medium text-[#aaa7b1] dark:text-[#948fa0]">
         <div className="h-px flex-1 bg-[#e7e3ee]" />{copy.auth.login.orDivider}<div className="h-px flex-1 bg-[#e7e3ee]" />
       </div>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5">
         <SocialButton provider="google" loading={socialLoading === "google"} disabled={socialLoading !== null} onClick={() => void withSocial("google", signInWithGoogle)}>{copy.auth.login.google}</SocialButton>
         {showApple ? (
           <SocialButton provider="apple" loading={socialLoading === "apple"} disabled={socialLoading !== null} onClick={() => void withSocial("apple", signInWithApple)}>{copy.auth.login.apple}</SocialButton>

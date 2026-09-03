@@ -45,6 +45,8 @@ export function ForgotPasswordScreen({ copy, locale, onNavigate }: ForgotPasswor
     <AuthShell
       title={t.title}
       description={t.description}
+      onBack={() => onNavigate("login")}
+      backLabel={copy.auth.backToLogin}
       footer={
         <button onClick={() => onNavigate("login")} className="font-semibold text-[#7657dd] dark:text-[#c4b3ff] hover:underline">{t.back}</button>
       }

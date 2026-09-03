@@ -125,7 +125,7 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-lg font-bold text-[#242432] dark:text-[#f2f0f8]">{user.displayName ?? user.email}</p>
-          <p className="truncate text-sm text-[#85818f] dark:text-[#a49fb0]">{user.email}</p>
+          <p className="truncate text-sm font-semibold text-[#403d4b] dark:text-[#d7d2e2]">{user.email}</p>
         </div>
         {planReady ? <PlanBadge copy={copy} plan={plan} /> : null}
       </div>

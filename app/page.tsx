@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { AccountScreen } from "./components/mevid/account-screen";
-import { AnalysisScreen } from "./components/mevid/analysis-screen";
+import { AnalysisScreen, captureSequenceMs } from "./components/mevid/analysis-screen";
 import { AccountMenu } from "./components/mevid/account-menu";
 import { AuthGate } from "./components/auth/auth-gate";
 import { Brand } from "./components/mevid/brand";
@@ -72,6 +72,8 @@ export default function Home() {
   const [selected, setSelected] = useState(0);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [analysisStep, setAnalysisStep] = useState(0);
+  // The moments the model actually returned; drives the folder animation.
+  const [analysisFound, setAnalysisFound] = useState<VideoHighlight[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [starsEmptyOpen, setStarsEmptyOpen] = useState(false);
@@ -116,11 +118,21 @@ export default function Home() {
     if (urlRef.current) URL.revokeObjectURL(urlRef.current);
   }, []);
 
+  /**
+   * Tab navigation. Leaving Moments closes whatever moment was open, so coming
+   * back lands on the library instead of the video you were last looking at.
+   * The analysis flow sets the tab directly — it opens a moment on purpose.
+   */
+  const changeTab = useCallback((next: AppTab) => {
+    if (next !== "momentos") setOpenGenerationId(null);
+    setTab(next);
+  }, []);
+
   // The Pro tab is hidden for subscribers, so don't strand one on it — it can
   // still be the active tab if the plan resolved while they were viewing it.
   useEffect(() => {
-    if (planReady && plan === "pro" && tab === "pro") setTab("home");
-  }, [planReady, plan, tab]);
+    if (planReady && plan === "pro" && tab === "pro") changeTab("home");
+  }, [planReady, plan, tab, changeTab]);
 
   useEffect(() => {
     if (!notice) return;
@@ -186,9 +198,12 @@ export default function Home() {
     setError(null);
     setFlowView("analysing");
     setAnalysisStep(0);
+    setAnalysisFound(null);
+    // Cycles rather than capping: the model takes as long as it takes, and a
+    // progress bar frozen at "done" while we're still waiting reads as stuck.
     const interval = window.setInterval(() => {
-      setAnalysisStep((current) => Math.min(current + 1, copy.analysis.steps.length - 1));
-    }, 850);
+      setAnalysisStep((current) => (current + 1) % copy.analysis.steps.length);
+    }, 1700);
 
     // Which stage failed decides what we can honestly tell the user — the
     // three causes have completely different fixes.
@@ -227,6 +242,12 @@ export default function Home() {
     }
     window.clearInterval(interval);
 
+    // Hand the real moments to the analysis screen and let the hand actually
+    // file them away before we move on. The magnifier hunted for exactly as
+    // long as the model took, so the folder filling up is a real signal.
+    setAnalysisFound(hydrated);
+    await new Promise((resolve) => window.setTimeout(resolve, captureSequenceMs(hydrated.length)));
+
     // Charged only now: billing a star for an analysis that failed would be
     // wrong, and refunding one from the client would let anyone zero out their
     // usage after already getting the result.
@@ -263,6 +284,7 @@ export default function Home() {
     setTrimStart(0);
     setVideoDuration(MAX_VIDEO_SECONDS);
     setSourceDuration(MAX_VIDEO_SECONDS);
+    setAnalysisFound(null);
     setFlowView("idle");
     setTab("home");
   };
@@ -273,52 +295,61 @@ export default function Home() {
     setOpenGenerationId(generation.id);
   };
 
-  /** useShare tries the native share sheet first (nice for a single image); batches skip it so multiple picks download reliably without repeated share prompts. */
-  const exportHighlight = async (highlight: VideoHighlight, useShare = true) => {
-    if (!highlight?.image) return;
-    const slug = highlight.title
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "moment";
-    // Fresh results carry a data: URI; stored ones are remote JPEGs.
-    const typeMatch = /^data:image\/([a-z0-9+.-]+)[;,]/i.exec(highlight.image);
-    const subtype = typeMatch?.[1]?.toLowerCase() ?? "jpeg";
+  const slugify = (title: string) =>
+    title.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "moment";
+
+  /**
+   * Builds a File for one highlight image. Stored generations point at Firebase
+   * Storage URLs, which send no CORS headers — routing them through /api/asset
+   * keeps the fetch same-origin so we can hand a real file to the share sheet.
+   * A bare <a download> just navigates the WebView to the image on iOS.
+   */
+  const highlightToFile = async (highlight: VideoHighlight): Promise<File> => {
+    const src = /^https?:/i.test(highlight.image)
+      ? `/api/asset?url=${encodeURIComponent(highlight.image)}`
+      : highlight.image;
+    const blob = await (await fetch(src)).blob();
+    const subtype = (blob.type.split("/")[1] ?? "jpeg").toLowerCase();
     const extension = subtype === "svg+xml" ? "svg" : subtype === "jpeg" ? "jpg" : subtype;
-    const filename = `movid-${slug}.${extension}`;
+    return new File([blob], `movid-${slugify(highlight.title)}.${extension}`, { type: blob.type || "image/jpeg" });
+  };
 
-    if (useShare) {
-      try {
-        const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
-        if (nav.share && nav.canShare) {
-          const blob = await (await fetch(highlight.image)).blob();
-          const file = new File([blob], filename, { type: blob.type || `image/${extension}` });
-          if (nav.canShare({ files: [file] })) {
-            await nav.share({ files: [file], title: highlight.title });
-            return;
-          }
-        }
-      } catch (shareError) {
-        if (shareError instanceof DOMException && shareError.name === "AbortError") return;
+  /**
+   * One share sheet for the whole set (iOS/Android: "Save N Images", "Save to
+   * Files", share…). Desktop browsers with no Web Share fall back to real file
+   * downloads. Never navigates away; an empty set is a no-op.
+   */
+  const downloadHighlights = async (items: VideoHighlight[]) => {
+    const targets = items.filter((highlight) => highlight?.image);
+    if (targets.length === 0) return;
+    try {
+      const files = await Promise.all(targets.map(highlightToFile));
+      const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
+      if (nav.share && nav.canShare?.({ files })) {
+        await nav.share({ files, title: files.length === 1 ? targets[0].title : copy.results.title });
+        return;
       }
+      for (const file of files) {
+        const href = URL.createObjectURL(file);
+        const link = document.createElement("a");
+        link.href = href;
+        link.download = file.name;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(href);
+      }
+    } catch (downloadError) {
+      // The user dismissing the share sheet throws AbortError — not a failure.
+      if (downloadError instanceof DOMException && downloadError.name === "AbortError") return;
+      console.error("Download failed", downloadError);
+      setError(copy.errors.downloadFailed);
     }
-
-    const link = document.createElement("a");
-    link.href = highlight.image;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
   };
 
-  const downloadChecked = async () => {
-    const selection = (openGeneration?.highlights ?? []).filter((_, index) => checked.has(index));
-    const useShare = selection.length === 1;
-    for (const highlight of selection) {
-      await exportHighlight(highlight, useShare);
-    }
-  };
+  const downloadChecked = () =>
+    downloadHighlights((openGeneration?.highlights ?? []).filter((_, index) => checked.has(index)));
 
   if (mobileState === "checking" || !localeReady) {
     return <main className="min-h-dvh bg-[#f8f7fb] dark:bg-[#121018]" />;
@@ -339,7 +370,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <AccountMenu
               copy={copy}
-              onManageAccount={() => setTab("cuenta")}
+              onManageAccount={() => changeTab("cuenta")}
               localePref={localePref}
               onLocalePrefChange={setLocalePref}
               themePref={themePref}
@@ -350,7 +381,7 @@ export default function Home() {
         </header>
 
         <AuthGate copy={copy} locale={locale}>
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(6.75rem+env(safe-area-inset-bottom))]">
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(6rem+env(safe-area-inset-bottom))]">
           <AnimatePresence mode="wait">
             {tab === "home" && flowView === "idle" ? (
               <IntroScreen
@@ -370,7 +401,7 @@ export default function Home() {
               />
             ) : null}
             {tab === "home" && flowView === "review" && videoUrl ? <ReviewScreen key="home-review" copy={copy} videoUrl={videoUrl} duration={videoDuration} sourceDuration={sourceDuration} trimStart={trimStart} onTrimChange={handleTrimChange} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
-            {tab === "home" && flowView === "analysing" ? <AnalysisScreen key="home-analysing" copy={copy} step={analysisStep} /> : null}
+            {tab === "home" && flowView === "analysing" ? <AnalysisScreen key="home-analysing" copy={copy} step={analysisStep} videoUrl={videoUrl} duration={videoDuration} trimStart={trimStart} found={analysisFound} /> : null}
 
             {tab === "momentos" && openGeneration ? (
               <ResultsScreen
@@ -387,8 +418,8 @@ export default function Home() {
                 newVideoLabel={copy.library.back}
                 onSelect={selectHighlight}
                 onToggleCheck={toggleChecked}
-                onDownloadOne={(highlight) => void exportHighlight(highlight, true)}
-                onDownloadChecked={downloadChecked}
+                onDownloadOne={(highlight) => void downloadHighlights([highlight])}
+                onDownloadChecked={() => void downloadChecked()}
               />
             ) : null}
             {tab === "momentos" && !openGeneration ? (
@@ -398,16 +429,16 @@ export default function Home() {
                 generations={generations}
                 onOpen={openGenerationFromLibrary}
                 onDelete={(generation) => void removeGeneration(generation)}
-                onGoHome={() => setTab("home")}
+                onGoHome={() => changeTab("home")}
               />
             ) : null}
 
             {tab === "pro" ? <ProScreen key="pro" copy={copy} onCta={() => setNotice(copy.pro.comingSoon)} /> : null}
-            {tab === "cuenta" ? <AccountScreen key="cuenta" copy={copy} onGoPro={() => setTab("pro")} /> : null}
+            {tab === "cuenta" ? <AccountScreen key="cuenta" copy={copy} onGoPro={() => changeTab("pro")} /> : null}
           </AnimatePresence>
           </div>
 
-          <TabBar copy={copy} tab={tab} onChange={setTab} />
+          <TabBar copy={copy} tab={tab} onChange={changeTab} />
           <AnimatePresence>
             {starsEmptyOpen ? (
               <StarsEmptyModal
@@ -416,7 +447,7 @@ export default function Home() {
                 plan={plan}
                 total={starsTotal}
                 onClose={() => setStarsEmptyOpen(false)}
-                onGoPro={() => setTab("pro")}
+                onGoPro={() => changeTab("pro")}
               />
             ) : null}
           </AnimatePresence>

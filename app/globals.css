@@ -150,6 +150,13 @@ button { -webkit-tap-highlight-color: transparent; }
 .dark .ios-input { border-color: rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: #f0edf7; }
 .dark .ios-input::placeholder { color: #8b8697; }
 
+/* Register is the one auth screen tall enough to run off a phone, and it has
+   no scroll container to fall back on. These trims are scoped to it so the
+   controls elsewhere (home screen, profile) keep their roomier sizing. */
+.auth-compact .ios-input { padding-top: .8rem; padding-bottom: .8rem; }
+.auth-compact .primary-button,
+.auth-compact .secondary-button { padding-top: .85rem; padding-bottom: .85rem; }
+
 .liquid-shimmer { position: relative; overflow: hidden; }
 .liquid-shimmer::after {
   content: "";

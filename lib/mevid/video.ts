@@ -112,14 +112,86 @@ export async function getVideoDuration(file: File) {
   }
 }
 
+type FrameReadyVideo = HTMLVideoElement & {
+  requestVideoFrameCallback?: (callback: () => void) => number;
+};
+
+/**
+ * iOS Safari will not decode frames from a `<video>` that was never attached to
+ * the document, or never played: `drawImage` then copies black. So the element
+ * is parked off-screen — 1px and nearly transparent, NOT `display:none` or
+ * `visibility:hidden`, which put it right back in the undecoded case — and
+ * nudged through a play/pause to prime the decoder before any seeking.
+ */
 async function loadVideoElement(source: string): Promise<HTMLVideoElement> {
   const video = document.createElement("video");
   video.muted = true;
+  video.defaultMuted = true;
   video.playsInline = true;
   video.preload = "auto";
+  // Attributes as well as properties: Safari reads these off the markup when it
+  // decides whether inline playback without a gesture is allowed.
+  video.setAttribute("muted", "");
+  video.setAttribute("playsinline", "");
+  video.style.cssText =
+    "position:fixed;left:0;top:0;width:1px;height:1px;opacity:0.01;pointer-events:none;z-index:-1";
+  document.body.appendChild(video);
   video.src = source;
-  await waitForEvent(video, "loadedmetadata");
-  return video;
+
+  try {
+    await waitForEvent(video, "loadedmetadata");
+    try {
+      await video.play();
+      video.pause();
+    } catch {
+      // A rejected play() isn't fatal: browsers that don't need the nudge still
+      // decode fine from a plain seek.
+    }
+    return video;
+  } catch (error) {
+    releaseVideoElement(video);
+    throw error;
+  }
+}
+
+function releaseVideoElement(video: HTMLVideoElement) {
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+  video.remove();
+}
+
+/**
+ * `seeked` means the media element moved its playhead, not that a frame is
+ * ready to draw. On iOS Safari that gap is real: drawing straight after
+ * `seeked` copies the previous frame, or nothing. `requestVideoFrameCallback`
+ * fires once a frame is actually presentable; where it doesn't exist, two
+ * animation frames are the best proxy. Both are capped so a paused video that
+ * never presents anything can't hang the analysis.
+ */
+function waitForPaintedFrame(video: HTMLVideoElement): Promise<void> {
+  const requestFrame = (video as FrameReadyVideo).requestVideoFrameCallback;
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    if (typeof requestFrame === "function") {
+      requestFrame.call(video, done);
+      window.setTimeout(done, 400);
+      return;
+    }
+    requestAnimationFrame(() => requestAnimationFrame(done));
+  });
+}
+
+/** Seeks and waits until the frame at that time is genuinely drawable. */
+async function seekTo(video: HTMLVideoElement, time: number) {
+  video.currentTime = time;
+  await waitForEvent(video, "seeked");
+  await waitForPaintedFrame(video);
 }
 
 function createCanvas(video: HTMLVideoElement, maxWidth: number) {
@@ -197,21 +269,22 @@ export async function extractFrames(
   offsetSeconds = 0,
 ): Promise<VideoFrame[]> {
   const video = await loadVideoElement(source);
-  const total = await resolveDuration(video, offsetSeconds + windowSeconds);
-  const { start, span } = clampWindow(total, windowSeconds, offsetSeconds);
-  const { canvas, context } = createCanvas(video, 480);
+  try {
+      const total = await resolveDuration(video, offsetSeconds + windowSeconds);
+      const { start, span } = clampWindow(total, windowSeconds, offsetSeconds);
+      const { canvas, context } = createCanvas(video, 480);
 
-  const frames: VideoFrame[] = [];
-  for (let index = 0; index < SAMPLE_COUNT; index += 1) {
-    const local = Math.min(span - 0.05, Math.max(0, ((index + 0.5) / SAMPLE_COUNT) * span));
-    video.currentTime = start + local;
-    await waitForEvent(video, "seeked");
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    frames.push({ time: Number(local.toFixed(2)), image: canvas.toDataURL("image/jpeg", 0.68) });
+      const frames: VideoFrame[] = [];
+      for (let index = 0; index < SAMPLE_COUNT; index += 1) {
+        const local = Math.min(span - 0.05, Math.max(0, ((index + 0.5) / SAMPLE_COUNT) * span));
+        await seekTo(video, start + local);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        frames.push({ time: Number(local.toFixed(2)), image: canvas.toDataURL("image/jpeg", 0.68) });
+      }
+      return frames;
+  } finally {
+    releaseVideoElement(video);
   }
-  video.removeAttribute("src");
-  video.load();
-  return frames;
 }
 
 /**
@@ -224,20 +297,21 @@ export async function extractFilmstrip(
   count = 10,
 ): Promise<VideoFrame[]> {
   const video = await loadVideoElement(source);
-  const total = await resolveDuration(video, durationHint);
-  const { canvas, context } = createCanvas(video, 160);
+  try {
+    const total = await resolveDuration(video, durationHint);
+    const { canvas, context } = createCanvas(video, 160);
 
-  const frames: VideoFrame[] = [];
-  for (let index = 0; index < count; index += 1) {
-    const time = Math.min(total - 0.05, Math.max(0, ((index + 0.5) / count) * total));
-    video.currentTime = time;
-    await waitForEvent(video, "seeked");
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    frames.push({ time: Number(time.toFixed(2)), image: canvas.toDataURL("image/jpeg", 0.5) });
+    const frames: VideoFrame[] = [];
+    for (let index = 0; index < count; index += 1) {
+      const time = Math.min(total - 0.05, Math.max(0, ((index + 0.5) / count) * total));
+      await seekTo(video, time);
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      frames.push({ time: Number(time.toFixed(2)), image: canvas.toDataURL("image/jpeg", 0.5) });
+    }
+    return frames;
+  } finally {
+    releaseVideoElement(video);
   }
-  video.removeAttribute("src");
-  video.load();
-  return frames;
 }
 
 /**
@@ -258,6 +332,7 @@ export async function hydrateHighlightImages<T extends { start: number; end: num
   offsetSeconds = 0,
 ): Promise<(T & { image: string })[]> {
   const video = await loadVideoElement(source);
+  try {
   const total = await resolveDuration(video, offsetSeconds + windowSeconds);
   const { start: base, span } = clampWindow(total, windowSeconds, offsetSeconds);
   // Highlight times come back relative to the trimmed window, so every seek is
@@ -266,10 +341,8 @@ export async function hydrateHighlightImages<T extends { start: number; end: num
   const { canvas, context } = createCanvas(video, 1280);
   const scoring = createCanvas(video, SCORING_WIDTH);
 
-  const seekTo = async (time: number) => {
-    video.currentTime = base + time;
-    await waitForEvent(video, "seeked");
-  };
+  /** Window-relative seek: the caller's times start at the trim's in-point. */
+  const seekLocal = (time: number) => seekTo(video, base + time);
 
   const hydrated: (T & { image: string })[] = [];
   for (const highlight of highlights) {
@@ -291,7 +364,7 @@ export async function hydrateHighlightImages<T extends { start: number; end: num
       for (let index = 0; index < REFINE_CANDIDATES; index += 1) {
         const time = lower + ((upper - lower) * index) / (REFINE_CANDIDATES - 1);
         try {
-          await seekTo(time);
+          await seekLocal(time);
           scoring.context.drawImage(video, 0, 0, scoring.canvas.width, scoring.canvas.height);
           const { data } = scoring.context.getImageData(0, 0, scoring.canvas.width, scoring.canvas.height);
           const distance = Math.min(Math.abs(time - centre) / halfSpan, 1);
@@ -306,12 +379,13 @@ export async function hydrateHighlightImages<T extends { start: number; end: num
       }
     }
 
-    await seekTo(bestTime);
+    await seekLocal(bestTime);
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     hydrated.push({ ...highlight, image: canvas.toDataURL("image/jpeg", 0.92) });
   }
 
-  video.removeAttribute("src");
-  video.load();
   return hydrated;
+  } finally {
+    releaseVideoElement(video);
+  }
 }
