@@ -20,7 +20,9 @@ export type AppCopy = {
     eyebrow: string; title: string; freeLabel: string; proLabel: string; popular: string; perMonth: string;
     freeFeatures: string[]; proFeatures: string[];
     monthly: string; yearly: string; monthlySub: string; yearlySub: string; discount: string;
-    ctaMonthly: string; ctaYearly: string; trial: string; comingSoon: string;
+    ctaMonthly: string; ctaYearly: string; trial: string;
+    restore: string; restoring: string; activating: string;
+    errorGeneric: string; restoredOk: string; restoreNothing: string; unavailable: string;
   };
   account: { eyebrow: string; title: string; plan: string; upgrade: string; upgradeSub: string };
   plans: { free: string; pro: string };
@@ -145,7 +147,13 @@ const dictionary: Record<Locale, AppCopy> = {
       ctaMonthly: "Start trial · €6.99/mo",
       ctaYearly: "Start trial · €49/yr",
       trial: "7 days free · cancel anytime",
-      comingSoon: "Pro is coming soon — thanks for your interest!",
+      restore: "Restore purchases",
+      restoring: "Restoring…",
+      activating: "Activating Movid Pro…",
+      errorGeneric: "The purchase couldn't be completed. Please try again.",
+      restoredOk: "Your subscription is back.",
+      restoreNothing: "No previous purchases found for this Apple ID.",
+      unavailable: "Subscriptions are only available in the Movid iOS app.",
     },
     account: {
       eyebrow: "YOUR ACCOUNT",
@@ -352,7 +360,13 @@ const dictionary: Record<Locale, AppCopy> = {
       ctaMonthly: "Empezar prueba · 6,99 €/mes",
       ctaYearly: "Empezar prueba · 49 €/año",
       trial: "7 días gratis · cancela cuando quieras",
-      comingSoon: "Pro llega pronto — ¡gracias por tu interés!",
+      restore: "Restaurar compras",
+      restoring: "Restaurando…",
+      activating: "Activando Movid Pro…",
+      errorGeneric: "No se pudo completar la compra. Inténtalo de nuevo.",
+      restoredOk: "Tu suscripción está de vuelta.",
+      restoreNothing: "No hay compras previas con este Apple ID.",
+      unavailable: "Las suscripciones solo están disponibles en la app de Movid para iOS.",
     },
     account: {
       eyebrow: "TU CUENTA",
