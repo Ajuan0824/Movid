@@ -262,23 +262,24 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
             onPointerDown={beginDrag("window")}
           />
 
+          {/* Wide transparent hit area, hairline pink bar as the only visible mark. */}
           <button
             type="button"
             aria-label={copy.review.trimStartHandle}
-            className="absolute inset-y-0 grid w-7 -translate-x-1/2 cursor-ew-resize touch-none place-items-center rounded-l-[7px] bg-[#ff5c82] shadow-lg"
+            className="absolute inset-y-0 grid w-6 -translate-x-1/2 cursor-ew-resize touch-none place-items-center"
             style={{ left: pct(draft.start) }}
             onPointerDown={beginDrag("start")}
           >
-            <span className="h-5 w-[3px] rounded-full bg-white" />
+            <span className="h-full w-[2px] rounded-full bg-[#ff5c82] shadow-[0_0_4px_rgba(0,0,0,0.45)]" />
           </button>
           <button
             type="button"
             aria-label={copy.review.trimEndHandle}
-            className="absolute inset-y-0 grid w-7 -translate-x-1/2 cursor-ew-resize touch-none place-items-center rounded-r-[7px] bg-[#ff5c82] shadow-lg"
+            className="absolute inset-y-0 grid w-6 -translate-x-1/2 cursor-ew-resize touch-none place-items-center"
             style={{ left: pct(draft.end) }}
             onPointerDown={beginDrag("end")}
           >
-            <span className="h-5 w-[3px] rounded-full bg-white" />
+            <span className="h-full w-[2px] rounded-full bg-[#ff5c82] shadow-[0_0_4px_rgba(0,0,0,0.45)]" />
           </button>
 
           <div
