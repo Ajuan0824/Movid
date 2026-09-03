@@ -1,4 +1,4 @@
-# MeVid
+# Movid
 
 Aplicación móvil que analiza un vídeo corto (máximo 15 segundos) y selecciona
 automáticamente los 5 mejores momentos, listos para descargar o compartir.

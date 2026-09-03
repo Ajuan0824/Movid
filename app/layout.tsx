@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Space_Grotesk } from "next/font/google";
 import { ClientBootstrap } from "./components/mevid/client-bootstrap";
+import { SplashScreen } from "./components/mevid/splash-screen";
 import "./globals.css";
 import { AuthProvider } from "../hooks/use-auth";
 import { PlanProvider } from "../hooks/use-plan";
@@ -16,7 +17,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "MeVid — find your best moments",
+  title: "Movid — find your best moments",
   description: "Record. Analyse. Share your best moments.",
 };
 
@@ -48,6 +49,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AuthProvider>
           <PlanProvider>{children}</PlanProvider>
         </AuthProvider>
+        {/* Last in the DOM so it paints over the app while it boots. */}
+        <SplashScreen />
       </body>
     </html>
   );

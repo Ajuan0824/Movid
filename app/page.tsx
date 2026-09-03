@@ -286,7 +286,7 @@ export default function Home() {
     const typeMatch = /^data:image\/([a-z0-9+.-]+)[;,]/i.exec(highlight.image);
     const subtype = typeMatch?.[1]?.toLowerCase() ?? "jpeg";
     const extension = subtype === "svg+xml" ? "svg" : subtype === "jpeg" ? "jpg" : subtype;
-    const filename = `mevid-${slug}.${extension}`;
+    const filename = `movid-${slug}.${extension}`;
 
     if (useShare) {
       try {

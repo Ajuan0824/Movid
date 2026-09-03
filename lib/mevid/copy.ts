@@ -103,7 +103,7 @@ const dictionary: Record<Locale, AppCopy> = {
       start: "Start recording",
       stop: "Stop recording",
       maxHint: "15s max",
-      permissionDenied: "We can’t reach your camera. Check that MeVid has camera and microphone permission, then try again.",
+      permissionDenied: "We can’t reach your camera. Check that Movid has camera and microphone permission, then try again.",
     },
     momentsEmpty: {
       title: "No moments yet",
@@ -127,7 +127,7 @@ const dictionary: Record<Locale, AppCopy> = {
       expiresToday: "Expires today",
     },
     pro: {
-      eyebrow: "MEVID PRO",
+      eyebrow: "MOVID PRO",
       title: "More quality, no limits.",
       freeLabel: "Free",
       proLabel: "Pro",
@@ -177,18 +177,18 @@ const dictionary: Record<Locale, AppCopy> = {
     },
     desktopGate: {
       title: "Open this on your phone",
-      description: "MeVid is designed for mobile — please visit this page from your phone’s browser to record and analyse your video.",
+      description: "Movid is designed for mobile — please visit this page from your phone’s browser to record and analyse your video.",
     },
     auth: {
       login: {
         eyebrow: "WELCOME BACK",
-        title: "Sign in to MeVid.",
+        title: "Sign in to Movid.",
         description: "Your moments, saved and ready when you are.",
         emailLabel: "Email",
         passwordLabel: "Password",
         forgot: "Forgot password?",
         submit: "Sign in",
-        noAccount: "New to MeVid?",
+        noAccount: "New to Movid?",
         createAccount: "Create an account",
         orDivider: "or continue with",
         google: "Continue with Google",
@@ -196,7 +196,7 @@ const dictionary: Record<Locale, AppCopy> = {
       },
       register: {
         eyebrow: "CREATE ACCOUNT",
-        title: "Join MeVid.",
+        title: "Join Movid.",
         description: "One quick step before you start capturing moments.",
         emailLabel: "Email",
         passwordLabel: "Password",
@@ -204,7 +204,7 @@ const dictionary: Record<Locale, AppCopy> = {
         submit: "Create account",
         haveAccount: "Already have an account?",
         signIn: "Sign in",
-        termsText: "I accept MeVid’s terms and privacy policy.",
+        termsText: "I accept Movid’s terms and privacy policy.",
         strengthWeak: "WEAK",
         strengthGood: "GOOD",
         strengthStrong: "STRONG",
@@ -216,7 +216,7 @@ const dictionary: Record<Locale, AppCopy> = {
         emailLabel: "Email",
         submit: "Send reset link",
         back: "Back to sign in",
-        sent: "If that address has a MeVid account with a password, the reset link is on its way. Check your spam folder too.",
+        sent: "If that address has a Movid account with a password, the reset link is on its way. Check your spam folder too.",
         sentSocialHint: "Signed up with Google or Apple? There’s no password to reset — go back and use that button instead.",
       },
       errors: {
@@ -236,7 +236,7 @@ const dictionary: Record<Locale, AppCopy> = {
       account: { signedInAs: "Signed in as", signOut: "Sign out", profile: "Profile" },
       profile: {
         title: "Your profile",
-        description: "Update how you appear across MeVid.",
+        description: "Update how you appear across Movid.",
         close: "Close",
         changePhoto: "Change photo",
         photoUpdated: "Photo updated.",
@@ -307,7 +307,7 @@ const dictionary: Record<Locale, AppCopy> = {
       start: "Empezar a grabar",
       stop: "Parar de grabar",
       maxHint: "15s máx.",
-      permissionDenied: "No podemos acceder a tu cámara. Comprueba que MeVid tiene permiso de cámara y micrófono, y vuelve a intentarlo.",
+      permissionDenied: "No podemos acceder a tu cámara. Comprueba que Movid tiene permiso de cámara y micrófono, y vuelve a intentarlo.",
     },
     momentsEmpty: {
       title: "Aún no hay momentos",
@@ -331,7 +331,7 @@ const dictionary: Record<Locale, AppCopy> = {
       expiresToday: "Caduca hoy",
     },
     pro: {
-      eyebrow: "MEVID PRO",
+      eyebrow: "MOVID PRO",
       title: "Más calidad, sin límites.",
       freeLabel: "Free",
       proLabel: "Pro",
@@ -381,18 +381,18 @@ const dictionary: Record<Locale, AppCopy> = {
     },
     desktopGate: {
       title: "Abrí esto desde tu teléfono",
-      description: "MeVid está pensado para móvil — abrí esta página desde el navegador de tu teléfono para grabar y analizar tu vídeo.",
+      description: "Movid está pensado para móvil — abrí esta página desde el navegador de tu teléfono para grabar y analizar tu vídeo.",
     },
     auth: {
       login: {
         eyebrow: "BIENVENIDO DE NUEVO",
-        title: "Inicia sesión en MeVid.",
+        title: "Inicia sesión en Movid.",
         description: "Tus momentos, guardados y listos cuando tú lo estés.",
         emailLabel: "Correo electrónico",
         passwordLabel: "Contraseña",
         forgot: "¿Olvidaste tu contraseña?",
         submit: "Iniciar sesión",
-        noAccount: "¿Nuevo en MeVid?",
+        noAccount: "¿Nuevo en Movid?",
         createAccount: "Crear una cuenta",
         orDivider: "o continúa con",
         google: "Continuar con Google",
@@ -400,7 +400,7 @@ const dictionary: Record<Locale, AppCopy> = {
       },
       register: {
         eyebrow: "CREAR CUENTA",
-        title: "Únete a MeVid.",
+        title: "Únete a Movid.",
         description: "Un paso rápido antes de empezar a capturar momentos.",
         emailLabel: "Correo electrónico",
         passwordLabel: "Contraseña",
@@ -408,7 +408,7 @@ const dictionary: Record<Locale, AppCopy> = {
         submit: "Crear cuenta",
         haveAccount: "¿Ya tienes una cuenta?",
         signIn: "Inicia sesión",
-        termsText: "Acepto las condiciones y la política de privacidad de MeVid.",
+        termsText: "Acepto las condiciones y la política de privacidad de Movid.",
         strengthWeak: "DÉBIL",
         strengthGood: "BIEN",
         strengthStrong: "FUERTE",
@@ -420,7 +420,7 @@ const dictionary: Record<Locale, AppCopy> = {
         emailLabel: "Correo electrónico",
         submit: "Enviar enlace",
         back: "Volver a iniciar sesión",
-        sent: "Si esa dirección tiene una cuenta de MeVid con contraseña, el enlace va de camino. Mira también en la carpeta de spam.",
+        sent: "Si esa dirección tiene una cuenta de Movid con contraseña, el enlace va de camino. Mira también en la carpeta de spam.",
         sentSocialHint: "¿Te registraste con Google o Apple? Entonces no hay contraseña que restablecer — vuelve atrás y entra con ese botón.",
       },
       errors: {
@@ -440,7 +440,7 @@ const dictionary: Record<Locale, AppCopy> = {
       account: { signedInAs: "Sesión iniciada como", signOut: "Cerrar sesión", profile: "Perfil" },
       profile: {
         title: "Tu perfil",
-        description: "Actualiza cómo apareces en MeVid.",
+        description: "Actualiza cómo apareces en Movid.",
         close: "Cerrar",
         changePhoto: "Cambiar foto",
         photoUpdated: "Foto actualizada.",

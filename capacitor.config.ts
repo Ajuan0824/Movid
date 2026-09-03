@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.mevid.app',
-  appName: 'MeVid',
+  appName: 'Movid',
   webDir: 'public',
   server: {
     // Para pruebas en red local, apuntá a la IP local del servidor Next.js
