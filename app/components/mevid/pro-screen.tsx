@@ -8,18 +8,37 @@ import { heroTextItemVariants, heroTextVariants, screenTransition, tapScale } fr
 
 type ProScreenProps = {
   copy: AppCopy;
-  onCta: () => void;
+  /** Store SDK is usable here (native iOS build). When false the CTA explains why. */
+  available: boolean;
+  /** A purchase / restore is running, or the plan is being activated. */
+  busy: boolean;
+  monthlyPrice: string | null;
+  yearlyPrice: string | null;
+  yearlyPerMonthPrice: string | null;
+  onSubscribe: (billing: "monthly" | "yearly") => void;
+  onRestore: () => void;
 };
 
-export function ProScreen({ copy, onCta }: ProScreenProps) {
+export function ProScreen({
+  copy,
+  available,
+  busy,
+  monthlyPrice,
+  yearlyPrice,
+  yearlyPerMonthPrice,
+  onSubscribe,
+  onRestore,
+}: ProScreenProps) {
   const t = copy.pro;
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
   const yearly = billing === "yearly";
 
-  const plans: Array<{ key: "monthly" | "yearly"; title: string; sub: string; tag: string; highlight: boolean }> = [
-    { key: "monthly", title: t.monthly, sub: t.monthlySub, tag: "", highlight: false },
-    { key: "yearly", title: t.yearly, sub: t.yearlySub, tag: t.discount, highlight: true },
+  const plans: Array<{ key: "monthly" | "yearly"; title: string; sub: string; tag: string }> = [
+    { key: "monthly", title: t.monthly, sub: monthlyPrice ?? t.monthlySub, tag: "" },
+    { key: "yearly", title: t.yearly, sub: yearlyPrice ?? t.yearlySub, tag: t.discount },
   ];
+
+  const bigPrice = yearly ? yearlyPerMonthPrice ?? "4,08 €" : monthlyPrice ?? "6,99 €";
 
   return (
     <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={screenTransition} className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center py-9">
@@ -41,7 +60,7 @@ export function ProScreen({ copy, onCta }: ProScreenProps) {
         <div className="relative rounded-[26px] border border-[#dfd4ff] dark:border-[#4a3f73] bg-white dark:bg-[#211e2c] p-5 shadow-panel">
           <div className="absolute -top-3 right-4 rounded-full bg-[#7657dd] px-2.5 py-1 font-mono text-[10px] font-bold text-white">{t.popular}</div>
           <div className="text-sm font-bold text-[#7657dd] dark:text-[#c4b3ff]">{t.proLabel}</div>
-          <div className="my-2.5 font-display text-2xl font-bold tracking-[-0.05em]">{yearly ? "4,08 €" : "6,99 €"}<span className="font-mono text-xs font-medium text-[#9996a4] dark:text-[#8b8697]">{t.perMonth}</span></div>
+          <div className="my-2.5 font-display text-2xl font-bold tracking-[-0.05em]">{bigPrice}<span className="font-mono text-xs font-medium text-[#9996a4] dark:text-[#8b8697]">{t.perMonth}</span></div>
           <ul className="flex flex-col gap-2">
             {t.proFeatures.map((feature) => (
               <li key={feature} className="flex items-start gap-2 text-sm font-medium text-[#242432] dark:text-[#f2f0f8]"><span className="mt-1.5 h-1.5 w-1.5 shrink-0 rotate-45 bg-[#ff627f]" />{feature}</li>
@@ -73,8 +92,26 @@ export function ProScreen({ copy, onCta }: ProScreenProps) {
         })}
       </div>
 
-      <motion.button whileTap={{ scale: tapScale }} onClick={onCta} className="primary-button mt-5 w-full">{yearly ? t.ctaYearly : t.ctaMonthly}</motion.button>
-      <p className="mt-3 text-center text-xs font-medium text-[#9996a4] dark:text-[#8b8697]">{t.trial}</p>
+      <motion.button
+        whileTap={{ scale: tapScale }}
+        disabled={busy}
+        onClick={() => onSubscribe(billing)}
+        className="primary-button mt-5 w-full disabled:opacity-60"
+      >
+        {busy ? t.activating : yearly ? t.ctaYearly : t.ctaMonthly}
+      </motion.button>
+      <p className="mt-3 text-center text-xs font-medium text-[#9996a4] dark:text-[#8b8697]">{available ? t.trial : t.unavailable}</p>
+
+      {available ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onRestore}
+          className="mx-auto mt-1.5 block text-xs font-semibold text-[#7657dd] dark:text-[#c4b3ff] disabled:opacity-60"
+        >
+          {busy ? t.restoring : t.restore}
+        </button>
+      ) : null}
     </motion.section>
   );
 }

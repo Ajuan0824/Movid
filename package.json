@@ -17,6 +17,7 @@
     "@capacitor/ios": "^8.5.0",
     "@capacitor/keyboard": "^8.0.5",
     "@capacitor/status-bar": "^8.0.3",
+    "@revenuecat/purchases-capacitor": "^13.5.0",
     "firebase": "^12.18.0",
     "framer-motion": "^12.6.3",
     "lucide-react": "^0.475.0",

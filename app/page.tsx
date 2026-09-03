@@ -20,6 +20,7 @@ import { StarsEmptyModal } from "./components/mevid/stars-empty-modal";
 import { TabBar, type AppTab } from "./components/mevid/tab-bar";
 import { useGenerations } from "../hooks/use-generations";
 import { usePlan } from "../hooks/use-plan";
+import { usePurchases } from "../hooks/use-purchases";
 import { useIsMobile } from "../hooks/use-is-mobile";
 import { useLocalePref } from "../hooks/use-locale-pref";
 import { useThemePref } from "../hooks/use-theme-pref";
@@ -58,6 +59,7 @@ function Toast({ tone, message, onDismiss }: { tone: "error" | "notice"; message
 export default function Home() {
   const mobileState = useIsMobile();
   const { plan, limit: starsTotal, starsLeft, ready: planReady, error: planError, spend: spendStar, reload: reloadPlan } = usePlan();
+  const purchases = usePurchases();
   const { pref: localePref, locale, setPref: setLocalePref, ready: localeReady } = useLocalePref();
   const { pref: themePref, setPref: setThemePref } = useThemePref();
   const [tab, setTab] = useState<AppTab>("home");
@@ -127,6 +129,25 @@ export default function Home() {
     if (next !== "momentos") setOpenGenerationId(null);
     setTab(next);
   }, []);
+
+  const handleSubscribe = useCallback(
+    async (billing: "monthly" | "yearly") => {
+      const outcome = await purchases.subscribe(billing);
+      if (outcome === "ok") setNotice(copy.pro.activating);
+      else if (outcome === "unavailable") setNotice(copy.pro.unavailable);
+      else if (outcome === "error") setError(copy.pro.errorGeneric);
+      // "cancelled" — the user backed out, say nothing.
+    },
+    [purchases, copy.pro],
+  );
+
+  const handleRestore = useCallback(async () => {
+    const outcome = await purchases.restore();
+    if (outcome === "restored") setNotice(copy.pro.restoredOk);
+    else if (outcome === "nothing") setNotice(copy.pro.restoreNothing);
+    else if (outcome === "unavailable") setNotice(copy.pro.unavailable);
+    else if (outcome === "error") setError(copy.pro.errorGeneric);
+  }, [purchases, copy.pro]);
 
   // The Pro tab is hidden for subscribers, so don't strand one on it — it can
   // still be the active tab if the plan resolved while they were viewing it.
@@ -433,7 +454,19 @@ export default function Home() {
               />
             ) : null}
 
-            {tab === "pro" ? <ProScreen key="pro" copy={copy} onCta={() => setNotice(copy.pro.comingSoon)} /> : null}
+            {tab === "pro" ? (
+              <ProScreen
+                key="pro"
+                copy={copy}
+                available={purchases.available}
+                busy={purchases.busy}
+                monthlyPrice={purchases.monthlyPrice}
+                yearlyPrice={purchases.yearlyPrice}
+                yearlyPerMonthPrice={purchases.yearlyPerMonthPrice}
+                onSubscribe={handleSubscribe}
+                onRestore={handleRestore}
+              />
+            ) : null}
             {tab === "cuenta" ? <AccountScreen key="cuenta" copy={copy} onGoPro={() => changeTab("pro")} /> : null}
           </AnimatePresence>
           </div>

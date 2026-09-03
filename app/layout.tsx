@@ -5,6 +5,7 @@ import { SplashScreen } from "./components/mevid/splash-screen";
 import "./globals.css";
 import { AuthProvider } from "../hooks/use-auth";
 import { PlanProvider } from "../hooks/use-plan";
+import { PurchasesProvider } from "../hooks/use-purchases";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -47,7 +48,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={`${dmSans.variable} ${spaceGrotesk.variable}`}>
         <ClientBootstrap />
         <AuthProvider>
-          <PlanProvider>{children}</PlanProvider>
+          <PlanProvider>
+            <PurchasesProvider>{children}</PurchasesProvider>
+          </PlanProvider>
         </AuthProvider>
         {/* Last in the DOM so it paints over the app while it boots. */}
         <SplashScreen />
