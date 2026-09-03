@@ -15,6 +15,8 @@ type ResultsScreenProps = {
   copy: AppCopy;
   videoUrl: string;
   duration: number;
+  /** In-point of the kept window inside the stored (untrimmed) clip. */
+  trimStart?: number;
   highlights: VideoHighlight[];
   selected: number;
   checked: Set<number>;
@@ -28,7 +30,7 @@ type ResultsScreenProps = {
   onDownloadChecked: () => void;
 };
 
-export function ResultsScreen({ copy, videoUrl, duration, highlights, selected, checked, videoRef, onNewVideo, newVideoLabel, onSelect, onToggleCheck, onDownloadOne, onDownloadChecked }: ResultsScreenProps) {
+export function ResultsScreen({ copy, videoUrl, duration, trimStart = 0, highlights, selected, checked, videoRef, onNewVideo, newVideoLabel, onSelect, onToggleCheck, onDownloadOne, onDownloadChecked }: ResultsScreenProps) {
   const [preview, setPreview] = useState<PreviewMode>(null);
   const activeHighlight = highlights[selected];
   const checkedCount = checked.size;
@@ -37,10 +39,21 @@ export function ResultsScreen({ copy, videoUrl, duration, highlights, selected, 
     if (preview !== "video") return;
     const node = videoRef.current;
     if (!node || !activeHighlight) return;
-    node.currentTime = activeHighlight.start;
+    // Highlight times are relative to the trimmed window; the stored file isn't
+    // cut, so playback is offset by the in-point and stops at the window's end.
+    const windowEnd = trimStart + duration;
+    node.currentTime = trimStart + activeHighlight.start;
     void node.play();
+    const onTime = () => {
+      if (node.currentTime >= windowEnd - 0.03) {
+        node.pause();
+        node.currentTime = trimStart + activeHighlight.start;
+      }
+    };
+    node.addEventListener("timeupdate", onTime);
+    return () => node.removeEventListener("timeupdate", onTime);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preview, selected, activeHighlight?.start]);
+  }, [preview, selected, activeHighlight?.start, trimStart, duration]);
 
   if (!activeHighlight) return null;
 

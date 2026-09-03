@@ -56,7 +56,7 @@ export function newGenerationId(uid: string) {
 export async function saveGeneration(
   uid: string,
   id: string,
-  input: { video: Blob; duration: number; highlights: VideoHighlight[] },
+  input: { video: Blob; duration: number; trimStart: number; highlights: VideoHighlight[] },
 ): Promise<StoredGeneration> {
   const createdAt = new Date();
 
@@ -75,11 +75,12 @@ export async function saveGeneration(
     createdAt: Timestamp.fromDate(createdAt),
     expiresAt: Timestamp.fromDate(new Date(createdAt.getTime() + RETENTION_MS)),
     duration: input.duration,
+    trimStart: input.trimStart,
     videoUrl,
     highlights,
   });
 
-  return { id, createdAt, duration: input.duration, videoUrl, highlights };
+  return { id, createdAt, duration: input.duration, trimStart: input.trimStart, videoUrl, highlights };
 }
 
 /** Storage deletes are best-effort — a already-missing file (say, one the
@@ -110,6 +111,7 @@ export async function listGenerations(uid: string): Promise<StoredGeneration[]> 
       id: entry.id,
       createdAt,
       duration: typeof data.duration === "number" ? data.duration : 0,
+      trimStart: typeof data.trimStart === "number" ? data.trimStart : 0,
       videoUrl: typeof data.videoUrl === "string" ? data.videoUrl : "",
       highlights: Array.isArray(data.highlights) ? (data.highlights as VideoHighlight[]) : [],
     };

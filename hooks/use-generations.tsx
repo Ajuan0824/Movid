@@ -41,7 +41,7 @@ export function useGenerations() {
    * worse than letting the entry settle from `pending` a moment later.
    */
   const save = useCallback(
-    (input: { video: Blob; duration: number; highlights: VideoHighlight[] }) => {
+    (input: { video: Blob; duration: number; trimStart: number; highlights: VideoHighlight[] }) => {
       const localId = uid ? newGenerationId(uid) : `pending-${Date.now()}`;
       // Its own object URL, not the one the home screen holds — that one gets
       // revoked by "start over" while this entry may still be uploading.
@@ -50,6 +50,7 @@ export function useGenerations() {
         id: localId,
         createdAt: new Date(),
         duration: input.duration,
+        trimStart: input.trimStart,
         videoUrl: localVideoUrl,
         highlights: input.highlights,
         pending: true,

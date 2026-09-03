@@ -2,6 +2,16 @@ import type { VideoFrame } from "./types";
 
 export const MAX_VIDEO_SECONDS = 15;
 
+/** Shortest window the in-app trimmer will let you settle on. */
+export const MIN_VIDEO_SECONDS = 3;
+
+/**
+ * Hard ceiling for an uploaded source clip. Longer than this and the filmstrip
+ * seek/decode pass gets slow on phones and the upload balloons, so we reject it
+ * up front rather than let the trimmer choke.
+ */
+export const MAX_SOURCE_SECONDS = 10 * 60;
+
 /**
  * Frames handed to the AI. Denser sampling than the eye needs, because the
  * model can only place a moment as precisely as the timeline it was shown:
@@ -165,19 +175,65 @@ function frameQuality(pixels: Uint8ClampedArray, width: number, height: number):
   return variance * exposure;
 }
 
-export async function extractFrames(source: string, durationHint: number): Promise<VideoFrame[]> {
+/**
+ * Clamp a [offset, offset + window] request inside footage that is `total`
+ * seconds long, returning where sampling actually starts and how long it runs.
+ */
+function clampWindow(total: number, windowSeconds: number, offsetSeconds: number) {
+  const span = Math.max(0.1, Math.min(windowSeconds, total));
+  const start = Math.max(0, Math.min(offsetSeconds, total - span));
+  return { start, span };
+}
+
+/**
+ * Samples the trimmed window the user kept, not the whole file. Frame times are
+ * reported relative to that window (0 = the trim's in-point) so the model and
+ * the results timeline share one coordinate space; `offsetSeconds` is where
+ * that window sits in the original clip.
+ */
+export async function extractFrames(
+  source: string,
+  windowSeconds: number,
+  offsetSeconds = 0,
+): Promise<VideoFrame[]> {
   const video = await loadVideoElement(source);
-  const duration = await resolveDuration(video, durationHint);
-  const sampleCount = SAMPLE_COUNT;
+  const total = await resolveDuration(video, offsetSeconds + windowSeconds);
+  const { start, span } = clampWindow(total, windowSeconds, offsetSeconds);
   const { canvas, context } = createCanvas(video, 480);
 
   const frames: VideoFrame[] = [];
-  for (let index = 0; index < sampleCount; index += 1) {
-    const time = Math.min(duration - 0.05, Math.max(0, ((index + 0.5) / sampleCount) * duration));
+  for (let index = 0; index < SAMPLE_COUNT; index += 1) {
+    const local = Math.min(span - 0.05, Math.max(0, ((index + 0.5) / SAMPLE_COUNT) * span));
+    video.currentTime = start + local;
+    await waitForEvent(video, "seeked");
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    frames.push({ time: Number(local.toFixed(2)), image: canvas.toDataURL("image/jpeg", 0.68) });
+  }
+  video.removeAttribute("src");
+  video.load();
+  return frames;
+}
+
+/**
+ * Evenly spaced low-res stills across the whole source clip, for the trimmer's
+ * scrubbable filmstrip. Cheap on purpose — small canvas, low JPEG quality.
+ */
+export async function extractFilmstrip(
+  source: string,
+  durationHint: number,
+  count = 10,
+): Promise<VideoFrame[]> {
+  const video = await loadVideoElement(source);
+  const total = await resolveDuration(video, durationHint);
+  const { canvas, context } = createCanvas(video, 160);
+
+  const frames: VideoFrame[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const time = Math.min(total - 0.05, Math.max(0, ((index + 0.5) / count) * total));
     video.currentTime = time;
     await waitForEvent(video, "seeked");
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    frames.push({ time: Number(time.toFixed(2)), image: canvas.toDataURL("image/jpeg", 0.68) });
+    frames.push({ time: Number(time.toFixed(2)), image: canvas.toDataURL("image/jpeg", 0.5) });
   }
   video.removeAttribute("src");
   video.load();
@@ -198,16 +254,20 @@ export async function extractFrames(source: string, durationHint: number): Promi
 export async function hydrateHighlightImages<T extends { start: number; end: number; peakTime: number }>(
   source: string,
   highlights: T[],
-  durationHint: number,
+  windowSeconds: number,
+  offsetSeconds = 0,
 ): Promise<(T & { image: string })[]> {
   const video = await loadVideoElement(source);
-  const duration = await resolveDuration(video, durationHint);
-  const latest = Math.max(0, duration - 0.05);
+  const total = await resolveDuration(video, offsetSeconds + windowSeconds);
+  const { start: base, span } = clampWindow(total, windowSeconds, offsetSeconds);
+  // Highlight times come back relative to the trimmed window, so every seek is
+  // offset by where that window starts in the original clip.
+  const latest = Math.max(0, span - 0.05);
   const { canvas, context } = createCanvas(video, 1280);
   const scoring = createCanvas(video, SCORING_WIDTH);
 
   const seekTo = async (time: number) => {
-    video.currentTime = time;
+    video.currentTime = base + time;
     await waitForEvent(video, "seeked");
   };
 

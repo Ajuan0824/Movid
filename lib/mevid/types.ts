@@ -21,7 +21,10 @@ export type VideoHighlight = {
 export type StoredGeneration = {
   id: string;
   createdAt: Date;
+  /** Length of the kept window, in seconds (<= MAX_VIDEO_SECONDS). */
   duration: number;
+  /** Where that window starts in the stored (untrimmed) `videoUrl` clip. */
+  trimStart: number;
   videoUrl: string;
   highlights: VideoHighlight[];
   pending?: boolean;

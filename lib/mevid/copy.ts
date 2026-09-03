@@ -4,7 +4,7 @@ export type AppCopy = {
   language: { label: string; english: string; spanish: string; system: string };
   appearance: { label: string; system: string; light: string; dark: string };
   hero: { title: string; titleAccent: string; description: string; maxLength: string; record: string; upload: string; private: string; aiReady: string };
-  review: { eyebrow: string; title: string; description: string; retry: string; analyse: string };
+  review: { eyebrow: string; title: string; description: string; retry: string; analyse: string; trimTitle: string; trimHint: string; preview: string; trimStartHandle: string; trimEndHandle: string };
   analysis: { eyebrow: string; title: string; steps: string[] };
   results: { eyebrow: string; title: string; newVideo: string; moments: string; tipStart: string; tipEnd: string; selectHint: string; download: string; downloadEmpty: string; downloadOne: string; topFive: string; moment: string };
   tabs: { home: string; momentos: string; pro: string; cuenta: string; nav: string };
@@ -57,7 +57,7 @@ const dictionary: Record<Locale, AppCopy> = {
     hero: {
       title: "Capture a moment.",
       titleAccent: "Keep the best part.",
-      description: "Record or upload up to 15 seconds and let AI find your 5 most shareable moments.",
+      description: "Record 15 seconds or upload a longer clip and trim it — AI finds your 5 most shareable moments.",
       maxLength: "15 SECONDS MAX.",
       record: "Start recording",
       upload: "Upload a video",
@@ -70,6 +70,11 @@ const dictionary: Record<Locale, AppCopy> = {
       description: "Now let’s find the parts worth replaying.",
       retry: "Record again",
       analyse: "Find my moments",
+      trimTitle: "Trim to your best moment.",
+      trimHint: "Drag the edges to pick up to 15 seconds.",
+      preview: "Play preview",
+      trimStartHandle: "Move start of selection",
+      trimEndHandle: "Move end of selection",
     },
     analysis: {
       eyebrow: "ANALYSIS IN PROGRESS",
@@ -159,7 +164,7 @@ const dictionary: Record<Locale, AppCopy> = {
     },
     errors: {
       notVideo: "Choose a video file to continue.",
-      tooLong: "This clip is longer than 15 seconds. Trim it and try again.",
+      tooLong: "That video is over 10 minutes long. Pick a shorter one.",
       unreadable: "We couldn’t read that video. Please try another file.",
       analysisFailed: "Something went wrong analysing your video. Please try again later — no star was used.",
       analysisUnavailable: "AI analysis isn’t available right now (the server has no OpenAI key configured). No star was used.",
@@ -253,7 +258,7 @@ const dictionary: Record<Locale, AppCopy> = {
     hero: {
       title: "Graba un momento.",
       titleAccent: "Quédate con lo mejor.",
-      description: "Graba o sube hasta 15 segundos y deja que la IA encuentre tus 5 instantes más compartibles.",
+      description: "Graba 15 segundos o sube un clip más largo y recórtalo — la IA encuentra tus 5 instantes más compartibles.",
       maxLength: "15 SEGUNDOS MÁX.",
       record: "Grabar ahora",
       upload: "Subir un vídeo",
@@ -266,6 +271,11 @@ const dictionary: Record<Locale, AppCopy> = {
       description: "Ahora vamos a encontrar las partes que merece la pena repetir.",
       retry: "Grabar de nuevo",
       analyse: "Encontrar mis momentos",
+      trimTitle: "Recorta hasta tu mejor momento.",
+      trimHint: "Arrastra los extremos para elegir hasta 15 segundos.",
+      preview: "Reproducir vista previa",
+      trimStartHandle: "Mover inicio de la selección",
+      trimEndHandle: "Mover fin de la selección",
     },
     analysis: {
       eyebrow: "ANÁLISIS EN CURSO",
@@ -355,7 +365,7 @@ const dictionary: Record<Locale, AppCopy> = {
     },
     errors: {
       notVideo: "Elige un archivo de vídeo para continuar.",
-      tooLong: "Este clip dura más de 15 segundos. Recórtalo y vuelve a intentarlo.",
+      tooLong: "Ese vídeo dura más de 10 minutos. Elige uno más corto.",
       unreadable: "No hemos podido leer ese vídeo. Prueba con otro archivo.",
       analysisFailed: "Se ha producido un error al analizar tu vídeo. Vuelve a intentarlo más tarde — no se ha gastado ninguna estrella.",
       analysisUnavailable: "El análisis con IA no está disponible ahora mismo (el servidor no tiene configurada la clave de OpenAI). No se ha gastado ninguna estrella.",

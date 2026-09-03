@@ -26,7 +26,7 @@ import { useThemePref } from "../hooks/use-theme-pref";
 import { getCopy } from "../lib/mevid/copy";
 import { isInAppCameraSupported } from "../lib/mevid/recorder";
 import type { AnalysisResponse, StoredGeneration, VideoHighlight } from "../lib/mevid/types";
-import { extractFrames, getVideoDuration, hydrateHighlightImages, MAX_VIDEO_SECONDS } from "../lib/mevid/video";
+import { extractFrames, getVideoDuration, hydrateHighlightImages, MAX_SOURCE_SECONDS, MAX_VIDEO_SECONDS } from "../lib/mevid/video";
 
 type FlowView = "idle" | "review" | "analysing";
 
@@ -63,7 +63,11 @@ export default function Home() {
   const [tab, setTab] = useState<AppTab>("home");
   const [flowView, setFlowView] = useState<FlowView>("idle");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  // videoDuration is the kept window; sourceDuration is the full clip; trimStart
+  // is where the window begins inside it (0 unless the trimmer moved it).
   const [videoDuration, setVideoDuration] = useState(MAX_VIDEO_SECONDS);
+  const [sourceDuration, setSourceDuration] = useState(MAX_VIDEO_SECONDS);
+  const [trimStart, setTrimStart] = useState(0);
   const [openGenerationId, setOpenGenerationId] = useState<string | null>(null);
   const [selected, setSelected] = useState(0);
   const [checked, setChecked] = useState<Set<number>>(new Set());
@@ -95,9 +99,18 @@ export default function Home() {
     urlRef.current = nextUrl;
     videoBlobRef.current = video;
     setVideoUrl(nextUrl);
+    setSourceDuration(duration);
+    setTrimStart(0);
+    // Default window: the first 15s (or the whole clip if it's shorter). The
+    // trimmer, shown only for longer clips, moves it from here.
     setVideoDuration(Math.min(duration, MAX_VIDEO_SECONDS));
     setFlowView("review");
   }, [clearVideo]);
+
+  const handleTrimChange = useCallback((start: number, end: number) => {
+    setTrimStart(start);
+    setVideoDuration(end - start);
+  }, []);
 
   useEffect(() => () => {
     if (urlRef.current) URL.revokeObjectURL(urlRef.current);
@@ -124,10 +137,15 @@ export default function Home() {
     }
     try {
       const duration = await getVideoDuration(file);
-      if (!Number.isFinite(duration) || duration > MAX_VIDEO_SECONDS + 0.1) {
+      if (!Number.isFinite(duration) || duration <= 0) {
+        setError(copy.errors.unreadable);
+        return;
+      }
+      if (duration > MAX_SOURCE_SECONDS) {
         setError(copy.errors.tooLong);
         return;
       }
+      // Longer than 15s is fine now — the review screen shows a trimmer.
       displayVideo(file, duration);
     } catch {
       setError(copy.errors.unreadable);
@@ -172,7 +190,7 @@ export default function Home() {
     try {
       let capturedFrames;
       try {
-        capturedFrames = await extractFrames(videoUrl, videoDuration);
+        capturedFrames = await extractFrames(videoUrl, videoDuration, trimStart);
       } catch (frameError) {
         errorKey = "analysisVideoUnreadable";
         throw frameError;
@@ -191,7 +209,7 @@ export default function Home() {
       }
 
       const data = (await response.json()) as AnalysisResponse;
-      hydrated = await hydrateHighlightImages(videoUrl, data.highlights, videoDuration);
+      hydrated = await hydrateHighlightImages(videoUrl, data.highlights, videoDuration, trimStart);
     } catch (analysisError) {
       console.error(`Analysis failed [${errorKey}]`, analysisError);
       window.clearInterval(interval);
@@ -208,7 +226,7 @@ export default function Home() {
     if (!(await spendStar())) console.error("Analysis succeeded but the star could not be spent");
 
     // Renders straight away from local blobs; the upload settles in the background.
-    const generationId = saveGeneration({ video: videoBlob, duration: videoDuration, highlights: hydrated });
+    const generationId = saveGeneration({ video: videoBlob, duration: videoDuration, trimStart, highlights: hydrated });
     setSelected(0);
     setChecked(new Set());
     setOpenGenerationId(generationId);
@@ -235,6 +253,9 @@ export default function Home() {
     setOpenGenerationId(null);
     setSelected(0);
     setChecked(new Set());
+    setTrimStart(0);
+    setVideoDuration(MAX_VIDEO_SECONDS);
+    setSourceDuration(MAX_VIDEO_SECONDS);
     setFlowView("idle");
     setTab("home");
   };
@@ -339,7 +360,7 @@ export default function Home() {
                 starsTotal={starsTotal}
               />
             ) : null}
-            {tab === "home" && flowView === "review" && videoUrl ? <ReviewScreen key="home-review" copy={copy} videoUrl={videoUrl} duration={videoDuration} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
+            {tab === "home" && flowView === "review" && videoUrl ? <ReviewScreen key="home-review" copy={copy} videoUrl={videoUrl} duration={videoDuration} sourceDuration={sourceDuration} trimStart={trimStart} onTrimChange={handleTrimChange} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
             {tab === "home" && flowView === "analysing" ? <AnalysisScreen key="home-analysing" copy={copy} step={analysisStep} /> : null}
 
             {tab === "momentos" && openGeneration ? (
@@ -348,6 +369,7 @@ export default function Home() {
                 copy={copy}
                 videoUrl={openGeneration.videoUrl}
                 duration={openGeneration.duration}
+                trimStart={openGeneration.trimStart ?? 0}
                 highlights={openGeneration.highlights}
                 selected={selected}
                 checked={checked}
