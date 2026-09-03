@@ -1,12 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Check, ChevronRight, X } from "lucide-react";
 import { useState } from "react";
 import { GlassTextField } from "../auth/glass-text-field";
 import { AuthErrorBanner, AuthSubmitButton } from "../auth/auth-shell";
 import { useAuth } from "../../../hooks/use-auth";
-import { changePassword, hasPasswordProvider, updateUserProfile } from "../../../lib/firebase/auth";
+import { usePlan } from "../../../hooks/use-plan";
+import { AvatarPicker } from "./avatar-picker";
+import { PlanBadge } from "./plan-badge";
+import { hasPasswordProvider, updateUserProfile } from "../../../lib/firebase/auth";
 import { resolveAuthErrorKey } from "../../../lib/firebase/auth-errors";
 import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
@@ -15,35 +18,32 @@ import { iosSpring } from "../../../lib/mevid/motion";
 type ProfileModalProps = {
   copy: AppCopy;
   onClose: () => void;
+  onManageAccount: () => void;
 };
 
 function SuccessNote({ message }: { message: string }) {
   return (
-    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#3aa16b]">
-      <Check size={13} />{message}
+    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-[#3aa16b] dark:text-[#6fd39a]">
+      <Check size={15} />{message}
     </motion.p>
   );
 }
 
-export function ProfileModal({ copy, onClose }: ProfileModalProps) {
+export function ProfileModal({ copy, onClose, onManageAccount }: ProfileModalProps) {
   const t = copy.auth.profile;
   const { user, refreshUser } = useAuth();
+  const { plan, ready: planReady } = usePlan();
 
   const [name, setName] = useState(user?.displayName ?? "");
   const [nameLoading, setNameLoading] = useState(false);
   const [nameSaved, setNameSaved] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
 
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordSaved, setPasswordSaved] = useState(false);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [photoSaved, setPhotoSaved] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   if (!user) return null;
   const canChangePassword = hasPasswordProvider(user);
-  const initial = (user.displayName || user.email || "?").charAt(0).toUpperCase();
 
   const saveName = async () => {
     setNameError(null);
@@ -57,31 +57,6 @@ export function ProfileModal({ copy, onClose }: ProfileModalProps) {
       setNameError(copy.auth.errors[resolveAuthErrorKey(err)]);
     } finally {
       setNameLoading(false);
-    }
-  };
-
-  const savePassword = async () => {
-    setPasswordError(null);
-    setPasswordSaved(false);
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      setPasswordError(copy.auth.errors.required);
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setPasswordError(copy.auth.errors.passwordMismatch);
-      return;
-    }
-    setPasswordLoading(true);
-    try {
-      await changePassword(user.email ?? "", currentPassword, newPassword);
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setPasswordSaved(true);
-    } catch (err) {
-      setPasswordError(copy.auth.errors[resolveAuthErrorKey(err)]);
-    } finally {
-      setPasswordLoading(false);
     }
   };
 
@@ -99,30 +74,34 @@ export function ProfileModal({ copy, onClose }: ProfileModalProps) {
         exit={{ opacity: 0, y: 16, scale: 0.96 }}
         transition={iosSpring}
         onClick={(event) => event.stopPropagation()}
-        className="liquid-glass max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-[30px] p-6"
+        className="liquid-glass max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-[28px] p-5"
       >
-        <div className="mb-5 flex items-start justify-between">
-          <div>
-            <h2 className="font-display text-2xl font-bold tracking-[-0.04em] text-[#232331]">{t.title}</h2>
-            <p className="mt-1 text-sm text-[#6d6b79]">{t.description}</p>
+        <div className="mb-5 flex items-center gap-4">
+          <AvatarPicker
+            copy={copy}
+            size={64}
+            onError={(message) => {
+              setPhotoError(message);
+              if (message) setPhotoSaved(false);
+            }}
+            onSaved={() => setPhotoSaved(true)}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h2 className="truncate font-display text-xl font-bold tracking-[-0.03em] text-[#232331] dark:text-[#f1eff7]">{t.title}</h2>
+              {planReady ? <PlanBadge copy={copy} plan={plan} /> : null}
+            </div>
+            <p className="truncate text-sm font-semibold text-[#403d4b] dark:text-[#d7d2e2]">{user.email}</p>
           </div>
-          <button onClick={onClose} aria-label={t.close} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/70 text-[#6d6b79] hover:bg-white">
-            <X size={16} />
+          <button onClick={onClose} aria-label={t.close} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/70 dark:bg-white/5 text-[#6d6b79] dark:text-[#a79fb5] hover:bg-white dark:hover:bg-white/15">
+            <X size={20} />
           </button>
         </div>
 
-        <div className="mb-6 flex flex-col items-center gap-3">
-          <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-full border border-white bg-[#252334] text-2xl font-bold text-white shadow-[0_8px_20px_rgba(36,29,80,.2)]">
-            {user.photoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={user.photoUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
-            ) : (
-              initial
-            )}
-          </div>
-        </div>
+        <AnimatePresence>{photoError ? <AuthErrorBanner message={photoError} /> : null}</AnimatePresence>
+        <AnimatePresence>{photoSaved ? <SuccessNote message={t.photoUpdated} /> : null}</AnimatePresence>
 
-        <div className="liquid-glass-strong mb-4 rounded-2xl p-4">
+        <div className="liquid-glass-strong rounded-2xl p-4">
           <GlassTextField label={t.nameLabel} value={name} onChange={setName} />
           <AnimatePresence>{nameError ? <AuthErrorBanner message={nameError} /> : null}</AnimatePresence>
           <div className="mt-3">
@@ -132,22 +111,23 @@ export function ProfileModal({ copy, onClose }: ProfileModalProps) {
         </div>
 
         {canChangePassword ? (
-          <div className="liquid-glass-strong rounded-2xl p-4">
-            <h3 className="text-sm font-bold text-[#232331]">{t.passwordTitle}</h3>
-            <p className="mb-3 mt-1 text-xs text-[#6d6b79]">{t.passwordDescription}</p>
-            <div className="flex flex-col gap-3">
-              <GlassTextField label={t.currentPasswordLabel} type="password" value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" />
-              <GlassTextField label={t.newPasswordLabel} type="password" value={newPassword} onChange={setNewPassword} autoComplete="new-password" />
-              <GlassTextField label={t.confirmPasswordLabel} type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" />
-            </div>
-            <AnimatePresence>{passwordError ? <AuthErrorBanner message={passwordError} /> : null}</AnimatePresence>
-            <div className="mt-3">
-              <AuthSubmitButton loading={passwordLoading} onTap={() => { tapHaptic(); void savePassword(); }}>{t.changePassword}</AuthSubmitButton>
-            </div>
-            <AnimatePresence>{passwordSaved ? <SuccessNote message={t.passwordSaved} /> : null}</AnimatePresence>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              tapHaptic();
+              onClose();
+              onManageAccount();
+            }}
+            className="liquid-glass-strong mt-3 flex w-full items-center gap-3 rounded-2xl p-4 text-left transition hover:brightness-[.97] dark:hover:brightness-125"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-base font-bold text-[#232331] dark:text-[#f1eff7]">{t.passwordTitle}</span>
+              <span className="mt-0.5 block truncate text-sm font-medium text-[#565361] dark:text-[#bdb7ca]">{t.passwordDescription}</span>
+            </span>
+            <ChevronRight size={20} className="shrink-0 text-[#7657dd] dark:text-[#c4b3ff]" />
+          </button>
         ) : (
-          <p className="rounded-2xl bg-[#f3f1fa] px-4 py-3 text-xs leading-5 text-[#6d6b79]">{t.noPasswordProvider}</p>
+          <p className="mt-3 rounded-2xl bg-[#f3f1fa] dark:bg-[#26222f] px-4 py-3.5 text-sm font-medium leading-5 text-[#565361] dark:text-[#bdb7ca]">{t.noPasswordProvider}</p>
         )}
       </motion.div>
     </motion.div>

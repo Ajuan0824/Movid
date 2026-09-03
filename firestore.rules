@@ -1,0 +1,97 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      // Keep in sync with WEEKLY_STARS in lib/mevid/plan.ts.
+      function limitFor(plan) {
+        return plan == 'pro' ? 7 : 3;
+      }
+
+      // Everyone who already had an account when plans launched keeps pro.
+      // Temporary scaffolding: drop this list (and the create branch below)
+      // once real billing decides who is pro.
+      function foundingPlan() {
+        return uid in [
+          'KoFeNo6vLrN86icpfq5hIGQyJ9R2',
+          'PYSrLPCbufbOClv2KIoInhsWv683',
+          'pn5PjFMHwWdaBCFrJl5woMDNL6K2'
+        ] ? 'pro' : 'free';
+      }
+
+      function validShape() {
+        return request.resource.data.keys().hasOnly(['plan', 'starsUsed', 'periodStart', 'email'])
+            && request.resource.data.starsUsed is int
+            && request.resource.data.periodStart is timestamp;
+      }
+
+      // `email` exists only to make the console readable. It's optional, but
+      // when present it must be the signed-in account's own address, so it
+      // can't be used to impersonate or annotate someone else's doc.
+      function emailOk() {
+        return !request.resource.data.keys().hasAny(['email'])
+            || request.resource.data.email == request.auth.token.email;
+      }
+
+      // Writing just the email (backfill, or following an email change) leaves
+      // the star accounting untouched.
+      function isEmailSync() {
+        return request.resource.data.starsUsed == resource.data.starsUsed
+            && request.resource.data.periodStart == resource.data.periodStart;
+      }
+
+      // Spending a star: exactly one more, never past the plan's weekly limit,
+      // and the period it belongs to can't move.
+      function isSpend() {
+        return request.resource.data.starsUsed == resource.data.starsUsed + 1
+            && request.resource.data.starsUsed <= limitFor(resource.data.plan)
+            && request.resource.data.periodStart == resource.data.periodStart;
+      }
+
+      // Weekly refill: only once the stored period is genuinely over. Requiring
+      // the new period to be a full 7 days later AND not in the future (per
+      // server time) is what stops a device clock from buying extra stars.
+      function isRefill() {
+        return request.resource.data.starsUsed == 0
+            && request.resource.data.periodStart >= resource.data.periodStart + duration.value(7, 'd')
+            && request.resource.data.periodStart <= request.time;
+      }
+
+      // First spend of a new week, done in one write when the scheduled refill
+      // hasn't landed yet: reset to the new period and count exactly one star.
+      // Same clock guards as isRefill().
+      function isRefillAndSpend() {
+        return request.resource.data.starsUsed == 1
+            && request.resource.data.periodStart >= resource.data.periodStart + duration.value(7, 'd')
+            && request.resource.data.periodStart <= request.time;
+      }
+
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      // The plan a new doc may claim is decided here, not by the client:
+      // founding accounts get pro, everyone else free.
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && validShape()
+                    && emailOk()
+                    && request.resource.data.plan == foundingPlan()
+                    && request.resource.data.starsUsed == 0
+                    && request.resource.data.periodStart <= request.time;
+
+      allow update: if request.auth != null
+                    && request.auth.uid == uid
+                    && validShape()
+                    && emailOk()
+                    && request.resource.data.plan == resource.data.plan
+                    && (isSpend() || isRefill() || isRefillAndSpend() || isEmailSync());
+
+      allow delete: if false;
+    }
+
+    // Saved analyser runs. Plain owner-only access: unlike the plan doc there's
+    // nothing here worth cheating for, and the app prunes past 30 days itself.
+    match /users/{uid}/generations/{generationId} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

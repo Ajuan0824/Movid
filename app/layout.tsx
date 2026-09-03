@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Space_Grotesk } from "next/font/google";
 import { ClientBootstrap } from "./components/mevid/client-bootstrap";
+import { SplashScreen } from "./components/mevid/splash-screen";
 import "./globals.css";
 import { AuthProvider } from "../hooks/use-auth";
+import { PlanProvider } from "../hooks/use-plan";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -15,7 +17,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "MeVid — find your best moments",
+  title: "Movid — find your best moments",
   description: "Record. Analyse. Share your best moments.",
 };
 
@@ -25,12 +27,30 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const THEME_INIT_SCRIPT = `
+(function () {
+  try {
+    var stored = localStorage.getItem("mevid-theme-pref");
+    var pref = stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+    var resolved = pref === "system" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : pref;
+    if (resolved === "dark") document.documentElement.classList.add("dark");
+  } catch (e) {}
+})();
+`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className={`${dmSans.variable} ${spaceGrotesk.variable}`}>
         <ClientBootstrap />
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <PlanProvider>{children}</PlanProvider>
+        </AuthProvider>
+        {/* Last in the DOM so it paints over the app while it boots. */}
+        <SplashScreen />
       </body>
     </html>
   );
