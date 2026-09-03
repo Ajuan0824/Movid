@@ -30,7 +30,7 @@ export function TabBar({ copy, tab, onChange }: TabBarProps) {
   return (
     <nav
       aria-label={copy.tabs.nav}
-      className="liquid-glass !fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-20 mx-auto flex max-w-xl items-center justify-between gap-1 rounded-[26px] p-1.5"
+      className="liquid-glass !fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-20 mx-auto flex max-w-xl items-center justify-between gap-1 rounded-[28px] p-2"
     >
       {tabs.map(({ key, icon: Icon }) => {
         const active = tab === key;
@@ -45,17 +45,17 @@ export function TabBar({ copy, tab, onChange }: TabBarProps) {
               tapHaptic();
               onChange(key);
             }}
-            className={`relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 overflow-hidden rounded-[20px] transition-colors duration-200 ${active ? "text-[#5c3fc4] dark:text-[#b9a6ff]" : "text-[#6d6b79] dark:text-[#a79fb5] hover:text-[#3c3946] dark:hover:text-[#ece9f4]"}`}
+            className={`relative flex min-h-[62px] flex-1 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[21px] transition-colors duration-200 ${active ? "text-[#5c3fc4] dark:text-[#b9a6ff]" : "text-[#6d6b79] dark:text-[#a79fb5] hover:text-[#3c3946] dark:hover:text-[#ece9f4]"}`}
           >
             {active ? (
               <motion.span
                 layoutId="tab-bar-pill"
-                className="absolute inset-0 rounded-[20px] bg-[#f0ecff] dark:bg-[#2c2740]"
+                className="absolute inset-0 rounded-[21px] bg-[#f0ecff] dark:bg-[#2c2740]"
                 transition={{ type: "spring", stiffness: 420, damping: 34 }}
               />
             ) : null}
-            <Icon size={18} strokeWidth={active ? 2.4 : 2} className="relative z-10" />
-            <span className="relative z-10 text-[10.5px] font-bold">{copy.tabs[key]}</span>
+            <Icon size={23} strokeWidth={active ? 2.4 : 2} className="relative z-10" />
+            <span className="relative z-10 text-xs font-bold">{copy.tabs[key]}</span>
           </motion.button>
         );
       })}

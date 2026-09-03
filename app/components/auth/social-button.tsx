@@ -43,7 +43,7 @@ export function SocialButton({ provider, children, onClick, disabled, loading }:
         tapHaptic();
         onClick();
       }}
-      className={`flex w-full items-center justify-center gap-2.5 rounded-full border px-5 py-3 text-sm font-semibold shadow-sm transition disabled:opacity-60 ${
+      className={`flex w-full items-center justify-center gap-2.5 rounded-full border px-5 py-3.5 text-base font-semibold shadow-sm transition disabled:opacity-60 ${
         isApple ? "border-black bg-black text-white hover:bg-[#1a1a1a]" : "border-[#e2dfe8] dark:border-white/10 bg-white dark:bg-[#211e2c] text-[#3c3946] dark:text-[#ece9f4] hover:border-[#cfc8df]"
       }`}
     >

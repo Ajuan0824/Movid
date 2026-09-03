@@ -49,11 +49,11 @@ export function MomentsLibrary({ copy, generations, onOpen, onDelete, onGoHome }
         className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center py-16 text-center"
       >
         <motion.div variants={heroTextVariants} initial="hidden" animate="visible">
-          <motion.div variants={heroTextItemVariants} className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] dark:bg-[#2c2740] px-3 py-1.5 text-xs font-bold text-[#7657dd] dark:text-[#c4b3ff]">
-            <Sparkles size={13} />{copy.results.eyebrow}
+          <motion.div variants={heroTextItemVariants} className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] dark:bg-[#2c2740] px-3.5 py-2 text-sm font-bold text-[#7657dd] dark:text-[#c4b3ff]">
+            <Sparkles size={15} />{copy.results.eyebrow}
           </motion.div>
-          <motion.h1 variants={heroTextItemVariants} className="font-display text-3xl font-bold tracking-[-0.06em]">{copy.momentsEmpty.title}</motion.h1>
-          <motion.p variants={heroTextItemVariants} className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#6d6b79] dark:text-[#a79fb5]">{copy.momentsEmpty.description}</motion.p>
+          <motion.h1 variants={heroTextItemVariants} className="font-display text-4xl font-bold tracking-[-0.06em]">{copy.momentsEmpty.title}</motion.h1>
+          <motion.p variants={heroTextItemVariants} className="mx-auto mt-3 max-w-sm text-base leading-6 text-[#6d6b79] dark:text-[#a79fb5]">{copy.momentsEmpty.description}</motion.p>
         </motion.div>
         <motion.button whileTap={{ scale: tapScale }} onClick={onGoHome} className="primary-button mt-6">{copy.momentsEmpty.cta}</motion.button>
       </motion.section>
@@ -69,11 +69,11 @@ export function MomentsLibrary({ copy, generations, onOpen, onDelete, onGoHome }
       className="mx-auto flex w-full max-w-2xl flex-1 flex-col py-6"
     >
       <motion.div className="mb-5" variants={heroTextVariants} initial="hidden" animate="visible">
-        <motion.div variants={heroTextItemVariants} className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] dark:bg-[#2c2740] px-3 py-1.5 text-xs font-bold text-[#7657dd] dark:text-[#c4b3ff]">
-          <Clapperboard size={13} />{copy.library.eyebrow}
+        <motion.div variants={heroTextItemVariants} className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] dark:bg-[#2c2740] px-3.5 py-2 text-sm font-bold text-[#7657dd] dark:text-[#c4b3ff]">
+          <Clapperboard size={15} />{copy.library.eyebrow}
         </motion.div>
-        <motion.h1 variants={heroTextItemVariants} className="font-display text-3xl font-bold tracking-[-0.06em] sm:text-4xl">{copy.library.title}</motion.h1>
-        <motion.p variants={heroTextItemVariants} className="mt-2 text-sm leading-6 text-[#6d6b79] dark:text-[#a79fb5]">{copy.library.description}</motion.p>
+        <motion.h1 variants={heroTextItemVariants} className="font-display text-4xl font-bold tracking-[-0.06em] sm:text-5xl">{copy.library.title}</motion.h1>
+        <motion.p variants={heroTextItemVariants} className="mt-2.5 text-base leading-6 text-[#6d6b79] dark:text-[#a79fb5]">{copy.library.description}</motion.p>
       </motion.div>
 
       <motion.ul className="grid grid-cols-2 gap-3" variants={resultsListVariants} initial="hidden" animate="visible">
@@ -93,21 +93,21 @@ export function MomentsLibrary({ copy, generations, onOpen, onDelete, onGoHome }
               >
                 {generation.pending ? (
                   <span className="absolute inset-0 grid place-items-center bg-black/45">
-                    <span className="flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-bold text-white">
-                      <Loader2 size={11} className="animate-spin" />{copy.library.saving}
+                    <span className="flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-bold text-white">
+                      <Loader2 size={13} className="animate-spin" />{copy.library.saving}
                     </span>
                   </span>
                 ) : null}
-                <span className="absolute left-2 top-2 rounded-full bg-black/50 px-2 py-0.5 font-mono text-[10px] font-bold text-white backdrop-blur-sm">
+                <span className="absolute left-2 top-2 rounded-full bg-black/50 px-2.5 py-1 font-mono text-xs font-bold text-white backdrop-blur-sm">
                   {relativeDay(copy, generation.createdAt)}
                 </span>
               </button>
-              <div className="flex items-center gap-2 px-3 py-2.5">
+              <div className="flex items-center gap-2 px-3.5 py-3">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-[#242432] dark:text-[#f2f0f8]">
+                  <p className="truncate text-sm font-bold text-[#242432] dark:text-[#f2f0f8]">
                     {copy.library.momentsCount.replace("{count}", String(generation.highlights.length))}
                   </p>
-                  <p className="mt-0.5 truncate text-[10.5px] text-[#9996a4] dark:text-[#8b8697]">{expiryLabel(copy, generation.createdAt)}</p>
+                  <p className="mt-0.5 truncate text-xs text-[#9996a4] dark:text-[#8b8697]">{expiryLabel(copy, generation.createdAt)}</p>
                 </div>
                 <motion.button
                   whileTap={{ scale: tapScale }}
@@ -117,9 +117,9 @@ export function MomentsLibrary({ copy, generations, onOpen, onDelete, onGoHome }
                     tapHaptic();
                     setConfirming(generation);
                   }}
-                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#fff3f6] dark:bg-[#2e2030] text-[#e0507a] dark:text-[#ff8fae] transition hover:bg-[#ffe4ec] disabled:opacity-40"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#fff3f6] dark:bg-[#2e2030] text-[#e0507a] dark:text-[#ff8fae] transition hover:bg-[#ffe4ec] disabled:opacity-40"
                 >
-                  <Trash2 size={12} />
+                  <Trash2 size={17} />
                 </motion.button>
               </div>
             </motion.li>
@@ -144,10 +144,10 @@ export function MomentsLibrary({ copy, generations, onOpen, onDelete, onGoHome }
               onClick={(event) => event.stopPropagation()}
               className="liquid-glass w-full max-w-xs rounded-[28px] p-6 text-center"
             >
-              <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-[#fff3f6] dark:bg-[#2e2030] text-[#e0507a] dark:text-[#ff8fae]">
-                <Trash2 size={20} />
+              <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-[#fff3f6] dark:bg-[#2e2030] text-[#e0507a] dark:text-[#ff8fae]">
+                <Trash2 size={24} />
               </div>
-              <p className="text-sm font-semibold leading-6 text-[#232331] dark:text-[#f1eff7]">{copy.library.deleteConfirm}</p>
+              <p className="text-base font-semibold leading-6 text-[#232331] dark:text-[#f1eff7]">{copy.library.deleteConfirm}</p>
               <div className="mt-5 flex gap-2">
                 <motion.button whileTap={{ scale: tapScale }} onClick={() => setConfirming(null)} className="secondary-button flex-1">
                   {copy.auth.profile.close}

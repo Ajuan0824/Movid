@@ -73,7 +73,6 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
 
   return (
     <AuthShell
-      eyebrow={t.eyebrow}
       title={t.title}
       description={t.description}
       footer={

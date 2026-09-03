@@ -1,19 +1,18 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Camera, Check, ChevronRight, Loader2, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { Check, ChevronRight, X } from "lucide-react";
+import { useState } from "react";
 import { GlassTextField } from "../auth/glass-text-field";
 import { AuthErrorBanner, AuthSubmitButton } from "../auth/auth-shell";
 import { useAuth } from "../../../hooks/use-auth";
 import { usePlan } from "../../../hooks/use-plan";
+import { AvatarPicker } from "./avatar-picker";
 import { PlanBadge } from "./plan-badge";
 import { hasPasswordProvider, updateUserProfile } from "../../../lib/firebase/auth";
 import { resolveAuthErrorKey } from "../../../lib/firebase/auth-errors";
-import { uploadProfilePhoto } from "../../../lib/firebase/storage";
 import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
-import { AVATAR_MAX_BYTES, prepareAvatar } from "../../../lib/mevid/image";
 import { iosSpring } from "../../../lib/mevid/motion";
 
 type ProfileModalProps = {
@@ -24,8 +23,8 @@ type ProfileModalProps = {
 
 function SuccessNote({ message }: { message: string }) {
   return (
-    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#3aa16b] dark:text-[#6fd39a]">
-      <Check size={13} />{message}
+    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-[#3aa16b] dark:text-[#6fd39a]">
+      <Check size={15} />{message}
     </motion.p>
   );
 }
@@ -40,63 +39,11 @@ export function ProfileModal({ copy, onClose, onManageAccount }: ProfileModalPro
   const [nameSaved, setNameSaved] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [photoLoading, setPhotoLoading] = useState(false);
   const [photoSaved, setPhotoSaved] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
 
   if (!user) return null;
   const canChangePassword = hasPasswordProvider(user);
-  const initial = (user.displayName || user.email || "?").charAt(0).toUpperCase();
-
-  const pickPhoto = () => {
-    tapHaptic();
-    fileInputRef.current?.click();
-  };
-
-  const onPhotoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-
-    setPhotoError(null);
-    setPhotoSaved(false);
-
-    if (!file.type.startsWith("image/")) {
-      setPhotoError(t.photoInvalidType);
-      return;
-    }
-    if (file.size > AVATAR_MAX_BYTES) {
-      setPhotoError(t.photoTooLarge);
-      return;
-    }
-
-    setPhotoLoading(true);
-    let localPreview: string | null = null;
-    let decoded = false;
-    try {
-      // Shrunk before anything else, so a 12MP gallery photo uploads as ~50 KB
-      // and the preview shows exactly what gets stored.
-      const avatar = await prepareAvatar(file);
-      decoded = true;
-
-      localPreview = URL.createObjectURL(avatar);
-      setPhotoPreview(localPreview);
-
-      const photoUrl = await uploadProfilePhoto(user.uid, avatar);
-      await updateUserProfile({ photoUrl });
-      await refreshUser();
-      setPhotoSaved(true);
-    } catch (err) {
-      console.error("Avatar update failed", err);
-      setPhotoError(decoded ? copy.auth.errors[resolveAuthErrorKey(err)] : t.photoUnreadable);
-    } finally {
-      setPhotoLoading(false);
-      if (localPreview) URL.revokeObjectURL(localPreview);
-      setPhotoPreview(null);
-    }
-  };
 
   const saveName = async () => {
     setNameError(null);
@@ -129,41 +76,25 @@ export function ProfileModal({ copy, onClose, onManageAccount }: ProfileModalPro
         onClick={(event) => event.stopPropagation()}
         className="liquid-glass max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-[28px] p-5"
       >
-        <div className="mb-4 flex items-center gap-3">
-          <div className="relative shrink-0">
-            <div className="grid h-11 w-11 place-items-center overflow-hidden rounded-full border border-white bg-[#252334] text-sm font-bold text-white shadow-[0_6px_16px_rgba(36,29,80,.2)]">
-              {photoPreview || user.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={photoPreview ?? user.photoUrl!} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
-              ) : (
-                initial
-              )}
-              {photoLoading ? (
-                <div className="absolute inset-0 grid place-items-center rounded-full bg-black/40">
-                  <Loader2 size={16} className="animate-spin text-white" />
-                </div>
-              ) : null}
-            </div>
-            <button
-              type="button"
-              onClick={pickPhoto}
-              disabled={photoLoading}
-              aria-label={t.changePhoto}
-              className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full border-2 border-white bg-[#7657dd] text-white shadow-sm dark:border-[#1c1a24] disabled:opacity-60"
-            >
-              <Camera size={10} />
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => { void onPhotoSelected(event); }} />
-          </div>
+        <div className="mb-5 flex items-center gap-4">
+          <AvatarPicker
+            copy={copy}
+            size={64}
+            onError={(message) => {
+              setPhotoError(message);
+              if (message) setPhotoSaved(false);
+            }}
+            onSaved={() => setPhotoSaved(true)}
+          />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h2 className="truncate font-display text-lg font-bold tracking-[-0.03em] text-[#232331] dark:text-[#f1eff7]">{t.title}</h2>
+              <h2 className="truncate font-display text-xl font-bold tracking-[-0.03em] text-[#232331] dark:text-[#f1eff7]">{t.title}</h2>
               {planReady ? <PlanBadge copy={copy} plan={plan} /> : null}
             </div>
-            <p className="truncate text-xs text-[#85818f] dark:text-[#a49fb0]">{user.email}</p>
+            <p className="truncate text-sm text-[#85818f] dark:text-[#a49fb0]">{user.email}</p>
           </div>
-          <button onClick={onClose} aria-label={t.close} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/70 dark:bg-white/5 text-[#6d6b79] dark:text-[#a79fb5] hover:bg-white dark:hover:bg-white/15">
-            <X size={16} />
+          <button onClick={onClose} aria-label={t.close} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/70 dark:bg-white/5 text-[#6d6b79] dark:text-[#a79fb5] hover:bg-white dark:hover:bg-white/15">
+            <X size={20} />
           </button>
         </div>
 
@@ -190,13 +121,13 @@ export function ProfileModal({ copy, onClose, onManageAccount }: ProfileModalPro
             className="mt-3 flex w-full items-center gap-3 rounded-2xl bg-white/60 dark:bg-white/5 p-3.5 text-left transition hover:bg-white dark:hover:bg-white/15"
           >
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold text-[#232331] dark:text-[#f1eff7]">{t.passwordTitle}</span>
-              <span className="mt-0.5 block truncate text-xs text-[#6d6b79] dark:text-[#a79fb5]">{t.passwordDescription}</span>
+              <span className="block text-base font-bold text-[#232331] dark:text-[#f1eff7]">{t.passwordTitle}</span>
+              <span className="mt-0.5 block truncate text-sm text-[#6d6b79] dark:text-[#a79fb5]">{t.passwordDescription}</span>
             </span>
-            <ChevronRight size={16} className="shrink-0 text-[#7657dd] dark:text-[#c4b3ff]" />
+            <ChevronRight size={20} className="shrink-0 text-[#7657dd] dark:text-[#c4b3ff]" />
           </button>
         ) : (
-          <p className="mt-3 rounded-2xl bg-[#f3f1fa] dark:bg-[#26222f] px-4 py-3 text-xs leading-5 text-[#6d6b79] dark:text-[#a79fb5]">{t.noPasswordProvider}</p>
+          <p className="mt-3 rounded-2xl bg-[#f3f1fa] dark:bg-[#26222f] px-4 py-3.5 text-sm leading-5 text-[#6d6b79] dark:text-[#a79fb5]">{t.noPasswordProvider}</p>
         )}
       </motion.div>
     </motion.div>

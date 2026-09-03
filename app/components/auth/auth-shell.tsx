@@ -1,36 +1,31 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import { authScreenTransition, tapScale } from "../../../lib/mevid/motion";
 
 type AuthShellProps = {
-  eyebrow: string;
   title: string;
   description: string;
   children: ReactNode;
   footer?: ReactNode;
 };
 
-export function AuthShell({ eyebrow, title, description, children, footer }: AuthShellProps) {
+export function AuthShell({ title, description, children, footer }: AuthShellProps) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 18, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -12, scale: 0.98 }}
       transition={authScreenTransition}
-      className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-8"
+      className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-2"
     >
-      <div className="mb-6 text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#e5ddff] dark:border-[#4a3f73] bg-white/80 dark:bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-[#7657dd] dark:text-[#c4b3ff] shadow-[0_5px_18px_rgba(101,74,180,.08)]">
-          <Sparkles size={13} />{eyebrow}
-        </div>
-        <h1 className="font-display text-3xl font-bold leading-[1.02] tracking-[-0.05em] text-[#232331] dark:text-[#f1eff7]">{title}</h1>
-        <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#6d6b79] dark:text-[#a79fb5]">{description}</p>
+      <div className="mb-4 text-center">
+        <h1 className="font-display text-[38px] font-bold leading-[1.02] tracking-[-0.05em] text-[#232331] dark:text-[#f1eff7]">{title}</h1>
+        <p className="mx-auto mt-2.5 max-w-sm text-base leading-6 text-[#6d6b79] dark:text-[#a79fb5]">{description}</p>
       </div>
-      <div className="liquid-glass rounded-[30px] p-6">{children}</div>
-      {footer ? <div className="mt-6 text-center text-sm text-[#6d6b79] dark:text-[#a79fb5]">{footer}</div> : null}
+      <div className="liquid-glass rounded-[30px] p-5">{children}</div>
+      {footer ? <div className="mt-4 text-center text-base text-[#6d6b79] dark:text-[#a79fb5]">{footer}</div> : null}
     </motion.section>
   );
 }

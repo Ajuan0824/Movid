@@ -43,7 +43,6 @@ export function ForgotPasswordScreen({ copy, locale, onNavigate }: ForgotPasswor
 
   return (
     <AuthShell
-      eyebrow={t.eyebrow}
       title={t.title}
       description={t.description}
       footer={

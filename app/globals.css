@@ -54,7 +54,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .text-gradient { background: linear-gradient(104deg, #7959e4 5%, #9c74ef 45%, #f15b7c 98%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 .primary-button, .secondary-button {
-  display: inline-flex; align-items: center; justify-content: center; gap: .6rem; border-radius: 999px; padding: .9rem 1.2rem; font-size: .875rem; font-weight: 700; transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+  display: inline-flex; align-items: center; justify-content: center; gap: .6rem; border-radius: 999px; padding: 1.05rem 1.4rem; font-size: 1rem; font-weight: 700; transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
 }
 .primary-button { border: 1px solid #252334; color: white; background: #252334; box-shadow: 0 9px 22px rgba(37,35,52,.23); }
 .primary-button:hover { transform: translateY(-2px); box-shadow: 0 13px 28px rgba(37,35,52,.28); background: #373447; }

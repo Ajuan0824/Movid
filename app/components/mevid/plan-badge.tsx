@@ -10,7 +10,7 @@ export function PlanBadge({ copy, plan, className = "" }: { copy: AppCopy; plan:
     ? "bg-[#7657dd] text-white"
     : "bg-[#efedf4] dark:bg-[#2a2636] text-[#6d6b79] dark:text-[#a79fb5]";
   return (
-    <span className={`shrink-0 rounded-full px-2.5 py-1 font-mono text-[10px] font-bold ${tone} ${className}`}>
+    <span className={`shrink-0 rounded-full px-3 py-1.5 font-mono text-[11px] font-bold ${tone} ${className}`}>
       {pro ? copy.plans.pro : copy.plans.free}
     </span>
   );

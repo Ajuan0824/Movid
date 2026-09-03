@@ -41,7 +41,7 @@ function Toast({ tone, message, onDismiss }: { tone: "error" | "notice"; message
       ? "border-[#ffc8d3] dark:border-[#5c2f3d] bg-white dark:bg-[#211e2c] text-[#9d3450] dark:text-[#ffb4c8]"
       : "border-[#dfd4ff] dark:border-[#4a3f73] bg-[#f0ecff] dark:bg-[#2c2740] font-semibold text-[#5c3fc4] dark:text-[#b9a6ff]";
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(6rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(7rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -350,7 +350,7 @@ export default function Home() {
         </header>
 
         <AuthGate copy={copy} locale={locale}>
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(6rem+env(safe-area-inset-bottom))]">
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(6.75rem+env(safe-area-inset-bottom))]">
           <AnimatePresence mode="wait">
             {tab === "home" && flowView === "idle" ? (
               <IntroScreen

@@ -20,7 +20,7 @@ export function GlassTextField({ label, type = "text", value, onChange, error, a
 
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-[#6d6b79] dark:text-[#a79fb5]">{label}</label>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-semibold text-[#6d6b79] dark:text-[#a79fb5]">{label}</label>
       <div className="relative">
         <input
           id={id}

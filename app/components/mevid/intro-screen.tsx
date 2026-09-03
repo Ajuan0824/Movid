@@ -23,11 +23,10 @@ type IntroScreenProps = {
 export function IntroScreen({ copy, recordInputRef, uploadInputRef, onRecord, onUpload, onRecordFileChange, onUploadFileChange, planReady, planError, onReloadPlan, starsLeft, starsTotal }: IntroScreenProps) {
   return (
     <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={screenTransition} className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center py-2">
-      <motion.div className="mb-4 text-center" variants={heroTextVariants} initial="hidden" animate="visible">
-        <motion.h1 variants={heroTextItemVariants} className="font-display text-[28px] font-bold leading-[1.02] tracking-[-0.065em] text-[#232331] dark:text-[#f1eff7] sm:text-6xl">
+      <motion.div className="mb-5 text-center" variants={heroTextVariants} initial="hidden" animate="visible">
+        <motion.h1 variants={heroTextItemVariants} className="font-display text-[36px] font-bold leading-[1.02] tracking-[-0.065em] text-[#232331] dark:text-[#f1eff7] sm:text-6xl">
           {copy.hero.title}<span className="block text-gradient">{copy.hero.titleAccent}</span>
         </motion.h1>
-        <motion.p variants={heroTextItemVariants} className="mx-auto mt-2.5 max-w-md text-[13px] leading-5 text-[#6d6b79] dark:text-[#a79fb5] sm:text-base">{copy.hero.description}</motion.p>
       </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.97 }}
@@ -42,10 +41,10 @@ export function IntroScreen({ copy, recordInputRef, uploadInputRef, onRecord, on
           <div className="scan-sweep" />
           <div className="pointer-events-none absolute left-3.5 top-3.5 h-[18px] w-[18px] rounded-tl-md border-l-2 border-t-2 border-white/40" />
           <div className="pointer-events-none absolute right-3.5 top-3.5 h-[18px] w-[18px] rounded-tr-md border-r-2 border-t-2 border-white/40" />
-          <span className="absolute left-1/2 top-2.5 -translate-x-1/2 flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 font-mono text-[10px] font-bold text-white backdrop-blur-md"><span className="h-1.5 w-1.5 rounded-full bg-[#cdbdff]" />{copy.hero.aiReady}</span>
-          <div className="relative grid h-16 w-16 place-items-center rounded-[26px] border border-white/20 bg-white/10 text-white shadow-[0_20px_50px_rgba(0,0,0,.25)] backdrop-blur-md"><Camera size={28} strokeWidth={1.5} /></div>
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/50 to-transparent px-5 pb-3 pt-10 text-white/80">
-            <div className="flex items-center gap-2 text-xs font-semibold"><span className="h-2 w-2 rounded-full bg-[#ff5d78]" />{copy.hero.maxLength}</div><span className="font-mono text-xs">00:00.0</span>
+          <span className="absolute left-1/2 top-3 -translate-x-1/2 flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 font-mono text-xs font-bold text-white backdrop-blur-md"><span className="h-1.5 w-1.5 rounded-full bg-[#cdbdff]" />{copy.hero.aiReady}</span>
+          <div className="relative grid h-[76px] w-[76px] place-items-center rounded-[28px] border border-white/20 bg-white/10 text-white shadow-[0_20px_50px_rgba(0,0,0,.25)] backdrop-blur-md"><Camera size={34} strokeWidth={1.5} /></div>
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/50 to-transparent px-5 pb-3.5 pt-10 text-white/80">
+            <div className="flex items-center gap-2 text-sm font-semibold"><span className="h-2 w-2 rounded-full bg-[#ff5d78]" />{copy.hero.maxLength}</div><span className="font-mono text-sm">00:00.0</span>
           </div>
         </div>
       </motion.div>
@@ -53,10 +52,10 @@ export function IntroScreen({ copy, recordInputRef, uploadInputRef, onRecord, on
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...screenTransition, delay: 0.38 }}
-        className="mt-4 flex flex-col items-center justify-center gap-2.5 sm:flex-row"
+        className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row"
       >
-        <motion.button whileTap={{ scale: tapScale }} onClick={onRecord} className="primary-button group min-w-[202px]"><span className="record-dot" />{copy.hero.record}<ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" /></motion.button>
-        <motion.button whileTap={{ scale: tapScale }} onClick={onUpload} className="secondary-button min-w-[202px]"><Upload size={16} />{copy.hero.upload}</motion.button>
+        <motion.button whileTap={{ scale: tapScale }} onClick={onRecord} className="primary-button group min-w-[236px]"><span className="record-dot" />{copy.hero.record}<ArrowRight size={19} className="transition-transform group-hover:translate-x-0.5" /></motion.button>
+        <motion.button whileTap={{ scale: tapScale }} onClick={onUpload} className="secondary-button min-w-[236px]"><Upload size={18} />{copy.hero.upload}</motion.button>
         {/* `capture` makes iOS/Android open the native camera app directly instead of the file/photo picker. `environment` picks the rear lens. */}
         <input ref={recordInputRef} type="file" accept="video/*" capture="environment" className="hidden" onChange={onRecordFileChange} />
         <input ref={uploadInputRef} type="file" accept="video/*" className="hidden" onChange={onUploadFileChange} />
@@ -79,7 +78,7 @@ export function IntroScreen({ copy, recordInputRef, uploadInputRef, onRecord, on
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ ...screenTransition, delay: 0.46 }}
-        className="mt-3 text-center text-xs font-medium text-[#9996a4] dark:text-[#8b8697]"
+        className="mt-3.5 text-center text-sm font-medium text-[#9996a4] dark:text-[#8b8697]"
       >
         {copy.hero.private}
       </motion.p>
