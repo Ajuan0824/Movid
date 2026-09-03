@@ -1,7 +1,8 @@
 # Movid
 
-Aplicación móvil que analiza un vídeo corto (máximo 15 segundos) y selecciona
-automáticamente los 5 mejores momentos, listos para descargar o compartir.
+Aplicación móvil que analiza un clip de 15 segundos y selecciona automáticamente
+los 5 mejores momentos, listos para descargar o compartir. Se puede grabar dentro
+de la app o subir un vídeo de hasta 10 minutos y recortar qué ventana analizar.
 
 ---
 
@@ -30,11 +31,13 @@ código corre en el navegador y dentro del WebView nativo.
 ```
 app/
   page.tsx                  Orquestador: estado global de la UI y el flujo
-  layout.tsx                Providers (Auth, Plan) y script anti-parpadeo de tema
+  layout.tsx                Providers (Auth, Plan), script anti-parpadeo y splash
   api/analyze/route.ts      Endpoint de análisis con IA (servidor)
   components/
     auth/                   Login, registro, recuperar contraseña, gate
     mevid/                  Pantallas y componentes de la app
+functions/
+  index.js                  Cloud Function: recarga semanal de estrellas
 hooks/
   use-auth.tsx              Sesión de Firebase
   use-plan.tsx              Plan y estrellas del usuario
@@ -73,9 +76,13 @@ storage.lifecycle.json      Regla de caducidad a 30 días del bucket
 
 ### Flujo principal
 
+0. **Apertura** — un splash animado (`SplashScreen`, 1,5 s) cubre el arranque.
+   Se renderiza también en servidor, así que además tapa el fotograma en blanco
+   que había mientras se resuelven idioma y sesión tras el montaje.
 1. **Inicio** — el usuario graba con la cámara integrada o sube un vídeo. Al
-   subir se valida que sea vídeo y que no pase de 15 segundos.
-2. **Revisión** — previsualización del clip antes de gastar una estrella.
+   subir se valida que sea vídeo y que no pase de 10 minutos.
+2. **Revisión** — previsualización del clip antes de gastar una estrella. Si dura
+   más de 15 segundos aparece el recortador (ver **Recorte** abajo).
 3. **Análisis** — se comprueba que queden estrellas y entonces:
    - Se extraen 16 fotogramas de muestra en el navegador con `<canvas>`.
    - Se envían a `POST /api/analyze`, que se los pasa a OpenAI pidiendo 5
@@ -143,6 +150,11 @@ Google/Apple no tienen contraseña que restablecer.
 
 ### Foto de perfil
 
+Se cambia desde **dos sitios**, ambos con el mismo componente
+(`avatar-picker.tsx`): la pantalla de Cuenta y el modal de Perfil. Antes solo
+estaba en el modal, con un botón de 20 px que era casi imposible de acertar; ahora
+el botón de cámara escala con el avatar y la zona táctil es holgada.
+
 La imagen elegida en la galería **se reduce en el móvil antes de subirla**
 (`lib/mevid/image.ts`): se escala hasta que su lado más largo mide 512 px y se
 recodifica a JPEG. Una foto de 12 MP acaba pesando unos 50 KB.
@@ -168,8 +180,18 @@ cambio entre cámara frontal y trasera, botón de grabación con anillo de
 progreso y cuenta atrás. **Se corta sola al llegar a los 15 segundos**, así que
 no se puede grabar de más para que luego la app lo rechace.
 
+Arranca con la **cámara trasera** (`facingMode: "environment"`): es el sensor de
+mayor resolución y es a lo que la gente apunta. El fallback vía `<input capture>`
+usa `capture="environment"` por la misma razón.
+
 Usa `getUserMedia` + `MediaRecorder`. El códec se elige en tiempo de ejecución
 (`lib/mevid/recorder.ts`) porque Safari graba MP4 y Chrome WebM.
+
+Se piden **1920×1080** como `ideal` (no `exact`, para que una cámara que no llegue
+arranque igual a su mejor resolución en vez de a la de por defecto) y se graba a
+**8 Mbps**. El bitrate por defecto de `MediaRecorder` es bastante más bajo y era
+buena parte de por qué las grabaciones se veían blandas; subirlo mejora también
+los fotogramas que acaban en los momentos finales.
 
 > **Requiere contexto seguro.** `getUserMedia` solo existe bajo https, localhost
 > o un esquema nativo. La configuración de desarrollo de Capacitor apunta a
@@ -183,6 +205,32 @@ La duración se toma del reloj mientras se graba, no del fichero: los ficheros d
 `MediaRecorder` a menudo no llevan duración en sus metadatos. Por eso
 `lib/mevid/video.ts` incluye además un rodeo para resolver duraciones
 `Infinity` antes de extraer fotogramas.
+
+### Recorte
+
+Un vídeo subido puede durar hasta `MAX_SOURCE_SECONDS` (10 minutos). Si pasa de
+15 segundos, `ReviewScreen` muestra un recortador tipo Instagram
+(`video-trimmer.tsx`): tira de 10 miniaturas (`extractFilmstrip`), dos tiradores
+de línea fina, la ventana arrastrable entera y una línea vertical que sigue la
+posición del vídeo. La ventana queda limitada a entre `MIN_VIDEO_SECONDS` (3) y
+`MAX_VIDEO_SECONDS` (15).
+
+**No se re-codifica el vídeo.** Cortar los bytes de verdad en el móvil no es
+viable de forma fiable: `ffmpeg.wasm` pesa ~25 MB y necesita cabeceras
+COOP/COEP, y volver a grabar con `captureStream` falla en iOS Safari. Así que el
+archivo se guarda entero y se persiste un **desplazamiento** (`trimStart`):
+
+- `extractFrames(fuente, segundosDeVentana, desplazamiento)` y
+  `hydrateHighlightImages(...)` suman el desplazamiento a cada salto.
+- Los tiempos que devuelve la IA son **relativos al recorte** (0 = punto de
+  entrada), así que la línea de tiempo de resultados sigue empezando en 0.
+- `ResultsScreen` reproduce desde `trimStart + momento` y para al final de la
+  ventana. `StoredGeneration.trimStart` vale 0 en los documentos antiguos.
+
+La reproducción y la línea de posición del recortador las mueve un único bucle
+`requestAnimationFrame` que escribe estilos en el DOM, nunca estado de React: una
+versión anterior actualizaba estado 60 veces por segundo y se veía a tirones en
+móvil.
 
 ### Cuando el análisis falla
 
@@ -215,8 +263,9 @@ Una **estrella** equivale a una generación de vídeo.
 | Pro | 7 |
 
 - Las semanas empiezan el **lunes a las 00:00 UTC**, iguales para todos.
-- La recarga es automática: al abrir la app, si el periodo guardado ya pasó, el
-  contador se pone a cero.
+- `starsUsed` es "cuántas ha consumido **esta** semana", no un saldo. Cada lunes
+  vuelve a cero, así que **las estrellas sin gastar no se acumulan**: quien llegue
+  al lunes con 2 sin usar empieza con las 3 (o 7) completas, no con 5 ni 9.
 - Al quedarse sin estrellas aparece un modal distinto según el plan: los free ven
   una invitación a pasarse a Pro, los pro ven la fecha de recarga.
 - A un usuario Pro se le oculta la pestaña Pro y la tarjeta de "Mejorar a Pro".
@@ -225,6 +274,30 @@ Una **estrella** equivale a una generación de vídeo.
 planes son Pro. La lista de UIDs está en `lib/mevid/plan.ts` y, sobre todo, en
 `firestore.rules`, que es quien lo hace cumplir. Es andamiaje temporal: cuando
 haya facturación real, se quitan las dos.
+
+### Las tres capas de la recarga
+
+La recarga no depende de un solo mecanismo, porque cada uno tiene un hueco:
+
+1. **`weeklyStarRefill`** (Cloud Function, lunes 00:05 UTC) — la autoridad.
+   Recorre en lotes los documentos con `periodStart` caducado y los pone a cero.
+   Mantiene el dato correcto también para cuentas inactivas y no depende de que
+   ningún cliente se ejecute. Forzarla a mitad de semana **no hace nada**, y es
+   correcto: es un "ponte al día con el lunes", no un botón de reset.
+2. **Empujón del cliente** (`loadUserPlan`) — si la semana guardada caducó,
+   devuelve cero estrellas gastadas de inmediato y lanza la escritura en segundo
+   plano sin bloquear. `use-plan.tsx` lo repite al recuperar el foco, al volverse
+   visible la pestaña y cada 10 minutos, para que una sesión abierta que cruza el
+   lunes lo recoja sin recargar la página.
+3. **Primer gasto de la semana** (`spendStar`) — si alguien gasta antes de que las
+   dos capas anteriores hayan aterrizado, una transacción escribe el periodo nuevo
+   y la primera estrella a la vez, amparada por `isRefillAndSpend()` en las reglas.
+   La transacción además impide que dos dispositivos gasten la misma estrella.
+
+Si la carga del plan falla, el contexto marca `error`: las estrellas quedan a 0,
+`spend()` se bloquea y la interfaz muestra un botón de reintentar en vez de
+estrellas fantasma. Un fallo de re-comprobación en segundo plano **no** borra el
+último valor bueno conocido.
 
 ---
 
@@ -242,9 +315,11 @@ users/{uid}
 users/{uid}/generations/{generationId}
   createdAt   timestamp
   expiresAt   timestamp  createdAt + 30 días
-  duration    number     Segundos del clip
-  videoUrl    string     URL de descarga del vídeo
-  highlights  array      [{ start, end, peakTime, title, image }]
+  duration    number     Segundos de la ventana recortada que se analizó
+  trimStart   number     Dónde empieza esa ventana en el vídeo guardado (0 = entero)
+  videoUrl    string     URL de descarga del vídeo (sin recortar)
+  highlights  array      [{ start, end, peakTime, title, image }] — tiempos
+                         relativos a la ventana, no al vídeo completo
 ```
 
 ### Storage
@@ -280,7 +355,9 @@ mismo**. `firestore.rules` garantiza que un usuario no pueda:
 - Gastar más estrellas de las que le da su plan.
 - Adelantar la recarga semanal. Un periodo nuevo debe ser 7 días posterior al
   anterior **y** no estar en el futuro según la hora del servidor, así que
-  cambiar el reloj del móvil no sirve de nada.
+  cambiar el reloj del móvil no sirve de nada. Vale tanto para el reset limpio
+  (`isRefill()`) como para el "recarga y gasta en una escritura"
+  (`isRefillAndSpend()`), que además exige `starsUsed == 1`.
 - Escribir el email de otra persona: se compara con `request.auth.token.email`.
 
 `storage.rules` limita cada usuario a su propia carpeta, con tope de tamaño
@@ -385,3 +462,20 @@ node scripts/apply-google-plist.mjs
   la API route, verificando el token de Firebase.
 - **La lista de usuarios fundadores está escrita a mano** en las reglas y en
   `lib/mevid/plan.ts`. Es temporal, hasta que haya facturación.
+- **El análisis falla en iPhone** con el error genérico, mientras que en Android
+  funciona. Por el código de error se sabe que la extracción de fotogramas sí
+  llega a completarse, así que el fallo está en la petición a `/api/analyze` o en
+  `hydrateHighlightImages`. Sospechas principales: el `<video>` que usa
+  `loadVideoElement` nunca se monta en el DOM (Safari a menudo no decodifica
+  fotogramas así) o `getImageData` sobre un canvas que iOS considera *tainted*.
+  Pendiente de un log real de Vercel o de la consola de Safari.
+- **El recorte guarda el vídeo entero.** Al no re-codificar, en Storage se sube el
+  original completo aunque solo se analicen 15 segundos: un clip de 10 minutos
+  ocupa lo que ocupa hasta que caduque a los 30 días.
+- **`currentPeriodStart()` está duplicado** en `lib/mevid/plan.ts` y en
+  `functions/index.js` (la función no comparte el bundle de la app). Si se toca
+  uno hay que tocar el otro, o cliente y servidor discreparán sobre qué semana es.
+- **Los identificadores siguen diciendo `mevid`** aunque la app se llame Movid:
+  `appId` (`com.mevid.app`), la clave de localStorage `mevid-theme-pref`, el
+  scope de logs y los nombres de carpeta. Es deliberado — cambiar el `appId`
+  desvincularía la app nativa instalada y su registro en Firebase.
