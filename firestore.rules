@@ -57,6 +57,15 @@ service cloud.firestore {
             && request.resource.data.periodStart <= request.time;
       }
 
+      // First spend of a new week, done in one write when the scheduled refill
+      // hasn't landed yet: reset to the new period and count exactly one star.
+      // Same clock guards as isRefill().
+      function isRefillAndSpend() {
+        return request.resource.data.starsUsed == 1
+            && request.resource.data.periodStart >= resource.data.periodStart + duration.value(7, 'd')
+            && request.resource.data.periodStart <= request.time;
+      }
+
       allow read: if request.auth != null && request.auth.uid == uid;
 
       // The plan a new doc may claim is decided here, not by the client:
@@ -74,7 +83,7 @@ service cloud.firestore {
                     && validShape()
                     && emailOk()
                     && request.resource.data.plan == resource.data.plan
-                    && (isSpend() || isRefill() || isEmailSync());
+                    && (isSpend() || isRefill() || isRefillAndSpend() || isEmailSync());
 
       allow delete: if false;
     }

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useAuth } from "../../../hooks/use-auth";
 import { usePlan } from "../../../hooks/use-plan";
 import { PlanBadge } from "./plan-badge";
-import { StarMeter } from "./star-meter";
+import { StarMeter, StarMeterError } from "./star-meter";
 import { AuthErrorBanner, AuthSubmitButton } from "../auth/auth-shell";
 import { GlassTextField } from "../auth/glass-text-field";
 import { changePassword, hasPasswordProvider, signOutUser, updateUserProfile } from "../../../lib/firebase/auth";
@@ -31,7 +31,7 @@ function SuccessNote({ message }: { message: string }) {
 export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
   const t = copy.auth.profile;
   const { user, refreshUser } = useAuth();
-  const { plan, limit, starsLeft, ready: planReady } = usePlan();
+  const { plan, limit, starsLeft, ready: planReady, error: planError, reload: reloadPlan } = usePlan();
 
   const [name, setName] = useState(user?.displayName ?? "");
   const [nameLoading, setNameLoading] = useState(false);
@@ -114,7 +114,11 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
 
       {planReady ? (
         <div className="glass-panel mt-3 rounded-[26px] p-4 shadow-panel">
-          <StarMeter copy={copy} left={starsLeft} total={limit} />
+          {planError ? (
+            <StarMeterError copy={copy} onRetry={reloadPlan} />
+          ) : (
+            <StarMeter copy={copy} left={starsLeft} total={limit} />
+          )}
         </div>
       ) : null}
 

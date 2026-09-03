@@ -57,7 +57,7 @@ function Toast({ tone, message, onDismiss }: { tone: "error" | "notice"; message
 
 export default function Home() {
   const mobileState = useIsMobile();
-  const { plan, limit: starsTotal, starsLeft, ready: planReady, spend: spendStar } = usePlan();
+  const { plan, limit: starsTotal, starsLeft, ready: planReady, error: planError, spend: spendStar, reload: reloadPlan } = usePlan();
   const { pref: localePref, locale, setPref: setLocalePref, ready: localeReady } = useLocalePref();
   const { pref: themePref, setPref: setThemePref } = useThemePref();
   const [tab, setTab] = useState<AppTab>("home");
@@ -169,6 +169,13 @@ export default function Home() {
   const analyseVideo = async () => {
     const videoBlob = videoBlobRef.current;
     if (!videoUrl || !videoBlob) return;
+    if (planError) {
+      // The plan doc couldn't be read — "0 stars" here means "unknown", not
+      // "used up", so don't send them to the upsell modal.
+      setError(copy.errors.planUnavailable);
+      reloadPlan();
+      return;
+    }
     if (starsLeft <= 0) {
       // starsLeft is only meaningful once the plan doc has loaded — before
       // that it's 0 by default, which isn't the same as "out of stars".
@@ -356,6 +363,8 @@ export default function Home() {
                 onRecordFileChange={handleFileInputChange}
                 onUploadFileChange={handleFileInputChange}
                 planReady={planReady}
+                planError={planError}
+                onReloadPlan={reloadPlan}
                 starsLeft={starsLeft}
                 starsTotal={starsTotal}
               />

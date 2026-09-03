@@ -296,6 +296,25 @@ mismo**. `firestore.rules` garantiza que un usuario no pueda:
 npx firebase-tools deploy --only firestore:rules,storage
 ```
 
+### Cloud Functions
+
+`functions/` contiene `weeklyStarRefill`: una función programada (lunes 00:05 UTC)
+que pone `starsUsed: 0` en todo documento cuyo `periodStart` ya caducó. El cliente
+también recarga de forma oportunista (al cargar / al recuperar el foco), así que
+esta función es la capa autoritativa: mantiene el número correcto también para
+cuentas inactivas y no depende de que ningún cliente llegue a ejecutarse. El
+primer gasto de una semana nueva, si la recarga aún no ha llegado, se resuelve en
+el cliente con una transacción (`spendStar`) amparada por `isRefillAndSpend()` en
+las reglas.
+
+```bash
+cd functions && npm install && cd ..
+npx firebase-tools deploy --only functions
+```
+
+Requiere plan Blaze. Coste real ≈ 0 (4 invocaciones/mes, 1 job de Cloud
+Scheduler dentro del tramo gratuito).
+
 ---
 
 ## 7. Configuración

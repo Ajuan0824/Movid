@@ -29,10 +29,12 @@ export type AppCopy = {
     emptyFreeTitle: string; emptyFreeBody: string; emptyFreeCta: string;
     emptyProTitle: string; emptyProBody: string;
     refillsOn: string; dismiss: string;
+    loadError: string; retry: string;
   };
   errors: {
     notVideo: string; tooLong: string; unreadable: string;
     analysisFailed: string; analysisUnavailable: string; analysisVideoUnreadable: string;
+    planUnavailable: string;
   };
   desktopGate: { title: string; description: string };
   auth: {
@@ -161,6 +163,8 @@ const dictionary: Record<Locale, AppCopy> = {
       emptyProBody: "You’ve used your {total} videos for this week. They refill automatically.",
       refillsOn: "Back on {date}",
       dismiss: "Got it",
+      loadError: "Couldn’t load your stars",
+      retry: "Retry",
     },
     errors: {
       notVideo: "Choose a video file to continue.",
@@ -168,6 +172,7 @@ const dictionary: Record<Locale, AppCopy> = {
       unreadable: "We couldn’t read that video. Please try another file.",
       analysisFailed: "Something went wrong analysing your video. Please try again later — no star was used.",
       analysisUnavailable: "AI analysis isn’t available right now (the server has no OpenAI key configured). No star was used.",
+      planUnavailable: "We couldn’t check your weekly stars. Check your connection and try again — no star was used.",
       analysisVideoUnreadable: "We couldn’t read the frames of that recording. Try recording again — no star was used.",
     },
     desktopGate: {
@@ -362,6 +367,8 @@ const dictionary: Record<Locale, AppCopy> = {
       emptyProBody: "Ya has usado tus {total} vídeos de esta semana. Se recargan automáticamente.",
       refillsOn: "Vuelven el {date}",
       dismiss: "Entendido",
+      loadError: "No pudimos cargar tus estrellas",
+      retry: "Reintentar",
     },
     errors: {
       notVideo: "Elige un archivo de vídeo para continuar.",
@@ -370,6 +377,7 @@ const dictionary: Record<Locale, AppCopy> = {
       analysisFailed: "Se ha producido un error al analizar tu vídeo. Vuelve a intentarlo más tarde — no se ha gastado ninguna estrella.",
       analysisUnavailable: "El análisis con IA no está disponible ahora mismo (el servidor no tiene configurada la clave de OpenAI). No se ha gastado ninguna estrella.",
       analysisVideoUnreadable: "No hemos podido leer los fotogramas de esa grabación. Prueba a grabar de nuevo — no se ha gastado ninguna estrella.",
+      planUnavailable: "No pudimos comprobar tus estrellas semanales. Revisa tu conexión y vuelve a intentarlo — no se ha gastado ninguna estrella.",
     },
     desktopGate: {
       title: "Abrí esto desde tu teléfono",

@@ -1,6 +1,6 @@
-import { Timestamp, doc, getDoc, getFirestore, increment, setDoc, updateDoc } from "firebase/firestore";
+import { Timestamp, doc, getDoc, getFirestore, runTransaction, setDoc, updateDoc } from "firebase/firestore";
 import { ensureFirebaseApp } from "./config";
-import { currentPeriodStart, initialPlanFor, type Plan } from "../mevid/plan";
+import { currentPeriodStart, initialPlanFor, WEEKLY_STARS, type Plan } from "../mevid/plan";
 
 ensureFirebaseApp();
 
@@ -45,7 +45,12 @@ export async function loadUserPlan(uid: string, email: string | null): Promise<U
   const emailPatch = email && data.email !== email ? { email } : {};
 
   if (storedPeriod.getTime() < period.getTime()) {
-    await updateDoc(ref, { starsUsed: 0, periodStart: Timestamp.fromDate(period), ...emailPatch });
+    // New week — the stars are back. `weeklyStarRefill` (Cloud Function) is the
+    // authoritative writer; this is a best-effort nudge so the doc is fresh
+    // between sweeps, and its failure must not block the user.
+    void updateDoc(ref, { starsUsed: 0, periodStart: Timestamp.fromDate(period), ...emailPatch }).catch((error) =>
+      console.error("Weekly refill nudge failed (harmless — the scheduled job will catch up)", error),
+    );
     return { plan, starsUsed: 0 };
   }
 
@@ -57,9 +62,31 @@ export async function loadUserPlan(uid: string, email: string | null): Promise<U
 }
 
 /**
- * Spends one star. Uses a server-side increment so two devices racing can't
- * both spend the same star; the rules cap the total at the plan's weekly limit.
+ * Spends one star inside a transaction, so two devices racing can't both spend
+ * the same one (Firestore retries the transaction on contention). If the stored
+ * week is already over — the refill, client- or server-side, hasn't landed yet
+ * — this rolls the period over and counts the first star in a single write.
+ * Throws when there's nothing left; the rules also cap it at the weekly limit.
  */
 export async function spendStar(uid: string) {
-  await updateDoc(userRef(uid), { starsUsed: increment(1) });
+  const ref = userRef(uid);
+  await runTransaction(getFirestore(), async (tx) => {
+    const snapshot = await tx.get(ref);
+    if (!snapshot.exists()) throw new Error("plan doc missing");
+
+    const data = snapshot.data();
+    const plan: Plan = data.plan === "pro" ? "pro" : "free";
+    const limit = WEEKLY_STARS[plan];
+    const period = currentPeriodStart();
+    const storedPeriod = data.periodStart instanceof Timestamp ? data.periodStart.toDate() : new Date(0);
+
+    if (storedPeriod.getTime() < period.getTime()) {
+      tx.update(ref, { starsUsed: 1, periodStart: Timestamp.fromDate(period) });
+      return;
+    }
+
+    const used = typeof data.starsUsed === "number" ? data.starsUsed : 0;
+    if (used >= limit) throw new Error("no stars left");
+    tx.update(ref, { starsUsed: used + 1 });
+  });
 }

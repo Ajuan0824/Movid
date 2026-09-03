@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
+import { RotateCcw, Star } from "lucide-react";
 import type { AppCopy } from "../../../lib/mevid/copy";
 
 type StarMeterProps = {
@@ -34,6 +34,30 @@ export function StarMeter({ copy, left, total }: StarMeterProps) {
       <p className={`text-xs font-semibold ${empty ? "text-[#e0507a] dark:text-[#ff8fae]" : "text-[#9996a4] dark:text-[#8b8697]"}`}>
         {label}
       </p>
+    </div>
+  );
+}
+
+/** Shown when the plan doc couldn't be read — the count is unknown, not zero. */
+export function StarMeterError({ copy, onRetry }: { copy: AppCopy; onRetry: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <div className="flex items-center gap-1" aria-hidden>
+        {Array.from({ length: 3 }, (_, index) => (
+          <Star key={index} size={16} strokeWidth={2} className="fill-transparent text-[#cfc8df] dark:text-[#4a4458]" />
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="flex items-center gap-1.5 text-xs font-semibold text-[#9996a4] transition hover:text-[#6d6b79] dark:text-[#8b8697] dark:hover:text-[#a79fb5]"
+      >
+        {copy.stars.loadError}
+        <span className="inline-flex items-center gap-1 text-[#7657dd] dark:text-[#b9a6ff]">
+          <RotateCcw size={12} />
+          {copy.stars.retry}
+        </span>
+      </button>
     </div>
   );
 }
