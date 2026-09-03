@@ -38,6 +38,8 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
   const [frames, setFrames] = useState<VideoFrame[] | null>(null);
   const [stripFailed, setStripFailed] = useState(false);
   const [playing, setPlaying] = useState(false);
+  // Where the preview currently is, drawn as a moving line on the filmstrip.
+  const [playhead, setPlayhead] = useState(value.start);
   // Local while dragging so the parent tree doesn't re-render on every move.
   const [draft, setDraft] = useState(value);
   const draftRef = useRef(draft);
@@ -45,6 +47,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
 
   useEffect(() => {
     setDraft(value);
+    setPlayhead(value.start);
   }, [value.start, value.end]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -73,6 +76,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
     if (!node) return;
     if (!node.paused) node.pause();
     setPlaying(false);
+    setPlayhead(seconds);
     try {
       node.currentTime = seconds;
     } catch {
@@ -92,6 +96,20 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
     node.addEventListener("timeupdate", onTime);
     return () => node.removeEventListener("timeupdate", onTime);
   }, [draft.start, draft.end]);
+
+  // Follow the preview head smoothly while it plays (timeupdate alone is jerky).
+  useEffect(() => {
+    if (!playing) return;
+    const node = videoRef.current;
+    if (!node) return;
+    let raf = 0;
+    const tick = () => {
+      setPlayhead(node.currentTime);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [playing]);
 
   const togglePlay = () => {
     const node = videoRef.current;
@@ -237,6 +255,13 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
           >
             <span className="h-5 w-[3px] rounded-full bg-white" />
           </button>
+
+          <div
+            className="pointer-events-none absolute inset-y-0 z-10 w-[2px] -translate-x-1/2 rounded-full bg-white shadow-[0_0_8px_rgba(0,0,0,0.7)]"
+            style={{ left: pct(Math.min(draft.end, Math.max(draft.start, playhead))) }}
+          >
+            <span className="absolute left-1/2 top-1 h-2 w-2 -translate-x-1/2 rounded-full bg-white" />
+          </div>
         </div>
 
         <p className="px-2 pb-1 pt-2.5 text-center text-xs text-[#8f8b99] dark:text-[#a79fb5]">{copy.review.trimHint}</p>

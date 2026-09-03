@@ -28,10 +28,14 @@ export function ReviewScreen({ copy, videoUrl, duration, sourceDuration, trimSta
   return (
     <>
       <motion.section initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={screenTransition} className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center py-2">
-        <motion.div className="mb-4 text-center" variants={heroTextVariants} initial="hidden" animate="visible">
-          <motion.div variants={heroTextItemVariants} className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#eaf8f1] dark:bg-[#1f2e28] px-3 py-1.5 text-xs font-bold text-[#3e9b71]"><Check size={13} />{copy.review.eyebrow}</motion.div>
-          <motion.h1 variants={heroTextItemVariants} className="font-display text-3xl font-bold tracking-[-0.06em] sm:text-5xl">{needsTrim ? copy.review.trimTitle : copy.review.title}</motion.h1>
-          <motion.p variants={heroTextItemVariants} className="mt-2 text-sm text-[#767381] dark:text-[#a79fb5]">{needsTrim ? copy.review.trimHint : copy.review.description}</motion.p>
+        <motion.div className={`text-center ${needsTrim ? "mb-3" : "mb-4"}`} variants={heroTextVariants} initial="hidden" animate="visible">
+          {needsTrim ? null : (
+            <motion.div variants={heroTextItemVariants} className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#eaf8f1] dark:bg-[#1f2e28] px-3 py-1.5 text-xs font-bold text-[#3e9b71]"><Check size={13} />{copy.review.eyebrow}</motion.div>
+          )}
+          <motion.h1 variants={heroTextItemVariants} className={`font-display font-bold tracking-[-0.06em] ${needsTrim ? "text-2xl sm:text-4xl" : "text-3xl sm:text-5xl"}`}>{needsTrim ? copy.review.trimTitle : copy.review.title}</motion.h1>
+          {needsTrim ? null : (
+            <motion.p variants={heroTextItemVariants} className="mt-2 text-sm text-[#767381] dark:text-[#a79fb5]">{copy.review.description}</motion.p>
+          )}
         </motion.div>
 
         {needsTrim ? (
@@ -69,7 +73,7 @@ export function ReviewScreen({ copy, videoUrl, duration, sourceDuration, trimSta
           </motion.button>
         )}
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ ...screenTransition, delay: 0.32 }} className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row"><motion.button whileTap={{ scale: tapScale }} onClick={onRetry} className="secondary-button"><RotateCcw size={16} />{copy.review.retry}</motion.button><motion.button whileTap={{ scale: tapScale }} onClick={onAnalyse} className="primary-button px-6"><WandSparkles size={17} />{copy.review.analyse}<ArrowRight size={17} /></motion.button></motion.div>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ ...screenTransition, delay: 0.32 }} className={`flex flex-col items-center justify-center gap-3 sm:flex-row ${needsTrim ? "mt-4" : "mt-6"}`}><motion.button whileTap={{ scale: tapScale }} onClick={onRetry} className="secondary-button"><RotateCcw size={16} />{copy.review.retry}</motion.button><motion.button whileTap={{ scale: tapScale }} onClick={onAnalyse} className="primary-button px-6"><WandSparkles size={17} />{copy.review.analyse}<ArrowRight size={17} /></motion.button></motion.div>
       </motion.section>
 
       <AnimatePresence>
