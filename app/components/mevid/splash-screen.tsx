@@ -50,9 +50,9 @@ export function SplashScreen() {
               : [0, 1].map((index) => (
                   <motion.span
                     key={index}
-                    className="pointer-events-none absolute top-0 h-[88px] w-[88px] rounded-[28px] border border-[#7657dd]/35"
+                    className="pointer-events-none absolute top-0 h-[148px] w-[148px] rounded-[46px] border border-[#7657dd]/35"
                     initial={{ scale: 0.75, opacity: 0 }}
-                    animate={{ scale: 1.95, opacity: [0, 0.55, 0] }}
+                    animate={{ scale: 1.8, opacity: [0, 0.55, 0] }}
                     transition={{ duration: 1.3, delay: 0.28 + index * 0.32, ease: "easeOut" }}
                   />
                 ))}
@@ -61,7 +61,7 @@ export function SplashScreen() {
               // On dark the mark is nearly the page colour, so it gets a hairline
               // ring and a violet bloom instead of the drop shadow that carries it
               // on light.
-              className="grid h-[88px] w-[88px] place-items-center rounded-[28px] bg-[#252334] shadow-[0_22px_50px_rgba(36,29,80,.34)] dark:bg-[#2a2640] dark:shadow-[0_0_64px_rgba(118,87,221,.42)] dark:ring-1 dark:ring-inset dark:ring-white/10"
+              className="grid h-[148px] w-[148px] place-items-center rounded-[46px] bg-[#252334] shadow-[0_30px_70px_rgba(36,29,80,.36)] dark:bg-[#2a2640] dark:shadow-[0_0_100px_rgba(118,87,221,.45)] dark:ring-1 dark:ring-inset dark:ring-white/10"
               initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.62, y: 10, rotate: -22 }}
               animate={{ opacity: 1, scale: 1, y: 0, rotate: 0 }}
               transition={
@@ -70,17 +70,17 @@ export function SplashScreen() {
                   : { type: "spring", stiffness: 250, damping: 19, mass: 0.9, delay: 0.08 }
               }
             >
-              <Aperture size={46} strokeWidth={2.2} className="text-white" />
+              <Aperture size={76} strokeWidth={2.1} className="text-white" />
             </motion.div>
 
             <motion.p
-              className="mt-6 font-display text-[34px] font-bold text-[#242432] dark:text-[#f2f0f8]"
+              className="mt-8 font-display text-[56px] font-bold leading-none text-[#242432] dark:text-[#f2f0f8]"
               // The left padding cancels the trailing gap letter-spacing adds,
               // so the word stays optically centred while it tightens.
               initial={
                 reduced
                   ? { opacity: 0 }
-                  : { opacity: 0, y: 12, letterSpacing: "0.42em", paddingLeft: "0.42em" }
+                  : { opacity: 0, y: 14, letterSpacing: "0.32em", paddingLeft: "0.32em" }
               }
               animate={{ opacity: 1, y: 0, letterSpacing: "-0.06em", paddingLeft: "0em" }}
               transition={{ duration: 0.75, delay: 0.32, ease: [0.22, 1, 0.36, 1] }}
