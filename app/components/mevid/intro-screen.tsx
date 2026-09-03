@@ -55,8 +55,8 @@ export function IntroScreen({ copy, recordInputRef, uploadInputRef, onRecord, on
       >
         <motion.button whileTap={{ scale: tapScale }} onClick={onRecord} className="primary-button group min-w-[202px]"><span className="record-dot" />{copy.hero.record}<ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" /></motion.button>
         <motion.button whileTap={{ scale: tapScale }} onClick={onUpload} className="secondary-button min-w-[202px]"><Upload size={16} />{copy.hero.upload}</motion.button>
-        {/* `capture` makes iOS/Android open the native camera app directly instead of the file/photo picker. */}
-        <input ref={recordInputRef} type="file" accept="video/*" capture="user" className="hidden" onChange={onRecordFileChange} />
+        {/* `capture` makes iOS/Android open the native camera app directly instead of the file/photo picker. `environment` picks the rear lens. */}
+        <input ref={recordInputRef} type="file" accept="video/*" capture="environment" className="hidden" onChange={onRecordFileChange} />
         <input ref={uploadInputRef} type="file" accept="video/*" className="hidden" onChange={onUploadFileChange} />
       </motion.div>
       <motion.div

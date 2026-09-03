@@ -8,7 +8,7 @@ import { tapHaptic } from "../../../lib/mevid/haptics";
 import { pickRecorderMimeType } from "../../../lib/mevid/recorder";
 import { MAX_VIDEO_SECONDS } from "../../../lib/mevid/video";
 
-const RING_RADIUS = 34;
+const RING_RADIUS = 40;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 const TICK_MS = 50;
 
@@ -30,7 +30,9 @@ export function CameraRecorder({ copy, onCancel, onRecorded }: CameraRecorderPro
   const startedAtRef = useRef(0);
 
   const [status, setStatus] = useState<Status>("starting");
-  const [facing, setFacing] = useState<"user" | "environment">("user");
+  // Rear camera by default — it's the higher-resolution sensor and what people
+  // point at the thing they're filming.
+  const [facing, setFacing] = useState<"user" | "environment">("environment");
   const [elapsed, setElapsed] = useState(0);
 
   const stopStream = useCallback(() => {
@@ -45,7 +47,12 @@ export function CameraRecorder({ copy, onCancel, onRecorded }: CameraRecorderPro
     setStatus("starting");
 
     void navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: facing }, audio: true })
+      .getUserMedia({
+        // `ideal` (not `exact`) so a camera that can't hit 1080p still starts,
+        // just at its best available resolution instead of a low default.
+        video: { facingMode: facing, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: true,
+      })
       .then((stream) => {
         if (cancelled) {
           stream.getTracks().forEach((track) => track.stop());
@@ -83,7 +90,12 @@ export function CameraRecorder({ copy, onCancel, onRecorded }: CameraRecorderPro
     if (!stream) return;
 
     const mimeType = pickRecorderMimeType();
-    const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    // ~8 Mbps keeps the extracted frames crisp; MediaRecorder's default is much
+    // lower and is a big part of why recordings looked soft.
+    const recorder = new MediaRecorder(stream, {
+      ...(mimeType ? { mimeType } : {}),
+      videoBitsPerSecond: 8_000_000,
+    });
     chunksRef.current = [];
     recorderRef.current = recorder;
 
@@ -147,12 +159,12 @@ export function CameraRecorder({ copy, onCancel, onRecorded }: CameraRecorderPro
             onCancel();
           }}
           aria-label={copy.auth.profile.close}
-          className="grid h-10 w-10 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm"
+          className="grid h-12 w-12 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm"
         >
-          <X size={18} />
+          <X size={22} />
         </button>
 
-        <span className="rounded-full bg-black/45 px-3 py-1.5 font-mono text-xs font-bold text-white backdrop-blur-sm">
+        <span className="rounded-full bg-black/45 px-3.5 py-2 font-mono text-sm font-bold text-white backdrop-blur-sm">
           {recording ? `${remaining.toFixed(1)}s` : t.maxHint}
         </span>
 
@@ -164,9 +176,9 @@ export function CameraRecorder({ copy, onCancel, onRecorded }: CameraRecorderPro
             setFacing((current) => (current === "user" ? "environment" : "user"));
           }}
           aria-label={t.flip}
-          className="grid h-10 w-10 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm disabled:opacity-30"
+          className="grid h-12 w-12 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm disabled:opacity-30"
         >
-          <SwitchCamera size={18} />
+          <SwitchCamera size={22} />
         </button>
       </div>
 
@@ -180,24 +192,24 @@ export function CameraRecorder({ copy, onCancel, onRecorded }: CameraRecorderPro
             else startRecording();
           }}
           aria-label={recording ? t.stop : t.start}
-          className="relative grid h-[84px] w-[84px] place-items-center disabled:opacity-40"
+          className="relative grid h-[104px] w-[104px] place-items-center disabled:opacity-40"
         >
-          <svg viewBox="0 0 84 84" className="absolute inset-0 -rotate-90">
-            <circle cx="42" cy="42" r={RING_RADIUS} fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="5" />
+          <svg viewBox="0 0 104 104" className="absolute inset-0 -rotate-90">
+            <circle cx="52" cy="52" r={RING_RADIUS} fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="6" />
             <circle
-              cx="42"
-              cy="42"
+              cx="52"
+              cy="52"
               r={RING_RADIUS}
               fill="none"
               stroke="#ff5c82"
-              strokeWidth="5"
+              strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray={RING_CIRCUMFERENCE}
               strokeDashoffset={RING_CIRCUMFERENCE * (1 - progress)}
             />
           </svg>
           <span
-            className={`bg-[#ff5c82] transition-all duration-200 ${recording ? "h-7 w-7 rounded-[8px]" : "h-[60px] w-[60px] rounded-full"}`}
+            className={`bg-[#ff5c82] transition-all duration-200 ${recording ? "h-9 w-9 rounded-[9px]" : "h-[76px] w-[76px] rounded-full"}`}
           />
         </button>
       </div>
