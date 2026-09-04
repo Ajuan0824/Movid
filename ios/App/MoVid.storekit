@@ -1,0 +1,53 @@
+{
+  "identifier": "4DF83BEE-81BC-4EF5-B64D-FBDB81D778CB",
+  "nonRenewingSubscriptions": [],
+  "products": [],
+  "settings": {
+    "_applicationInternalID": "6808333698",
+    "_developerTeamID": "7ZA9QS5B5L",
+    "_lastSynchronizedDate": 0
+  },
+  "subscriptionGroups": [
+    {
+      "id": "4509CE88-B691-475C-92C8-0EBFE23EAB34",
+      "localizations": [],
+      "name": "Movid Pro",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "3.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "3D5D3234-2528-43E8-BE7B-D133FE877C8D",
+          "introductoryOffer": {
+            "internalID": "F4CDC2A3-0C3D-4335-8D6D-988F0A8B69B7",
+            "paymentMode": "free",
+            "subscriptionPeriod": "P3D"
+          },
+          "localizations": [
+            {
+              "description": "Suscripción Pro a MoVid",
+              "displayName": "MoVid Pro",
+              "locale": "es_ES"
+            },
+            {
+              "description": "MoVid Pro subscription",
+              "displayName": "MoVid Pro",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.mevid.app.pro.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Movid Pro Monthly",
+          "subscriptionGroupID": "4509CE88-B691-475C-92C8-0EBFE23EAB34",
+          "type": "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}
