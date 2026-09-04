@@ -17,12 +17,10 @@ export type AppCopy = {
     expiresIn: string; expiresToday: string;
   };
   pro: {
-    eyebrow: string; title: string; subtitle: string;
+    title: string; subtitle: string;
     freeLabel: string; proLabel: string; perMonth: string;
     /** Row labels for the Free-vs-Pro table; the numbers come from PLAN_LIMITS. */
     compare: { videos: string; moments: string; length: string };
-    /** Extra selling points under the table. */
-    perks: string[];
     /** Launch-offer block: struck-through list price, discount ribbon, billing line. */
     wasPrice: string; discount: string; launchOffer: string; billedMonthly: string;
     cta: string; trial: string; legal: string; noOffering: string;
@@ -135,21 +133,19 @@ const dictionary: Record<Locale, AppCopy> = {
       expiresToday: "Expires today",
     },
     pro: {
-      eyebrow: "MoVid PRO",
       title: "Five times the moments.",
-      subtitle: "More videos a week, more moments per video, and twice the footage for the AI to hunt through.",
+      subtitle: "More videos, more moments, and clips twice as long.",
       freeLabel: "Free",
       proLabel: "Pro",
       perMonth: "/mo",
       compare: { videos: "Videos a week", moments: "Moments per video", length: "Clip length" },
-      perks: ["Denser AI sampling on longer clips", "Everything in Free, nothing removed", "Cancel anytime from your Apple ID"],
       wasPrice: "€6.99",
       discount: "-43%",
       launchOffer: "LAUNCH OFFER",
       billedMonthly: "billed monthly, cancel anytime",
       cta: "Start 3 days free",
       trial: "3 days free, then {price}/mo",
-      legal: "Renews automatically unless cancelled at least 24 h before the period ends. Manage it from your Apple ID settings.",
+      legal: "Renews automatically until you cancel. Manage it in your Apple ID settings.",
       restore: "Restore purchases",
       restoring: "Restoring…",
       activating: "Activating MoVid Pro…",
@@ -348,21 +344,19 @@ const dictionary: Record<Locale, AppCopy> = {
       expiresToday: "Caduca hoy",
     },
     pro: {
-      eyebrow: "MoVid PRO",
       title: "Cinco veces más momentos.",
-      subtitle: "Más vídeos por semana, más momentos por vídeo y el doble de metraje para que la IA rebusque.",
+      subtitle: "Más vídeos, más momentos y clips el doble de largos.",
       freeLabel: "Free",
       proLabel: "Pro",
       perMonth: "/mes",
       compare: { videos: "Vídeos por semana", moments: "Momentos por vídeo", length: "Duración del clip" },
-      perks: ["La IA muestrea más fotogramas en clips largos", "Todo lo del plan Free, sin quitar nada", "Cancela cuando quieras desde tu Apple ID"],
       wasPrice: "6,99 €",
       discount: "-43%",
       launchOffer: "OFERTA DE LANZAMIENTO",
       billedMonthly: "facturado cada mes, cancela cuando quieras",
       cta: "Empezar 3 días gratis",
       trial: "3 días gratis y luego {price}/mes",
-      legal: "Se renueva automáticamente salvo que la canceles al menos 24 h antes de que acabe el periodo. Puedes gestionarla desde los ajustes de tu Apple ID.",
+      legal: "Renovación automática hasta que la canceles. Gestiónala en los ajustes de tu Apple ID.",
       restore: "Restaurar compras",
       restoring: "Restaurando…",
       activating: "Activando MoVid Pro…",
