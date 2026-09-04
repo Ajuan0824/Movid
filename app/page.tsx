@@ -16,6 +16,7 @@ import { MomentsLibrary } from "./components/mevid/moments-library";
 import { ProScreen } from "./components/mevid/pro-screen";
 import { ResultsScreen } from "./components/mevid/results-screen";
 import { ReviewScreen } from "./components/mevid/review-screen";
+import { HeaderStars } from "./components/mevid/star-meter";
 import { StarsEmptyModal } from "./components/mevid/stars-empty-modal";
 import { TabBar, type AppTab } from "./components/mevid/tab-bar";
 import { useGenerations } from "../hooks/use-generations";
@@ -386,9 +387,17 @@ export default function Home() {
       <div className="ambient-orb ambient-orb-left" />
       <div className="ambient-orb ambient-orb-right" />
       <div className="relative mx-auto flex h-dvh w-full max-w-xl flex-col pl-[calc(1.25rem+env(safe-area-inset-left))] pr-[calc(1.25rem+env(safe-area-inset-right))] pt-[calc(1.25rem+env(safe-area-inset-top))] sm:pl-[calc(2rem+env(safe-area-inset-left))] sm:pr-[calc(2rem+env(safe-area-inset-right))]">
-        <header className="flex shrink-0 items-center justify-between">
+        <header className="flex shrink-0 items-center justify-between gap-2">
           <Brand />
           <div className="flex items-center gap-2">
+            {planReady && !planError ? (
+              <HeaderStars
+                copy={copy}
+                left={starsLeft}
+                total={starsTotal}
+                onClick={() => changeTab(plan === "pro" ? "cuenta" : "pro")}
+              />
+            ) : null}
             <AccountMenu
               copy={copy}
               onManageAccount={() => changeTab("cuenta")}
@@ -397,7 +406,6 @@ export default function Home() {
               themePref={themePref}
               onThemePrefChange={setThemePref}
             />
-            <div className="hidden items-center gap-2 rounded-full border border-white dark:border-white/10 bg-white/70 dark:bg-white/5 px-4 py-2 text-xs font-semibold text-[#666474] dark:text-[#b3aec0] shadow-sm backdrop-blur-sm sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-[#ff5c82]" />SHIPATON 2026</div>
           </div>
         </header>
 
@@ -414,11 +422,6 @@ export default function Home() {
                 onUpload={() => uploadInputRef.current?.click()}
                 onRecordFileChange={handleFileInputChange}
                 onUploadFileChange={handleFileInputChange}
-                planReady={planReady}
-                planError={planError}
-                onReloadPlan={reloadPlan}
-                starsLeft={starsLeft}
-                starsTotal={starsTotal}
               />
             ) : null}
             {tab === "home" && flowView === "review" && videoUrl ? <ReviewScreen key="home-review" copy={copy} videoUrl={videoUrl} duration={videoDuration} sourceDuration={sourceDuration} trimStart={trimStart} onTrimChange={handleTrimChange} onRetry={startOver} onAnalyse={analyseVideo} /> : null}

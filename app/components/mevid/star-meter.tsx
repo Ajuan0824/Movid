@@ -38,6 +38,31 @@ export function StarMeter({ copy, left, total }: StarMeterProps) {
   );
 }
 
+/**
+ * Compact star readout for the home-screen header, sitting just left of the
+ * settings gear: "3/7 · 4 used". Tapping it takes free users to Pro and Pro
+ * users to their account.
+ */
+export function HeaderStars({ copy, left, total, onClick }: { copy: AppCopy; left: number; total: number; onClick: () => void }) {
+  const used = Math.max(0, total - left);
+  const empty = left <= 0;
+  const label = copy.stars.headerSummary
+    .replace("{left}", String(left))
+    .replace("{total}", String(total))
+    .replace("{used}", String(used));
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex shrink-0 items-center gap-1.5 rounded-full border border-white dark:border-white/10 bg-white/70 dark:bg-white/5 px-3 py-2.5 text-[11px] font-bold leading-none text-[#666474] dark:text-[#b3aec0] shadow-sm backdrop-blur-sm"
+    >
+      <Star size={13} strokeWidth={2.4} className={empty ? "fill-[#e0507a] text-[#e0507a]" : "fill-[#ffb020] text-[#ffb020]"} />
+      <span className="whitespace-nowrap">{label}</span>
+    </button>
+  );
+}
+
 /** Shown when the plan doc couldn't be read — the count is unknown, not zero. */
 export function StarMeterError({ copy, onRetry }: { copy: AppCopy; onRetry: () => void }) {
   return (

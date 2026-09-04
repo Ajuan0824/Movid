@@ -2,8 +2,10 @@
 
 import { Clapperboard, Gem, Home, UserRound } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
+import { useAuth } from "../../../hooks/use-auth";
 import { usePlan } from "../../../hooks/use-plan";
 
 export type AppTab = "home" | "momentos" | "pro" | "cuenta";
@@ -23,6 +25,11 @@ const TABS: Array<{ key: AppTab; icon: typeof Home }> = [
 
 export function TabBar({ copy, tab, onChange }: TabBarProps) {
   const { plan, ready } = usePlan();
+  const { user } = useAuth();
+  // The Account tab wears the user's profile photo instead of a generic glyph.
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  useEffect(() => setAvatarFailed(false), [user?.photoUrl]);
+  const avatarUrl = user?.photoUrl && !avatarFailed ? user.photoUrl : null;
   // Nothing to upsell to a subscriber. Only filter once the plan is known, so
   // free users don't watch the tab pop in.
   const tabs = ready && plan === "pro" ? TABS.filter(({ key }) => key !== "pro") : TABS;
@@ -34,6 +41,7 @@ export function TabBar({ copy, tab, onChange }: TabBarProps) {
     >
       {tabs.map(({ key, icon: Icon }) => {
         const active = tab === key;
+        const showAvatar = key === "cuenta" && avatarUrl;
         return (
           <motion.button
             key={key}
@@ -54,7 +62,18 @@ export function TabBar({ copy, tab, onChange }: TabBarProps) {
                 transition={{ type: "spring", stiffness: 420, damping: 34 }}
               />
             ) : null}
-            <Icon size={23} strokeWidth={active ? 2.4 : 2} className="relative z-10" />
+            {showAvatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt=""
+                referrerPolicy="no-referrer"
+                onError={() => setAvatarFailed(true)}
+                className={`relative z-10 h-[23px] w-[23px] rounded-full object-cover ${active ? "ring-2 ring-[#5c3fc4] dark:ring-[#b9a6ff]" : "ring-1 ring-black/10 dark:ring-white/15"}`}
+              />
+            ) : (
+              <Icon size={23} strokeWidth={active ? 2.4 : 2} className="relative z-10" />
+            )}
             <span className="relative z-10 text-xs font-bold">{copy.tabs[key]}</span>
           </motion.button>
         );

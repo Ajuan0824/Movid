@@ -1,8 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Languages, LogOut, Moon, UserRound } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Languages, LogOut, Moon, Settings, UserRound } from "lucide-react";
+import { useState } from "react";
 import { useAuth } from "../../../hooks/use-auth";
 import { usePlan } from "../../../hooks/use-plan";
 import { PlanBadge } from "./plan-badge";
@@ -57,14 +57,8 @@ export function AccountMenu({ copy, onManageAccount, localePref, onLocalePrefCha
   const { plan, ready: planReady } = usePlan();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [imgFailed, setImgFailed] = useState(false);
-
-  useEffect(() => setImgFailed(false), [user?.photoUrl]);
 
   if (status !== "signed-in" || !user) return null;
-
-  const initial = (user.displayName || user.email || "?").charAt(0).toUpperCase();
-  const showPhoto = Boolean(user.photoUrl) && !imgFailed;
 
   const languageOptions: SegmentOption<LocalePref>[] = [
     { value: "system", label: copy.language.system },
@@ -84,15 +78,10 @@ export function AccountMenu({ copy, onManageAccount, localePref, onLocalePrefCha
           tapHaptic();
           setOpen((current) => !current);
         }}
-        aria-label={copy.auth.account.signedInAs}
-        className="grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-white bg-[#252334] text-base font-bold text-white shadow-sm"
+        aria-label={copy.auth.account.settings}
+        className="grid h-12 w-12 place-items-center rounded-full border border-white dark:border-white/10 bg-white/70 dark:bg-white/5 text-[#3c3946] dark:text-[#ece9f4] shadow-sm backdrop-blur-sm"
       >
-        {showPhoto ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={user.photoUrl!} alt="" referrerPolicy="no-referrer" onError={() => setImgFailed(true)} className="h-full w-full object-cover" />
-        ) : (
-          initial
-        )}
+        <Settings size={21} strokeWidth={2} />
       </button>
       <AnimatePresence>
         {open ? (

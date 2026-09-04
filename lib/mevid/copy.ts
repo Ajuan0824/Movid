@@ -3,7 +3,7 @@ import type { Locale } from "./types";
 export type AppCopy = {
   language: { label: string; english: string; spanish: string; system: string };
   appearance: { label: string; system: string; light: string; dark: string };
-  hero: { title: string; titleAccent: string; description: string; maxLength: string; record: string; upload: string; private: string; aiReady: string };
+  hero: { title: string; titleAccent: string; description: string; maxLength: string; record: string; upload: string; aiReady: string };
   review: { eyebrow: string; title: string; description: string; retry: string; analyse: string; trimTitle: string; trimHint: string; preview: string; trimStartHandle: string; trimEndHandle: string };
   analysis: { eyebrow: string; title: string; steps: string[] };
   results: { eyebrow: string; title: string; newVideo: string; moments: string; tipStart: string; tipEnd: string; selectHint: string; download: string; downloadEmpty: string; downloadOne: string; topFive: string; moment: string };
@@ -27,7 +27,7 @@ export type AppCopy = {
   account: { eyebrow: string; title: string; plan: string; upgrade: string; upgradeSub: string };
   plans: { free: string; pro: string };
   stars: {
-    remaining: string; spent: string;
+    remaining: string; spent: string; headerSummary: string;
     emptyFreeTitle: string; emptyFreeBody: string; emptyFreeCta: string;
     emptyProTitle: string; emptyProBody: string;
     refillsOn: string; dismiss: string;
@@ -46,7 +46,7 @@ export type AppCopy = {
     /** Label on the back chip that returns to the sign-in screen. */
     backToLogin: string;
     errors: { invalidEmail: string; userNotFound: string; wrongPassword: string; emailInUse: string; weakPassword: string; tooManyRequests: string; networkError: string; cancelled: string; unknown: string; passwordMismatch: string; required: string; termsRequired: string };
-    account: { signedInAs: string; signOut: string; profile: string };
+    account: { signedInAs: string; signOut: string; profile: string; settings: string };
     profile: {
       title: string; description: string; close: string;
       changePhoto: string; photoUpdated: string; photoTooLarge: string; photoInvalidType: string; photoUnreadable: string;
@@ -67,7 +67,6 @@ const dictionary: Record<Locale, AppCopy> = {
       maxLength: "15 SECONDS MAX.",
       record: "Start recording",
       upload: "Upload a video",
-      private: "Private to your account · Deleted after 30 days",
       aiReady: "AI READY",
     },
     review: {
@@ -166,6 +165,7 @@ const dictionary: Record<Locale, AppCopy> = {
     stars: {
       remaining: "{left} of {total} stars left this week",
       spent: "No stars left this week",
+      headerSummary: "{left}/{total} · {used} used",
       emptyFreeTitle: "You’re out of stars",
       emptyFreeBody: "Free accounts get {total} videos a week. Go Pro for 7 a week and keep creating.",
       emptyFreeCta: "See Pro",
@@ -245,7 +245,7 @@ const dictionary: Record<Locale, AppCopy> = {
         required: "This field is required.",
         termsRequired: "Accept the terms to continue.",
       },
-      account: { signedInAs: "Signed in as", signOut: "Sign out", profile: "Profile" },
+      account: { signedInAs: "Signed in as", signOut: "Sign out", profile: "Profile", settings: "Settings" },
       profile: {
         title: "Your profile",
         description: "Update how you appear across MoVid.",
@@ -280,7 +280,6 @@ const dictionary: Record<Locale, AppCopy> = {
       maxLength: "15 SEGUNDOS MÁX.",
       record: "Grabar ahora",
       upload: "Subir un vídeo",
-      private: "Privado en tu cuenta · Se borra a los 30 días",
       aiReady: "IA LISTA",
     },
     review: {
@@ -379,6 +378,7 @@ const dictionary: Record<Locale, AppCopy> = {
     stars: {
       remaining: "Te quedan {left} de {total} estrellas esta semana",
       spent: "Sin estrellas esta semana",
+      headerSummary: "{left}/{total} · {used} usadas",
       emptyFreeTitle: "Te has quedado sin estrellas",
       emptyFreeBody: "Las cuentas free tienen {total} vídeos por semana. Pasa a Pro para tener 7 y seguir creando.",
       emptyFreeCta: "Ver Pro",
@@ -458,7 +458,7 @@ const dictionary: Record<Locale, AppCopy> = {
         required: "Este campo es obligatorio.",
         termsRequired: "Acepta las condiciones para continuar.",
       },
-      account: { signedInAs: "Sesión iniciada como", signOut: "Cerrar sesión", profile: "Perfil" },
+      account: { signedInAs: "Sesión iniciada como", signOut: "Cerrar sesión", profile: "Perfil", settings: "Ajustes" },
       profile: {
         title: "Tu perfil",
         description: "Actualiza cómo apareces en MoVid.",
