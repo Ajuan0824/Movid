@@ -273,3 +273,44 @@ exports.deleteAccount = onCall({ region: "us-central1" }, async (request) => {
     throw new HttpsError("internal", "Could not delete the account. Please try again.");
   }
 });
+
+/**
+ * Bridges a native Firebase session onto the JS SDK.
+ *
+ * Background: the app runs @capacitor-firebase/authentication with
+ * `skipNativeAuth: false`, so a social sign-in authenticates the *native* SDK
+ * only, while Firestore and Storage go through the *JS* SDK. `lib/firebase/auth.ts`
+ * normally closes that gap by replaying the provider credential, but Apple's
+ * replay fails with `auth/missing-or-invalid-nonce` — the same idToken and raw
+ * nonce the native SDK just accepted are rejected by the JS one.
+ *
+ * This is the provider-agnostic way out: the client sends the ID token the
+ * native SDK already holds, we verify it, and hand back a custom token the JS
+ * SDK can sign in with. No nonce, no credential replay.
+ *
+ * Security: `verifyIdToken` checks the signature, expiry and audience against
+ * this project, so the uid can't be forged. The call is intentionally
+ * unauthenticated in the callable sense — the caller has no JS session yet;
+ * the ID token in the payload *is* the credential.
+ */
+exports.sessionToken = onCall({ region: "us-central1" }, async (request) => {
+  const idToken = request.data && request.data.idToken;
+  if (typeof idToken !== "string" || idToken.length === 0) {
+    throw new HttpsError("invalid-argument", "An ID token is required.");
+  }
+
+  let decoded;
+  try {
+    decoded = await getAuth().verifyIdToken(idToken);
+  } catch (error) {
+    logger.warn("sessionToken: rejected an ID token", error);
+    throw new HttpsError("unauthenticated", "That session is not valid.");
+  }
+
+  try {
+    return { token: await getAuth().createCustomToken(decoded.uid) };
+  } catch (error) {
+    logger.error(`sessionToken: could not mint a token for ${decoded.uid}`, error);
+    throw new HttpsError("internal", "Could not start the session.");
+  }
+});
