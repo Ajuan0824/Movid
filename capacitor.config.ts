@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.mevid.app',
-  appName: 'Movid',
+  appName: 'MoVid',
   webDir: 'public',
   server: {
     // Por defecto la app (simulador y dispositivo) carga la web de producción.

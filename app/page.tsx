@@ -333,7 +333,7 @@ export default function Home() {
     const blob = await (await fetch(src)).blob();
     const subtype = (blob.type.split("/")[1] ?? "jpeg").toLowerCase();
     const extension = subtype === "svg+xml" ? "svg" : subtype === "jpeg" ? "jpg" : subtype;
-    return new File([blob], `movid-${slugify(highlight.title)}.${extension}`, { type: blob.type || "image/jpeg" });
+    return new File([blob], `MoVid-${slugify(highlight.title)}.${extension}`, { type: blob.type || "image/jpeg" });
   };
 
   /**
