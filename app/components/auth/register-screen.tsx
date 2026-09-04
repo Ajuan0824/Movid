@@ -109,6 +109,11 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
           <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-[7px] border-2 transition ${terms ? "border-[#7657dd] bg-[#7657dd] text-white" : "border-[#cfc8df] text-transparent"}`}><Check size={12} strokeWidth={3} /></span>
           <span className="text-xs leading-4 text-[#6d6b79] dark:text-[#a79fb5]">{t.termsText}</span>
         </button>
+        {/* Guideline 3.1.2: the documents the checkbox names have to be reachable. */}
+        <div className="-mt-1 flex items-center gap-3 pl-[30px] text-xs font-semibold">
+          <a href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="text-[#7657dd] underline underline-offset-2 dark:text-[#c4b3ff]">{copy.account.terms}</a>
+          <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="text-[#7657dd] underline underline-offset-2 dark:text-[#c4b3ff]">{copy.account.privacy}</a>
+        </div>
 
         <AuthSubmitButton loading={loading} onTap={() => tapHaptic()}>{t.submit}</AuthSubmitButton>
       </form>

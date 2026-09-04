@@ -27,7 +27,14 @@ export type AppCopy = {
     restore: string; restoring: string; activating: string;
     errorGeneric: string; restoredOk: string; restoreNothing: string; unavailable: string;
   };
-  account: { eyebrow: string; title: string; plan: string; upgrade: string; upgradeSub: string };
+  account: {
+    eyebrow: string; title: string; plan: string; upgrade: string; upgradeSub: string;
+    /** Permanent account deletion — required by App Store guideline 5.1.1(v). */
+    deleteTitle: string; deleteBody: string; deleteCta: string; deleteConfirm: string;
+    deleteCancel: string; deleting: string; deleteError: string;
+    /** Footer links to the published legal pages. */
+    terms: string; privacy: string;
+  };
   plans: { free: string; pro: string };
   stars: {
     remaining: string; spent: string; headerSummary: string;
@@ -159,6 +166,15 @@ const dictionary: Record<Locale, AppCopy> = {
       plan: "FREE",
       upgrade: "Upgrade to Pro",
       upgradeSub: "{pro} videos a week, {moments} moments each, {seconds}s clips",
+      deleteTitle: "Delete account",
+      deleteBody: "Your profile, your videos and every moment you've saved are erased for good. This can't be undone.",
+      deleteCta: "Delete my account",
+      deleteConfirm: "Yes, delete everything",
+      deleteCancel: "Cancel",
+      deleting: "Deleting…",
+      deleteError: "We couldn't delete the account. Please try again.",
+      terms: "Terms of Use",
+      privacy: "Privacy Policy",
     },
     plans: { free: "FREE", pro: "PRO" },
     stars: {
@@ -368,6 +384,15 @@ const dictionary: Record<Locale, AppCopy> = {
       plan: "FREE",
       upgrade: "Mejorar a Pro",
       upgradeSub: "{pro} vídeos por semana, {moments} momentos y clips de {seconds}s",
+      deleteTitle: "Eliminar cuenta",
+      deleteBody: "Se borran para siempre tu perfil, tus vídeos y todos los momentos que hayas guardado. No se puede deshacer.",
+      deleteCta: "Eliminar mi cuenta",
+      deleteConfirm: "Sí, eliminarlo todo",
+      deleteCancel: "Cancelar",
+      deleting: "Eliminando…",
+      deleteError: "No pudimos eliminar la cuenta. Inténtalo de nuevo.",
+      terms: "Condiciones de uso",
+      privacy: "Política de privacidad",
     },
     plans: { free: "FREE", pro: "PRO" },
     stars: {

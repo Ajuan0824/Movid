@@ -6,6 +6,10 @@
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<!-- Export compliance: the app uses only the standard HTTPS/TLS exemption,
+	     so App Store Connect stops asking on every upload. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleDisplayName</key>
         <string>MoVid</string>
 	<key>CFBundleExecutable</key>

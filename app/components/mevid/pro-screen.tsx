@@ -147,6 +147,12 @@ export function ProScreen({ copy, available, busy, hasOffering, monthlyPrice, on
       >
         {busy ? t.restoring : t.restore}
       </button>
+
+      {/* Guideline 3.1.2 wants these reachable before an auto-renewing purchase. */}
+      <div className="mt-2.5 flex items-center justify-center gap-4 text-[11px] font-semibold text-[#9996a4] dark:text-[#8b8697]">
+        <a href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{copy.account.terms}</a>
+        <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{copy.account.privacy}</a>
+      </div>
     </motion.section>
   );
 }

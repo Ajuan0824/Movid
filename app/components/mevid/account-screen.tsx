@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronRight, KeyRound, LogOut, Sparkles, UserRound } from "lucide-react";
+import { Check, ChevronRight, KeyRound, LogOut, Sparkles, TriangleAlert, UserRound } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAuth } from "../../../hooks/use-auth";
 import { usePlan } from "../../../hooks/use-plan";
@@ -12,6 +12,7 @@ import { StarMeter, StarMeterError } from "./star-meter";
 import { AuthErrorBanner, AuthSubmitButton } from "../auth/auth-shell";
 import { GlassTextField } from "../auth/glass-text-field";
 import { PLAN_LIMITS } from "../../../lib/mevid/plan";
+import { deleteAccount } from "../../../lib/firebase/account";
 import { changePassword, hasPasswordProvider, signOutUser, updateUserProfile } from "../../../lib/firebase/auth";
 import { resolveAuthErrorKey } from "../../../lib/firebase/auth-errors";
 import type { AppCopy } from "../../../lib/mevid/copy";
@@ -34,6 +35,7 @@ function SuccessNote({ message }: { message: string }) {
 
 export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
   const t = copy.auth.profile;
+  const a = copy.account;
   const { user, refreshUser } = useAuth();
   const { plan, limit, starsLeft, ready: planReady, error: planError, reload: reloadPlan } = usePlan();
 
@@ -51,6 +53,10 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
 
   const [photoSaved, setPhotoSaved] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
+
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Name starts open — it's the field people come here for. Password starts
   // collapsed so the screen fits without scrolling.
@@ -104,6 +110,21 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
       setPasswordError(copy.auth.errors[resolveAuthErrorKey(err)]);
     } finally {
       setPasswordLoading(false);
+    }
+  };
+
+  /** Server-side wipe, then sign-out. On success the auth listener unmounts
+   *  this screen, so there is no success state to render. */
+  const removeAccount = async () => {
+    setDeleteError(null);
+    setDeleting(true);
+    try {
+      await deleteAccount();
+    } catch (err) {
+      console.error("Account deletion failed", err);
+      setDeleteError(a.deleteError);
+      setDeleting(false);
+      setConfirmingDelete(false);
     }
   };
 
@@ -215,6 +236,52 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
       >
         <LogOut size={19} />{copy.auth.account.signOut}
       </motion.button>
+
+      {/* App Store 5.1.1(v): deleting the account has to be reachable in-app.
+          Two taps, never one — the first only reveals what is about to go. */}
+      <div className="mt-3 rounded-[22px] border border-[#f3d7e0] bg-white/60 p-4 dark:border-[#4a2f3b] dark:bg-white/5">
+        <p className="flex items-center gap-2 text-sm font-bold text-[#c8305c] dark:text-[#ff8fae]">
+          <TriangleAlert size={16} />{a.deleteTitle}
+        </p>
+        <p className="mt-1.5 text-sm leading-5 text-[#6d6b79] dark:text-[#a79fb5]">{a.deleteBody}</p>
+
+        <AnimatePresence>{deleteError ? <div className="mt-3"><AuthErrorBanner message={deleteError} /></div> : null}</AnimatePresence>
+
+        {confirmingDelete ? (
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <motion.button
+              whileTap={{ scale: tapScale }}
+              disabled={deleting}
+              onClick={() => { tapHaptic(); void removeAccount(); }}
+              className="flex-1 rounded-full bg-[#c8305c] px-4 py-3 text-sm font-bold text-white transition disabled:opacity-60"
+            >
+              {deleting ? a.deleting : a.deleteConfirm}
+            </motion.button>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => setConfirmingDelete(false)}
+              className="flex-1 rounded-full px-4 py-3 text-sm font-bold text-[#6d6b79] disabled:opacity-60 dark:text-[#a79fb5]"
+            >
+              {a.deleteCancel}
+            </button>
+          </div>
+        ) : (
+          <motion.button
+            whileTap={{ scale: tapScale }}
+            onClick={() => { tapHaptic(); setDeleteError(null); setConfirmingDelete(true); }}
+            className="mt-3 w-full rounded-full border border-[#e9b6c6] px-4 py-3 text-sm font-bold text-[#c8305c] dark:border-[#6b3a4b] dark:text-[#ff8fae]"
+          >
+            {a.deleteCta}
+          </motion.button>
+        )}
+      </div>
+
+      {/* Guideline 3.1.2 wants these reachable from inside the app. */}
+      <div className="mt-4 flex items-center justify-center gap-4 text-xs font-semibold text-[#9996a4] dark:text-[#8b8697]">
+        <a href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{a.terms}</a>
+        <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{a.privacy}</a>
+      </div>
     </motion.section>
   );
 }
