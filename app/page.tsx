@@ -26,6 +26,7 @@ import { useIsMobile } from "../hooks/use-is-mobile";
 import { useLocalePref } from "../hooks/use-locale-pref";
 import { useThemePref } from "../hooks/use-theme-pref";
 import { getCopy } from "../lib/mevid/copy";
+import { limitsFor } from "../lib/mevid/plan";
 import { isInAppCameraSupported } from "../lib/mevid/recorder";
 import type { AnalysisResponse, StoredGeneration, VideoHighlight } from "../lib/mevid/types";
 import { extractFrames, getVideoDuration, hydrateHighlightImages, MAX_SOURCE_SECONDS, MAX_VIDEO_SECONDS } from "../lib/mevid/video";
@@ -88,6 +89,10 @@ export default function Home() {
   const urlRef = useRef<string | null>(null);
   const videoBlobRef = useRef<Blob | null>(null);
   const copy = getCopy(locale);
+  // Pro analyses a longer window, samples it more densely and gets more
+  // moments back. Everything downstream reads these three numbers.
+  const limits = limitsFor(plan);
+  const maxSeconds = limits.videoSeconds;
 
   const { generations, save: saveGeneration, remove: removeGeneration } = useGenerations();
   const openGeneration = generations.find((entry) => entry.id === openGenerationId) ?? null;
@@ -106,11 +111,11 @@ export default function Home() {
     setVideoUrl(nextUrl);
     setSourceDuration(duration);
     setTrimStart(0);
-    // Default window: the first 15s (or the whole clip if it's shorter). The
-    // trimmer, shown only for longer clips, moves it from here.
-    setVideoDuration(Math.min(duration, MAX_VIDEO_SECONDS));
+    // Default window: the first 15s (30s on Pro), or the whole clip if it's
+    // shorter. The trimmer, shown only for longer clips, moves it from here.
+    setVideoDuration(Math.min(duration, maxSeconds));
     setFlowView("review");
-  }, [clearVideo]);
+  }, [clearVideo, maxSeconds]);
 
   const handleTrimChange = useCallback((start: number, end: number) => {
     setTrimStart(start);
@@ -132,8 +137,8 @@ export default function Home() {
   }, []);
 
   const handleSubscribe = useCallback(
-    async (billing: "monthly" | "yearly") => {
-      const outcome = await purchases.subscribe(billing);
+    async () => {
+      const outcome = await purchases.subscribe();
       if (outcome === "ok") setNotice(copy.pro.activating);
       else if (outcome === "unavailable") setNotice(copy.pro.unavailable);
       else if (outcome === "error") setError(copy.pro.errorGeneric);
@@ -234,7 +239,7 @@ export default function Home() {
     try {
       let capturedFrames;
       try {
-        capturedFrames = await extractFrames(videoUrl, videoDuration, trimStart);
+        capturedFrames = await extractFrames(videoUrl, videoDuration, trimStart, limits.frames);
       } catch (frameError) {
         errorKey = "analysisVideoUnreadable";
         throw frameError;
@@ -243,7 +248,7 @@ export default function Home() {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ frames: capturedFrames, duration: videoDuration, locale }),
+        body: JSON.stringify({ frames: capturedFrames, duration: videoDuration, locale, plan }),
       });
       if (!response.ok) {
         // 503 is the server telling us it has no OpenAI key — retrying won't
@@ -304,8 +309,8 @@ export default function Home() {
     setSelected(0);
     setChecked(new Set());
     setTrimStart(0);
-    setVideoDuration(MAX_VIDEO_SECONDS);
-    setSourceDuration(MAX_VIDEO_SECONDS);
+    setVideoDuration(maxSeconds);
+    setSourceDuration(maxSeconds);
     setAnalysisFound(null);
     setFlowView("idle");
     setTab("home");
@@ -424,7 +429,7 @@ export default function Home() {
                 onUploadFileChange={handleFileInputChange}
               />
             ) : null}
-            {tab === "home" && flowView === "review" && videoUrl ? <ReviewScreen key="home-review" copy={copy} videoUrl={videoUrl} duration={videoDuration} sourceDuration={sourceDuration} trimStart={trimStart} onTrimChange={handleTrimChange} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
+            {tab === "home" && flowView === "review" && videoUrl ? <ReviewScreen key="home-review" copy={copy} videoUrl={videoUrl} duration={videoDuration} sourceDuration={sourceDuration} trimStart={trimStart} maxSeconds={maxSeconds} onTrimChange={handleTrimChange} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
             {tab === "home" && flowView === "analysing" ? <AnalysisScreen key="home-analysing" copy={copy} step={analysisStep} videoUrl={videoUrl} duration={videoDuration} trimStart={trimStart} found={analysisFound} /> : null}
 
             {tab === "momentos" && openGeneration ? (
@@ -463,9 +468,8 @@ export default function Home() {
                 copy={copy}
                 available={purchases.available}
                 busy={purchases.busy}
+                hasOffering={purchases.hasOffering}
                 monthlyPrice={purchases.monthlyPrice}
-                yearlyPrice={purchases.yearlyPrice}
-                yearlyPerMonthPrice={purchases.yearlyPerMonthPrice}
                 onSubscribe={handleSubscribe}
                 onRestore={handleRestore}
               />
@@ -493,6 +497,7 @@ export default function Home() {
         {cameraOpen ? (
           <CameraRecorder
             copy={copy}
+            maxSeconds={maxSeconds}
             onCancel={() => setCameraOpen(false)}
             onRecorded={(video, duration) => {
               setCameraOpen(false);

@@ -1,12 +1,13 @@
 import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultHighlightLabels } from "../../../lib/mevid/highlights";
+import { limitsFor, type Plan } from "../../../lib/mevid/plan";
 import { logServerError } from "../../../lib/server/log";
 import type { Locale, VideoHighlight } from "../../../lib/mevid/types";
 
 /**
- * A vision call over 16 frames regularly runs past Vercel's 10s default, which
- * surfaces as a generic 500 on the client. 60s is the Hobby-plan ceiling.
+ * A vision call over 16-24 frames regularly runs past Vercel's 10s default,
+ * which surfaces as a generic 500 on the client. 60s is the Hobby-plan ceiling.
  */
 export const maxDuration = 60;
 
@@ -14,14 +15,20 @@ type AnalyseRequest = {
   frames?: Array<{ time: number; image: string }>;
   duration?: number;
   locale?: Locale;
+  /**
+   * Which tier's limits to apply. Client-declared on purpose — see the note on
+   * PLAN_LIMITS: spending a star is what the Firestore rules gate, so a forged
+   * "pro" only buys a richer analysis of a run the caller still paid for.
+   */
+  plan?: Plan;
 };
 
-function parseHighlights(raw: string, duration: number, locale: Locale): VideoHighlight[] | null {
+function parseHighlights(raw: string, duration: number, locale: Locale, moments: number): VideoHighlight[] | null {
   try {
     const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim()) as { highlights?: unknown };
-    if (!Array.isArray(parsed.highlights) || parsed.highlights.length < 5) return null;
-    const defaults = getDefaultHighlightLabels(locale);
-    return parsed.highlights.slice(0, 5).map((item, index) => {
+    if (!Array.isArray(parsed.highlights) || parsed.highlights.length < moments) return null;
+    const defaults = getDefaultHighlightLabels(locale, moments);
+    return parsed.highlights.slice(0, moments).map((item, index) => {
       const highlight = item as Partial<VideoHighlight>;
       const start = Math.max(0, Math.min(Number(highlight.start) || 0, duration));
       const end = Math.max(start + 0.2, Math.min(Number(highlight.end) || start + 1, duration));
@@ -44,10 +51,11 @@ function parseHighlights(raw: string, duration: number, locale: Locale): VideoHi
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as AnalyseRequest;
-    const duration = Math.max(1, Math.min(Number(body.duration) || 15, 15));
+    const limits = limitsFor(body.plan === "pro" ? "pro" : "free");
+    const duration = Math.max(1, Math.min(Number(body.duration) || limits.videoSeconds, limits.videoSeconds));
     const locale: Locale = body.locale === "es" ? "es" : "en";
-    // Keep the cap in sync with SAMPLE_COUNT in lib/mevid/video.ts.
-    const frames = (body.frames ?? []).filter((frame) => typeof frame.time === "number" && typeof frame.image === "string").slice(0, 16);
+    const moments = limits.moments;
+    const frames = (body.frames ?? []).filter((frame) => typeof frame.time === "number" && typeof frame.image === "string").slice(0, limits.frames);
 
     if (frames.length === 0) {
       return NextResponse.json({ error: "no-frames" }, { status: 400 });
@@ -69,7 +77,7 @@ export async function POST(request: NextRequest) {
             type: "input_text",
             text: `You are a social video editor choosing which real frames to keep from a ${duration.toFixed(1)}-second video — you are not generating artwork.
 
-Select exactly 5 visually distinct, memorable, shareable micro-moments.
+Select exactly ${moments} visually distinct, memorable, shareable micro-moments.
 
 Strongly prefer moments where:
 - Faces are sharp, fully inside the frame, eyes open, with a readable expression. Never pick a mid-blink, a turned-away head, or a face cropped by the frame edge.
@@ -82,7 +90,7 @@ Every moment must last 0.5 to 3 seconds, fall between 0 and ${duration.toFixed(1
 
 ${manifest}.
 
-Return the 5 moments. peakTime must sit inside [start,end] and mark the single sharpest, most expressive instant to freeze-frame — be precise, it is used to pick the exact still. Write title in ${language}, maximum 4 words.`,
+Return the ${moments} moments. peakTime must sit inside [start,end] and mark the single sharpest, most expressive instant to freeze-frame — be precise, it is used to pick the exact still. Write title in ${language}, maximum 4 words.`,
           },
           ...frames.map((frame) => ({ type: "input_image" as const, image_url: frame.image, detail: "low" as const })),
         ],
@@ -105,8 +113,8 @@ Return the 5 moments. peakTime must sit inside [start,end] and mark the single s
             properties: {
               highlights: {
                 type: "array",
-                minItems: 5,
-                maxItems: 5,
+                minItems: moments,
+                maxItems: moments,
                 items: {
                   type: "object",
                   additionalProperties: false,
@@ -139,7 +147,7 @@ Return the 5 moments. peakTime must sit inside [start,end] and mark the single s
       return NextResponse.json({ error: "incomplete" }, { status: 502 });
     }
 
-    const highlights = parseHighlights(response.output_text, duration, locale);
+    const highlights = parseHighlights(response.output_text, duration, locale, moments);
     if (!highlights) {
       logServerError("analyze:unparseable", new Error(`output_text length ${response.output_text?.length ?? 0}`));
       return NextResponse.json({ error: "unparseable" }, { status: 502 });

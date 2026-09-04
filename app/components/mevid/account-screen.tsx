@@ -11,6 +11,7 @@ import { PlanBadge } from "./plan-badge";
 import { StarMeter, StarMeterError } from "./star-meter";
 import { AuthErrorBanner, AuthSubmitButton } from "../auth/auth-shell";
 import { GlassTextField } from "../auth/glass-text-field";
+import { PLAN_LIMITS } from "../../../lib/mevid/plan";
 import { changePassword, hasPasswordProvider, signOutUser, updateUserProfile } from "../../../lib/firebase/auth";
 import { resolveAuthErrorKey } from "../../../lib/firebase/auth-errors";
 import type { AppCopy } from "../../../lib/mevid/copy";
@@ -147,7 +148,12 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white dark:bg-[#211e2c] text-[#7657dd] dark:text-[#c4b3ff]"><Sparkles size={18} /></span>
         <span className="flex-1">
           <span className="block text-base font-bold text-[#5c3fc4] dark:text-[#b9a6ff]">{copy.account.upgrade}</span>
-          <span className="mt-0.5 block text-sm text-[#6d6b79] dark:text-[#a79fb5]">{copy.account.upgradeSub}</span>
+          <span className="mt-0.5 block text-sm text-[#6d6b79] dark:text-[#a79fb5]">
+            {copy.account.upgradeSub
+              .replace("{pro}", String(PLAN_LIMITS.pro.stars))
+              .replace("{moments}", String(PLAN_LIMITS.pro.moments))
+              .replace("{seconds}", String(PLAN_LIMITS.pro.videoSeconds))}
+          </span>
         </span>
         <ChevronRight size={20} className="shrink-0 text-[#7657dd] dark:text-[#c4b3ff]" />
       </button>

@@ -17,10 +17,15 @@ export type AppCopy = {
     expiresIn: string; expiresToday: string;
   };
   pro: {
-    eyebrow: string; title: string; freeLabel: string; proLabel: string; popular: string; perMonth: string;
-    freeFeatures: string[]; proFeatures: string[];
-    monthly: string; yearly: string; monthlySub: string; yearlySub: string; discount: string;
-    ctaMonthly: string; ctaYearly: string; trial: string;
+    eyebrow: string; title: string; subtitle: string;
+    freeLabel: string; proLabel: string; perMonth: string;
+    /** Row labels for the Free-vs-Pro table; the numbers come from PLAN_LIMITS. */
+    compare: { videos: string; moments: string; length: string };
+    /** Extra selling points under the table. */
+    perks: string[];
+    /** Launch-offer block: struck-through list price, discount ribbon, billing line. */
+    wasPrice: string; discount: string; launchOffer: string; billedMonthly: string;
+    cta: string; trial: string; legal: string; noOffering: string;
     restore: string; restoring: string; activating: string;
     errorGeneric: string; restoredOk: string; restoreNothing: string; unavailable: string;
   };
@@ -76,7 +81,7 @@ const dictionary: Record<Locale, AppCopy> = {
       retry: "Record again",
       analyse: "Find my moments",
       trimTitle: "Trim to your best moment.",
-      trimHint: "Drag the edges to pick up to 15 seconds.",
+      trimHint: "Drag the edges to pick up to {max} seconds.",
       preview: "Play preview",
       trimStartHandle: "Move start of selection",
       trimEndHandle: "Move end of selection",
@@ -87,7 +92,7 @@ const dictionary: Record<Locale, AppCopy> = {
       steps: ["Reading pace and composition", "Finding energy shifts", "Spotting memorable peaks", "Refining your selection"],
     },
     results: {
-      eyebrow: "5 MOMENTS FOUND",
+      eyebrow: "MOMENTS FOUND",
       title: "Here’s what you shouldn’t miss.",
       newVideo: "New video",
       moments: "Your best moments",
@@ -105,7 +110,7 @@ const dictionary: Record<Locale, AppCopy> = {
       flip: "Flip camera",
       start: "Start recording",
       stop: "Stop recording",
-      maxHint: "15s max",
+      maxHint: "{max}s max",
       permissionDenied: "We can’t reach your camera. Check that MoVid has camera and microphone permission, then try again.",
     },
     momentsEmpty: {
@@ -131,21 +136,20 @@ const dictionary: Record<Locale, AppCopy> = {
     },
     pro: {
       eyebrow: "MoVid PRO",
-      title: "More quality, no limits.",
+      title: "Five times the moments.",
+      subtitle: "More videos a week, more moments per video, and twice the footage for the AI to hunt through.",
       freeLabel: "Free",
       proLabel: "Pro",
-      popular: "POPULAR",
       perMonth: "/mo",
-      freeFeatures: ["Up to 5 moments per video", "Standard JPEG downloads", "No account limits"],
-      proFeatures: ["Priority AI analysis", "Higher-resolution exports", "Early access to new features"],
-      monthly: "Monthly",
-      yearly: "Yearly",
-      monthlySub: "€6.99 billed every month",
-      yearlySub: "€49 a year · €4.08/mo",
-      discount: "-42%",
-      ctaMonthly: "Start trial · €6.99/mo",
-      ctaYearly: "Start trial · €49/yr",
-      trial: "7 days free · cancel anytime",
+      compare: { videos: "Videos a week", moments: "Moments per video", length: "Clip length" },
+      perks: ["Denser AI sampling on longer clips", "Everything in Free, nothing removed", "Cancel anytime from your Apple ID"],
+      wasPrice: "€6.99",
+      discount: "-57%",
+      launchOffer: "LAUNCH OFFER",
+      billedMonthly: "billed monthly, cancel anytime",
+      cta: "Start 3 days free",
+      trial: "3 days free, then {price}/mo",
+      legal: "Renews automatically unless cancelled at least 24 h before the period ends. Manage it from your Apple ID settings.",
       restore: "Restore purchases",
       restoring: "Restoring…",
       activating: "Activating MoVid Pro…",
@@ -153,13 +157,14 @@ const dictionary: Record<Locale, AppCopy> = {
       restoredOk: "Your subscription is back.",
       restoreNothing: "No previous purchases found for this Apple ID.",
       unavailable: "Subscriptions are only available in the MoVid iOS app.",
+      noOffering: "Pro isn’t on sale just yet — check back in a moment.",
     },
     account: {
       eyebrow: "YOUR ACCOUNT",
       title: "Account",
       plan: "FREE",
       upgrade: "Upgrade to Pro",
-      upgradeSub: "Priority analysis and higher-resolution exports",
+      upgradeSub: "{pro} videos a week, {moments} moments each, {seconds}s clips",
     },
     plans: { free: "FREE", pro: "PRO" },
     stars: {
@@ -167,7 +172,7 @@ const dictionary: Record<Locale, AppCopy> = {
       spent: "No stars left this week",
       headerSummary: "{left}/{total} · {used} used",
       emptyFreeTitle: "You’re out of stars",
-      emptyFreeBody: "Free accounts get {total} videos a week. Go Pro for 7 a week and keep creating.",
+      emptyFreeBody: "Free accounts get {total} videos a week. Go Pro for {pro} a week and keep creating.",
       emptyFreeCta: "See Pro",
       emptyProTitle: "You’ve used all your stars",
       emptyProBody: "You’ve used your {total} videos for this week. They refill automatically.",
@@ -289,7 +294,7 @@ const dictionary: Record<Locale, AppCopy> = {
       retry: "Grabar de nuevo",
       analyse: "Encontrar mis momentos",
       trimTitle: "Recorta hasta tu mejor momento.",
-      trimHint: "Arrastra los extremos para elegir hasta 15 segundos.",
+      trimHint: "Arrastra los extremos para elegir hasta {max} segundos.",
       preview: "Reproducir vista previa",
       trimStartHandle: "Mover inicio de la selección",
       trimEndHandle: "Mover fin de la selección",
@@ -300,7 +305,7 @@ const dictionary: Record<Locale, AppCopy> = {
       steps: ["Leyendo ritmo y composición", "Detectando cambios de energía", "Encontrando los picos memorables", "Afinando tu selección"],
     },
     results: {
-      eyebrow: "5 MOMENTOS ENCONTRADOS",
+      eyebrow: "MOMENTOS ENCONTRADOS",
       title: "Esto es lo que no te puedes perder.",
       newVideo: "Nuevo vídeo",
       moments: "Tus mejores momentos",
@@ -318,7 +323,7 @@ const dictionary: Record<Locale, AppCopy> = {
       flip: "Cambiar cámara",
       start: "Empezar a grabar",
       stop: "Parar de grabar",
-      maxHint: "15s máx.",
+      maxHint: "{max}s máx.",
       permissionDenied: "No podemos acceder a tu cámara. Comprueba que MoVid tiene permiso de cámara y micrófono, y vuelve a intentarlo.",
     },
     momentsEmpty: {
@@ -344,21 +349,20 @@ const dictionary: Record<Locale, AppCopy> = {
     },
     pro: {
       eyebrow: "MoVid PRO",
-      title: "Más calidad, sin límites.",
+      title: "Cinco veces más momentos.",
+      subtitle: "Más vídeos por semana, más momentos por vídeo y el doble de metraje para que la IA rebusque.",
       freeLabel: "Free",
       proLabel: "Pro",
-      popular: "POPULAR",
       perMonth: "/mes",
-      freeFeatures: ["Hasta 5 momentos por vídeo", "Descargas JPEG estándar", "Sin límites de cuenta"],
-      proFeatures: ["Análisis de IA prioritario", "Exportación en mayor resolución", "Acceso anticipado a nuevas funciones"],
-      monthly: "Mensual",
-      yearly: "Anual",
-      monthlySub: "6,99 € facturados cada mes",
-      yearlySub: "49 € al año · 4,08 €/mes",
-      discount: "-42%",
-      ctaMonthly: "Empezar prueba · 6,99 €/mes",
-      ctaYearly: "Empezar prueba · 49 €/año",
-      trial: "7 días gratis · cancela cuando quieras",
+      compare: { videos: "Vídeos por semana", moments: "Momentos por vídeo", length: "Duración del clip" },
+      perks: ["La IA muestrea más fotogramas en clips largos", "Todo lo del plan Free, sin quitar nada", "Cancela cuando quieras desde tu Apple ID"],
+      wasPrice: "6,99 €",
+      discount: "-57%",
+      launchOffer: "OFERTA DE LANZAMIENTO",
+      billedMonthly: "facturado cada mes, cancela cuando quieras",
+      cta: "Empezar 3 días gratis",
+      trial: "3 días gratis y luego {price}/mes",
+      legal: "Se renueva automáticamente salvo que la canceles al menos 24 h antes de que acabe el periodo. Puedes gestionarla desde los ajustes de tu Apple ID.",
       restore: "Restaurar compras",
       restoring: "Restaurando…",
       activating: "Activando MoVid Pro…",
@@ -366,13 +370,14 @@ const dictionary: Record<Locale, AppCopy> = {
       restoredOk: "Tu suscripción está de vuelta.",
       restoreNothing: "No hay compras previas con este Apple ID.",
       unavailable: "Las suscripciones solo están disponibles en la app de MoVid para iOS.",
+      noOffering: "Pro todavía no está a la venta — vuelve a intentarlo en un momento.",
     },
     account: {
       eyebrow: "TU CUENTA",
       title: "Cuenta",
       plan: "FREE",
       upgrade: "Mejorar a Pro",
-      upgradeSub: "Análisis prioritario y exportación en mayor resolución",
+      upgradeSub: "{pro} vídeos por semana, {moments} momentos y clips de {seconds}s",
     },
     plans: { free: "FREE", pro: "PRO" },
     stars: {
@@ -380,7 +385,7 @@ const dictionary: Record<Locale, AppCopy> = {
       spent: "Sin estrellas esta semana",
       headerSummary: "{left}/{total} · {used} usadas",
       emptyFreeTitle: "Te has quedado sin estrellas",
-      emptyFreeBody: "Las cuentas free tienen {total} vídeos por semana. Pasa a Pro para tener 7 y seguir creando.",
+      emptyFreeBody: "Las cuentas free tienen {total} vídeos por semana. Pasa a Pro para tener {pro} y seguir creando.",
       emptyFreeCta: "Ver Pro",
       emptyProTitle: "Has agotado tus estrellas",
       emptyProBody: "Ya has usado tus {total} vídeos de esta semana. Se recargan automáticamente.",

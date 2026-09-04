@@ -16,14 +16,16 @@ type ReviewScreenProps = {
   sourceDuration: number;
   /** In-point of the kept window inside the source clip. */
   trimStart: number;
+  /** Longest window this plan can analyse — 15s on free, 30s on Pro. */
+  maxSeconds?: number;
   onTrimChange: (start: number, end: number) => void;
   onRetry: () => void;
   onAnalyse: () => void;
 };
 
-export function ReviewScreen({ copy, videoUrl, duration, sourceDuration, trimStart, onTrimChange, onRetry, onAnalyse }: ReviewScreenProps) {
+export function ReviewScreen({ copy, videoUrl, duration, sourceDuration, trimStart, maxSeconds = MAX_VIDEO_SECONDS, onTrimChange, onRetry, onAnalyse }: ReviewScreenProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
-  const needsTrim = sourceDuration > MAX_VIDEO_SECONDS + 0.3;
+  const needsTrim = sourceDuration > maxSeconds + 0.3;
 
   return (
     <>
@@ -48,6 +50,7 @@ export function ReviewScreen({ copy, videoUrl, duration, sourceDuration, trimSta
               copy={copy}
               videoUrl={videoUrl}
               sourceDuration={sourceDuration}
+              maxSeconds={maxSeconds}
               value={{ start: trimStart, end: trimStart + duration }}
               onChange={({ start, end }) => onTrimChange(start, end)}
             />
