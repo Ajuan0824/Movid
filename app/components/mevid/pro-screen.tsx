@@ -11,7 +11,7 @@ import { PLAN_LIMITS } from "../../../lib/mevid/plan";
  * build, a failed getOfferings). On device `monthlyPrice` comes straight from
  * StoreKit via RevenueCat and always wins — never treat this as the price.
  */
-const FALLBACK_MONTHLY_PRICE = "2,99 €";
+const FALLBACK_MONTHLY_PRICE = "3,99 €";
 
 type ProScreenProps = {
   copy: AppCopy;
