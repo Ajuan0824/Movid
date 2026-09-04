@@ -415,7 +415,10 @@ export default function Home() {
         </header>
 
         <AuthGate copy={copy} locale={locale}>
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(6rem+env(safe-area-inset-bottom))]">
+          {/* overflow-x-hidden on purpose: `overflow-y-auto` alone computes
+              overflow-x to `auto` too, so anything a few pixels too wide gives
+              the whole app a sideways scroll. Nothing here scrolls sideways. */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pb-[calc(6rem+env(safe-area-inset-bottom))]">
           <AnimatePresence mode="wait">
             {tab === "home" && flowView === "idle" ? (
               <IntroScreen

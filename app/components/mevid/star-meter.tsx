@@ -10,27 +10,46 @@ type StarMeterProps = {
   total: number;
 };
 
+/**
+ * One star glyph plus a fill bar — NOT one icon per star.
+ *
+ * The old version rendered `total` icons in a row, which was fine at 3 but blew
+ * past the viewport at Pro's 15 and gave the whole account screen a horizontal
+ * scrollbar. A bar reads the same at any allowance and can't overflow.
+ */
 export function StarMeter({ copy, left, total }: StarMeterProps) {
   const empty = left <= 0;
+  const safeTotal = Math.max(1, total);
+  const pct = Math.max(0, Math.min(100, (left / safeTotal) * 100));
   const label = empty
     ? copy.stars.spent
     : copy.stars.remaining.replace("{left}", String(left)).replace("{total}", String(total));
 
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <div className="flex items-center gap-1.5" role="img" aria-label={label}>
-        {Array.from({ length: total }, (_, index) => {
-          const filled = index < left;
-          return (
-            <Star
-              key={index}
-              size={21}
-              strokeWidth={2}
-              className={filled ? "fill-[#ffb020] text-[#ffb020]" : "fill-transparent text-[#cfc8df] dark:text-[#4a4458]"}
-            />
-          );
-        })}
+    <div className="flex flex-col gap-2.5" role="img" aria-label={label}>
+      <div className="flex items-center gap-2.5">
+        <Star
+          size={20}
+          strokeWidth={2}
+          className={empty ? "shrink-0 fill-[#e0507a] text-[#e0507a]" : "shrink-0 fill-[#ffb020] text-[#ffb020]"}
+        />
+        <p className="flex min-w-0 flex-1 items-baseline gap-1.5">
+          <span className={`font-display text-2xl font-bold leading-none tracking-[-0.04em] ${empty ? "text-[#e0507a] dark:text-[#ff8fae]" : "text-[#242432] dark:text-[#f2f0f8]"}`}>
+            {left}
+          </span>
+          <span className="font-mono text-sm text-[#9996a4] dark:text-[#8b8697]">/ {total}</span>
+        </p>
       </div>
+
+      <div className="h-2 overflow-hidden rounded-full bg-[#eeebf5] dark:bg-white/10">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className={`h-full rounded-full ${empty ? "bg-[#e0507a]" : "bg-gradient-to-r from-[#ffb020] to-[#ff8a3d]"}`}
+        />
+      </div>
+
       <p className={`text-sm font-semibold ${empty ? "text-[#e0507a] dark:text-[#ff8fae]" : "text-[#9996a4] dark:text-[#8b8697]"}`}>
         {label}
       </p>
@@ -66,16 +85,16 @@ export function HeaderStars({ copy, left, total, onClick }: { copy: AppCopy; lef
 /** Shown when the plan doc couldn't be read — the count is unknown, not zero. */
 export function StarMeterError({ copy, onRetry }: { copy: AppCopy; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <div className="flex items-center gap-1.5" aria-hidden>
-        {Array.from({ length: 3 }, (_, index) => (
-          <Star key={index} size={21} strokeWidth={2} className="fill-transparent text-[#cfc8df] dark:text-[#4a4458]" />
-        ))}
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center gap-2.5">
+        <Star size={20} strokeWidth={2} className="shrink-0 fill-transparent text-[#cfc8df] dark:text-[#4a4458]" />
+        <span className="font-mono text-sm text-[#9996a4] dark:text-[#8b8697]">— / —</span>
       </div>
+      <div className="h-2 rounded-full bg-[#eeebf5] dark:bg-white/10" />
       <button
         type="button"
         onClick={onRetry}
-        className="flex items-center gap-1.5 text-sm font-semibold text-[#9996a4] transition hover:text-[#6d6b79] dark:text-[#8b8697] dark:hover:text-[#a79fb5]"
+        className="flex items-center gap-1.5 text-left text-sm font-semibold text-[#9996a4] transition hover:text-[#6d6b79] dark:text-[#8b8697] dark:hover:text-[#a79fb5]"
       >
         {copy.stars.loadError}
         <span className="inline-flex items-center gap-1 text-[#7657dd] dark:text-[#b9a6ff]">
@@ -90,13 +109,13 @@ export function StarMeterError({ copy, onRetry }: { copy: AppCopy; onRetry: () =
 /** Skeleton shown while the plan doc loads, so the layout doesn't jump. */
 export function StarMeterPlaceholder() {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.4 }} className="flex flex-col items-center gap-1.5">
-      <div className="flex items-center gap-1.5">
-        {Array.from({ length: 3 }, (_, index) => (
-          <Star key={index} size={21} strokeWidth={2} className="fill-transparent text-[#cfc8df] dark:text-[#4a4458]" />
-        ))}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.4 }} className="flex flex-col gap-2.5">
+      <div className="flex items-center gap-2.5">
+        <Star size={20} strokeWidth={2} className="shrink-0 fill-transparent text-[#cfc8df] dark:text-[#4a4458]" />
+        <div className="h-5 w-16 rounded-full bg-[#e7e3ee] dark:bg-white/10" />
       </div>
-      <div className="h-3.5 w-40 rounded-full bg-[#e7e3ee] dark:bg-white/10" />
+      <div className="h-2 rounded-full bg-[#eeebf5] dark:bg-white/10" />
+      <div className="h-3.5 w-48 rounded-full bg-[#e7e3ee] dark:bg-white/10" />
     </motion.div>
   );
 }
