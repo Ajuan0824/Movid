@@ -3,7 +3,7 @@ import type { Locale } from "./types";
 export type AppCopy = {
   language: { label: string; english: string; spanish: string; system: string };
   appearance: { label: string; system: string; light: string; dark: string };
-  hero: { title: string; titleAccent: string; description: string; maxLength: string; record: string; upload: string; aiReady: string };
+  hero: { title: string; titleAccent: string; description: string; maxLength: string; record: string; upload: string };
   review: { eyebrow: string; title: string; description: string; retry: string; analyse: string; trimTitle: string; trimHint: string; preview: string; trimStartHandle: string; trimEndHandle: string };
   analysis: { eyebrow: string; title: string; steps: string[] };
   results: { eyebrow: string; title: string; newVideo: string; moments: string; tipStart: string; tipEnd: string; selectHint: string; download: string; downloadEmpty: string; downloadOne: string; topFive: string; moment: string };
@@ -23,7 +23,7 @@ export type AppCopy = {
     compare: { videos: string; moments: string; length: string };
     /** Launch-offer block: struck-through list price, discount ribbon, billing line. */
     wasPrice: string; discount: string; launchOffer: string; billedMonthly: string;
-    cta: string; trial: string; legal: string; noOffering: string;
+    cta: string; trial: string; noOffering: string;
     restore: string; restoring: string; activating: string;
     errorGeneric: string; restoredOk: string; restoreNothing: string; unavailable: string;
   };
@@ -70,7 +70,6 @@ const dictionary: Record<Locale, AppCopy> = {
       maxLength: "15 SECONDS MAX.",
       record: "Start recording",
       upload: "Upload a video",
-      aiReady: "AI READY",
     },
     review: {
       eyebrow: "VIDEO READY",
@@ -145,7 +144,6 @@ const dictionary: Record<Locale, AppCopy> = {
       billedMonthly: "billed monthly, cancel anytime",
       cta: "Start 3 days free",
       trial: "3 days free, then {price}/mo",
-      legal: "Renews automatically until you cancel. Manage it in your Apple ID settings.",
       restore: "Restore purchases",
       restoring: "Restoring…",
       activating: "Activating MoVid Pro…",
@@ -281,7 +279,6 @@ const dictionary: Record<Locale, AppCopy> = {
       maxLength: "15 SEGUNDOS MÁX.",
       record: "Grabar ahora",
       upload: "Subir un vídeo",
-      aiReady: "IA LISTA",
     },
     review: {
       eyebrow: "VÍDEO LISTO",
@@ -356,7 +353,6 @@ const dictionary: Record<Locale, AppCopy> = {
       billedMonthly: "facturado cada mes, cancela cuando quieras",
       cta: "Empezar 3 días gratis",
       trial: "3 días gratis y luego {price}/mes",
-      legal: "Renovación automática hasta que la canceles. Gestiónala en los ajustes de tu Apple ID.",
       restore: "Restaurar compras",
       restoring: "Restaurando…",
       activating: "Activando MoVid Pro…",

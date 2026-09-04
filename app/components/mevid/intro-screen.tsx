@@ -42,7 +42,6 @@ export function IntroScreen({ copy, recordInputRef, uploadInputRef, onRecord, on
           <div className="pointer-events-none absolute right-3.5 top-3.5 z-10 h-[18px] w-[18px] rounded-tr-md border-r-2 border-t-2 border-white/60" />
           <div className="pointer-events-none absolute bottom-3.5 left-3.5 z-10 h-[18px] w-[18px] rounded-bl-md border-b-2 border-l-2 border-white/60" />
           <div className="pointer-events-none absolute bottom-3.5 right-3.5 z-10 h-[18px] w-[18px] rounded-br-md border-b-2 border-r-2 border-white/60" />
-          <span className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 font-mono text-xs font-bold text-white backdrop-blur-md"><span className="h-1.5 w-1.5 rounded-full bg-[#cdbdff]" />{copy.hero.aiReady}</span>
           <div className="relative z-10 grid h-[76px] w-[76px] place-items-center rounded-[28px] border border-white/25 bg-white/10 text-white shadow-[0_20px_50px_rgba(0,0,0,.3)] backdrop-blur-md transition-transform duration-200 group-hover:scale-105 group-active:scale-95"><Camera size={34} strokeWidth={1.5} /></div>
           <div className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-between bg-gradient-to-t from-black/55 to-transparent px-5 pb-3.5 pt-10 text-white/85">
             <div className="flex items-center gap-2 text-sm font-semibold"><span className="h-2 w-2 rounded-full bg-[#ff5d78]" />{copy.hero.maxLength}</div><span className="font-mono text-sm">00:00.0</span>

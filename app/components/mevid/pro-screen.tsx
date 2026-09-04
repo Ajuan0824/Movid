@@ -39,10 +39,10 @@ const rowVariants = {
 
 function CompareRow({ label, free, pro }: { label: string; free: string; pro: string }) {
   return (
-    <motion.div variants={rowVariants} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-2">
-      <span className="text-[13px] font-medium text-[#4f4d5a] dark:text-[#d8d3e2]">{label}</span>
-      <span className="w-11 text-right font-mono text-[13px] text-[#a29eae] line-through dark:text-[#7e7989]">{free}</span>
-      <span className="w-12 text-right font-display text-base font-bold tracking-[-0.04em] text-[#5c3fc4] dark:text-[#b9a6ff]">{pro}</span>
+    <motion.div variants={rowVariants} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-2.5">
+      <span className="text-[15px] font-medium text-[#4f4d5a] dark:text-[#d8d3e2]">{label}</span>
+      <span className="w-12 text-right font-display text-[17px] font-semibold text-[#a29eae] dark:text-[#7e7989]">{free}</span>
+      <span className="w-14 text-right font-display text-[21px] font-bold tracking-[-0.04em] text-[#5c3fc4] dark:text-[#b9a6ff]">{pro}</span>
     </motion.div>
   );
 }
@@ -71,10 +71,10 @@ export function ProScreen({ copy, available, busy, hasOffering, monthlyPrice, on
       className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-2"
     >
       <motion.div className="mb-4 text-center" variants={heroTextVariants} initial="hidden" animate="visible">
-        <motion.h1 variants={heroTextItemVariants} className="font-display text-[30px] font-bold leading-[1.05] tracking-[-0.06em] sm:text-4xl">
+        <motion.h1 variants={heroTextItemVariants} className="font-display text-[34px] font-bold leading-[1.05] tracking-[-0.06em] sm:text-5xl">
           {t.title}
         </motion.h1>
-        <motion.p variants={heroTextItemVariants} className="mx-auto mt-2 max-w-[19rem] text-[13px] leading-[1.35] text-[#767381] dark:text-[#a79fb5]">
+        <motion.p variants={heroTextItemVariants} className="mx-auto mt-2.5 max-w-[20rem] text-[15px] leading-[1.35] text-[#767381] dark:text-[#a79fb5]">
           {t.subtitle}
         </motion.p>
       </motion.div>
@@ -98,22 +98,22 @@ export function ProScreen({ copy, available, busy, hasOffering, monthlyPrice, on
             {t.discount}
           </div>
 
-          <p className="text-[10px] font-bold tracking-[0.12em] text-[#7657dd] dark:text-[#c4b3ff]">{t.launchOffer}</p>
+          <p className="text-[11px] font-bold tracking-[0.12em] text-[#7657dd] dark:text-[#c4b3ff]">{t.launchOffer}</p>
 
           <div className="mt-1.5 flex items-end gap-2">
-            <span className="font-display text-base font-bold text-[#a29eae] line-through dark:text-[#7e7989]">{t.wasPrice}</span>
-            <span className="font-display text-[40px] font-bold leading-none tracking-[-0.06em] text-[#242432] dark:text-[#f2f0f8]">{price}</span>
+            <span className="font-display text-lg font-bold text-[#a29eae] line-through dark:text-[#7e7989]">{t.wasPrice}</span>
+            <span className="font-display text-[46px] font-bold leading-none tracking-[-0.06em] text-[#242432] dark:text-[#f2f0f8]">{price}</span>
             <span className="pb-1 font-mono text-sm font-medium text-[#9996a4] dark:text-[#8b8697]">{t.perMonth}</span>
           </div>
-          <p className="mt-1 text-[11px] font-medium text-[#9996a4] dark:text-[#8b8697]">{t.billedMonthly}</p>
+          <p className="mt-1.5 text-[13px] font-medium text-[#9996a4] dark:text-[#8b8697]">{t.billedMonthly}</p>
 
           <div className="my-3 h-px bg-[#efecf5] dark:bg-white/10" />
 
-          {/* Free numbers struck through, Pro numbers highlighted — the whole pitch in three rows. */}
-          <div className="grid grid-cols-[1fr_auto_auto] gap-3 pb-0.5 text-[10px] font-bold tracking-[0.1em] text-[#a29eae] dark:text-[#7e7989]">
+          {/* Free numbers muted, Pro numbers big and highlighted — the whole pitch in three rows. */}
+          <div className="grid grid-cols-[1fr_auto_auto] gap-3 pb-1 text-[11px] font-bold tracking-[0.1em] text-[#a29eae] dark:text-[#7e7989]">
             <span />
-            <span className="w-11 text-right">{t.freeLabel.toUpperCase()}</span>
-            <span className="w-12 text-right text-[#7657dd] dark:text-[#c4b3ff]">{t.proLabel.toUpperCase()}</span>
+            <span className="w-12 text-right">{t.freeLabel.toUpperCase()}</span>
+            <span className="w-14 text-right text-[#7657dd] dark:text-[#c4b3ff]">{t.proLabel.toUpperCase()}</span>
           </div>
           <motion.div variants={listVariants} initial="hidden" animate="visible" className="divide-y divide-[#efecf5] dark:divide-white/5">
             <CompareRow label={t.compare.videos} free={String(free.stars)} pro={String(pro.stars)} />
@@ -135,7 +135,7 @@ export function ProScreen({ copy, available, busy, hasOffering, monthlyPrice, on
         {busy ? t.activating : t.cta}
       </motion.button>
 
-      <p className="mt-2.5 text-center text-xs font-semibold text-[#6d6b79] dark:text-[#a79fb5]">
+      <p className="mt-3 text-center text-sm font-semibold text-[#6d6b79] dark:text-[#a79fb5]">
         {nothingToSell ? t.noOffering : t.trial.replace("{price}", price)}
       </p>
 
@@ -143,12 +143,10 @@ export function ProScreen({ copy, available, busy, hasOffering, monthlyPrice, on
         type="button"
         disabled={busy}
         onClick={onRestore}
-        className="mx-auto mt-1.5 block text-xs font-semibold text-[#7657dd] disabled:opacity-60 dark:text-[#c4b3ff]"
+        className="mx-auto mt-2 block text-sm font-semibold text-[#7657dd] disabled:opacity-60 dark:text-[#c4b3ff]"
       >
         {busy ? t.restoring : t.restore}
       </button>
-
-      <p className="mt-2.5 text-center text-[10px] leading-[1.35] text-[#a29eae] dark:text-[#7e7989]">{t.legal}</p>
     </motion.section>
   );
 }
