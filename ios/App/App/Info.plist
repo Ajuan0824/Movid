@@ -65,9 +65,13 @@
 	<string>MeVid necesita acceso a la cámara para grabar tus momentos.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>MeVid necesita acceso al micrófono para grabar el audio de tus vídeos.</string>
+	<!-- Local networking only, not a blanket allow: the dev server runs over
+	     plain http on localhost / the LAN, while production is https on Vercel.
+	     NSAllowsArbitraryLoads would disable ATS for every host and draws an
+	     App Store review question for no benefit. -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>NSAllowsArbitraryLoads</key>
+		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
 	<key>CFBundleURLTypes</key>
