@@ -2,13 +2,11 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 /**
- * CHANGE THIS BEFORE SUBMITTING TO THE APP STORE.
- *
- * Apple requires a working support contact, and both legal pages point people
- * here to exercise their data rights. A placeholder address means those
- * requests go nowhere.
+ * Public support and data-rights contact, shown on both legal pages and given
+ * to Apple as the app's support address. It has to stay a mailbox someone
+ * actually reads: privacy requests (access, deletion, portability) arrive here.
  */
-export const CONTACT_EMAIL = "soporte@movid.app";
+export const CONTACT_EMAIL = "soportemovid@gmail.com";
 
 /** Last substantive review of both documents. Bump it when you edit them. */
 export const LAST_UPDATED = "2026-09-04";
