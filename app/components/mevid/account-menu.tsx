@@ -121,6 +121,13 @@ export function AccountMenu({ copy, onManageAccount, localePref, onLocalePrefCha
             >
               <LogOut size={19} />{copy.auth.account.signOut}
             </button>
+
+            <div className="my-2.5 h-px bg-[#e7e3ee] dark:bg-white/10" />
+
+            <div className="flex items-center justify-center gap-4 px-1 text-xs font-semibold text-[#9996a4] dark:text-[#8b8697]">
+              <a href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{copy.account.terms}</a>
+              <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{copy.account.privacy}</a>
+            </div>
           </motion.div>
         ) : null}
       </AnimatePresence>

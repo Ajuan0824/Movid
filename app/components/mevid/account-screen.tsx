@@ -276,12 +276,6 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
           </motion.button>
         )}
       </div>
-
-      {/* Guideline 3.1.2 wants these reachable from inside the app. */}
-      <div className="mt-4 flex items-center justify-center gap-4 text-xs font-semibold text-[#9996a4] dark:text-[#8b8697]">
-        <a href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{a.terms}</a>
-        <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{a.privacy}</a>
-      </div>
     </motion.section>
   );
 }
