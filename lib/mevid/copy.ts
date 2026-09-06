@@ -55,7 +55,7 @@ export type AppCopy = {
     forgot: { eyebrow: string; title: string; description: string; emailLabel: string; submit: string; back: string; sent: string; sentSocialHint: string };
     /** Label on the back chip that returns to the sign-in screen. */
     backToLogin: string;
-    errors: { invalidEmail: string; userNotFound: string; wrongPassword: string; emailInUse: string; weakPassword: string; tooManyRequests: string; networkError: string; cancelled: string; unknown: string; passwordMismatch: string; required: string };
+    errors: { invalidEmail: string; userNotFound: string; wrongPassword: string; emailInUse: string; weakPassword: string; tooManyRequests: string; networkError: string; cancelled: string; unknown: string; passwordMismatch: string; required: string; termsRequired: string };
     account: { signedInAs: string; signOut: string; profile: string; settings: string };
     profile: {
       title: string; description: string; close: string;
@@ -230,7 +230,7 @@ const dictionary: Record<Locale, AppCopy> = {
         submit: "Create account",
         haveAccount: "Already have an account?",
         signIn: "Sign in",
-        consentText: "By creating an account, you agree to MoVid’s {terms} and {privacy}.",
+        consentText: "I accept MoVid’s {terms} and {privacy}.",
         strengthWeak: "WEAK",
         strengthGood: "GOOD",
         strengthStrong: "STRONG",
@@ -258,6 +258,7 @@ const dictionary: Record<Locale, AppCopy> = {
         unknown: "Something went wrong. Please try again.",
         passwordMismatch: "Passwords don’t match.",
         required: "This field is required.",
+        termsRequired: "Accept the terms to continue.",
       },
       account: { signedInAs: "Signed in as", signOut: "Sign out", profile: "Profile", settings: "Settings" },
       profile: {
@@ -447,7 +448,7 @@ const dictionary: Record<Locale, AppCopy> = {
         submit: "Crear cuenta",
         haveAccount: "¿Ya tienes una cuenta?",
         signIn: "Inicia sesión",
-        consentText: "Al crear una cuenta, aceptas las {terms} y la {privacy} de MoVid.",
+        consentText: "Acepto las {terms} y la {privacy} de MoVid.",
         strengthWeak: "DÉBIL",
         strengthGood: "BIEN",
         strengthStrong: "FUERTE",
@@ -475,6 +476,7 @@ const dictionary: Record<Locale, AppCopy> = {
         unknown: "Algo salió mal. Inténtalo de nuevo.",
         passwordMismatch: "Las contraseñas no coinciden.",
         required: "Este campo es obligatorio.",
+        termsRequired: "Acepta las condiciones para continuar.",
       },
       account: { signedInAs: "Sesión iniciada como", signOut: "Cerrar sesión", profile: "Perfil", settings: "Ajustes" },
       profile: {

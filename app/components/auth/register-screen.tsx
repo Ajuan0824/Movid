@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { Fragment, useState } from "react";
 import { resolveAuthErrorKey } from "../../../lib/firebase/auth-errors";
 import { signInWithApple, signInWithGoogle, signUpWithEmail } from "../../../lib/firebase/auth";
@@ -22,6 +23,7 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(null);
@@ -38,6 +40,10 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
     }
     if (password !== confirm) {
       setError(copy.auth.errors.passwordMismatch);
+      return;
+    }
+    if (!terms) {
+      setError(copy.auth.errors.termsRequired);
       return;
     }
     setError(null);
@@ -93,25 +99,36 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
         </div>
         <GlassTextField label={t.confirmLabel} type="password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
 
-        <p className="text-xs leading-4 text-[#6d6b79] dark:text-[#a79fb5]">
-          {t.consentText.split(/(\{terms\}|\{privacy\})/g).map((part, index) => {
-            if (part === "{terms}") {
-              return (
-                <a key={index} href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="text-[#7657dd] underline underline-offset-2 dark:text-[#c4b3ff]">
-                  {copy.account.terms}
-                </a>
-              );
-            }
-            if (part === "{privacy}") {
-              return (
-                <a key={index} href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="text-[#7657dd] underline underline-offset-2 dark:text-[#c4b3ff]">
-                  {copy.account.privacy}
-                </a>
-              );
-            }
-            return <Fragment key={index}>{part}</Fragment>;
-          })}
-        </p>
+        <label className="flex items-start gap-2.5 text-left">
+          <input
+            type="checkbox"
+            checked={terms}
+            onChange={(event) => setTerms(event.target.checked)}
+            className="peer sr-only"
+          />
+          <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-[7px] border-2 border-[#cfc8df] text-transparent transition peer-checked:border-[#7657dd] peer-checked:bg-[#7657dd] peer-checked:text-white">
+            <Check size={12} strokeWidth={3} />
+          </span>
+          <span className="text-xs leading-4 text-[#6d6b79] dark:text-[#a79fb5]">
+            {t.consentText.split(/(\{terms\}|\{privacy\})/g).map((part, index) => {
+              if (part === "{terms}") {
+                return (
+                  <a key={index} href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="text-[#7657dd] underline underline-offset-2 dark:text-[#c4b3ff]">
+                    {copy.account.terms}
+                  </a>
+                );
+              }
+              if (part === "{privacy}") {
+                return (
+                  <a key={index} href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="text-[#7657dd] underline underline-offset-2 dark:text-[#c4b3ff]">
+                    {copy.account.privacy}
+                  </a>
+                );
+              }
+              return <Fragment key={index}>{part}</Fragment>;
+            })}
+          </span>
+        </label>
 
         <AuthSubmitButton loading={loading} onTap={() => tapHaptic()}>{t.submit}</AuthSubmitButton>
       </form>
