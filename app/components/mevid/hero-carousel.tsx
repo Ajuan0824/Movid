@@ -5,17 +5,18 @@ import { useEffect, useState } from "react";
 
 /**
  * Background of the "AI ready" viewfinder on the home screen: a slow cross-fade
- * through a handful of lively, people-in-motion shots (jumping, laughing,
- * dancing…). Purely decorative — `pointer-events-none` so taps fall through to
- * the record button behind it. Files live in `public/carousel/` (see CREDITS.md).
+ * through a handful of everyday moments shot like the ones people already keep
+ * on their phone — selfies with friends, a night out, a coffee with the dog.
+ * Purely decorative — `pointer-events-none` so taps fall through to the record
+ * button behind it. Files live in `public/carousel/` (see CREDITS.md).
  */
 const SHOTS = [
-  "/carousel/01-laugh.jpg",
-  "/carousel/02-jump.jpg",
-  "/carousel/03-dance.jpg",
-  "/carousel/04-smile.jpg",
-  "/carousel/05-friends.jpg",
-  "/carousel/06-forest.jpg",
+  "/carousel/01-selfie-friends.jpg",
+  "/carousel/02-street-food.jpg",
+  "/carousel/03-night-out.jpg",
+  "/carousel/04-dog-cafe.jpg",
+  "/carousel/05-dance-floor.jpg",
+  "/carousel/06-graffiti-selfie.jpg",
 ];
 
 /** How long each frame holds before the next fades in. */
