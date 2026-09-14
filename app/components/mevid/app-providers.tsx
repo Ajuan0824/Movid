@@ -9,6 +9,19 @@ import { PurchasesProvider } from "../../../hooks/use-purchases";
 export function AppProviders({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   // The local design gallery owns inert fixture contexts, never a live session.
-  const designGallery = process.env.NODE_ENV === "development" && pathname === "/design";
-  return <MotionConfig reducedMotion="user">{designGallery ? children : <AuthProvider><PlanProvider><PurchasesProvider>{children}</PurchasesProvider></PlanProvider></AuthProvider>}</MotionConfig>;
+  const designGallery =
+    process.env.NODE_ENV === "development" && pathname === "/design";
+  return (
+    <MotionConfig reducedMotion="user">
+      {designGallery ? (
+        children
+      ) : (
+        <AuthProvider>
+          <PlanProvider>
+            <PurchasesProvider>{children}</PurchasesProvider>
+          </PlanProvider>
+        </AuthProvider>
+      )}
+    </MotionConfig>
+  );
 }

@@ -15,7 +15,11 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
-const editorial = Fraunces({ variable: "--font-editorial", subsets: ["latin"], style: ["normal", "italic"] });
+const editorial = Fraunces({
+  variable: "--font-editorial",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+});
 
 export const metadata: Metadata = {
   title: "MoVid — find your best moments",
@@ -39,13 +43,17 @@ const THEME_INIT_SCRIPT = `
 })();
 `;
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className={`${dmSans.variable} ${spaceGrotesk.variable} ${editorial.variable}`}>
+      <body
+        className={`${dmSans.variable} ${spaceGrotesk.variable} ${editorial.variable}`}
+      >
         <ClientBootstrap />
         <AppProviders>{children}</AppProviders>
         {/* Last in the DOM so it paints over the app while it boots. */}

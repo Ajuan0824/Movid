@@ -3,7 +3,11 @@
 import { Check } from "lucide-react";
 import { Fragment, useState } from "react";
 import { resolveAuthErrorKey } from "../../../lib/firebase/auth-errors";
-import { signInWithApple, signInWithGoogle, signUpWithEmail } from "../../../lib/firebase/auth";
+import {
+  signInWithApple,
+  signInWithGoogle,
+  signUpWithEmail,
+} from "../../../lib/firebase/auth";
 import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
 import { supportsAppleSignIn } from "../../../lib/mevid/platform";
@@ -26,12 +30,27 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(null);
+  const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(
+    null,
+  );
 
-  const strength = password.length >= 12 ? 3 : password.length >= 8 ? 2 : password.length > 0 ? 1 : 0;
-  const strengthLabel = [t.strengthWeak, t.strengthWeak, t.strengthGood, t.strengthStrong][strength];
+  const strength =
+    password.length >= 12
+      ? 3
+      : password.length >= 8
+        ? 2
+        : password.length > 0
+          ? 1
+          : 0;
+  const strengthLabel = [
+    t.strengthWeak,
+    t.strengthWeak,
+    t.strengthGood,
+    t.strengthStrong,
+  ][strength];
   const strengthWidth = ["4%", "34%", "68%", "100%"][strength];
-  const strengthColor = strength >= 3 ? "#1f7a4d" : strength === 2 ? "#466447" : "#f5b64a";
+  const strengthColor =
+    strength >= 3 ? "#1f7a4d" : strength === 2 ? "#466447" : "#f5b64a";
 
   const submit = async () => {
     if (!email || !password || !confirm) {
@@ -57,7 +76,10 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
     }
   };
 
-  const withSocial = async (provider: "google" | "apple", fn: () => Promise<unknown>) => {
+  const withSocial = async (
+    provider: "google" | "apple",
+    fn: () => Promise<unknown>,
+  ) => {
     setError(null);
     setSocialLoading(provider);
     try {
@@ -87,17 +109,44 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
           void submit();
         }}
       >
-        <GlassTextField label={t.emailLabel} type="email" value={email} onChange={setEmail} autoComplete="email" />
+        <GlassTextField
+          label={t.emailLabel}
+          type="email"
+          value={email}
+          onChange={setEmail}
+          autoComplete="email"
+        />
         <div>
-          <GlassTextField label={t.passwordLabel} type="password" value={password} onChange={setPassword} autoComplete="new-password" />
+          <GlassTextField
+            label={t.passwordLabel}
+            type="password"
+            visibilityLabels={copy.passwordVisibility}
+            value={password}
+            onChange={setPassword}
+            autoComplete="new-password"
+          />
           {password ? (
             <div className="mt-2 flex items-center gap-2">
-              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#ece9f2] dark:bg-[#2a2636]"><span className="block h-full rounded-full transition-all" style={{ width: strengthWidth, background: strengthColor }} /></span>
-              <span className="font-mono text-[10px] font-bold text-[#85818f] dark:text-[#a49fb0]">{strengthLabel}</span>
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#ece9f2] dark:bg-[#2a2636]">
+                <span
+                  className="block h-full rounded-full transition-all"
+                  style={{ width: strengthWidth, background: strengthColor }}
+                />
+              </span>
+              <span className="font-mono text-[10px] font-bold text-[#85818f] dark:text-[#a49fb0]">
+                {strengthLabel}
+              </span>
             </div>
           ) : null}
         </div>
-        <GlassTextField label={t.confirmLabel} type="password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
+        <GlassTextField
+          label={t.confirmLabel}
+          type="password"
+          visibilityLabels={copy.passwordVisibility}
+          value={confirm}
+          onChange={setConfirm}
+          autoComplete="new-password"
+        />
 
         <label className="flex items-start gap-2.5 text-left">
           <input
@@ -109,36 +158,68 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
           <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-[7px] border-2 border-[#cfc8df] text-transparent transition peer-checked:border-[#466447] peer-checked:bg-[#466447] peer-checked:text-white">
             <Check size={12} strokeWidth={3} />
           </span>
-          <span className="text-xs leading-4 text-[#73776e] dark:text-[#a6b0a3]">
-            {t.consentText.split(/(\{terms\}|\{privacy\})/g).map((part, index) => {
-              if (part === "{terms}") {
-                return (
-                  <a key={index} href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="text-[#466447] underline underline-offset-2 dark:text-[#d4ed8a]">
-                    {copy.account.terms}
-                  </a>
-                );
-              }
-              if (part === "{privacy}") {
-                return (
-                  <a key={index} href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="text-[#466447] underline underline-offset-2 dark:text-[#d4ed8a]">
-                    {copy.account.privacy}
-                  </a>
-                );
-              }
-              return <Fragment key={index}>{part}</Fragment>;
-            })}
+          <span className="text-xs leading-4 text-[#697061] dark:text-[#a6b0a3]">
+            {t.consentText
+              .split(/(\{terms\}|\{privacy\})/g)
+              .map((part, index) => {
+                if (part === "{terms}") {
+                  return (
+                    <a
+                      key={index}
+                      href="/legal/terminos"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#466447] underline underline-offset-2 dark:text-[#d4ed8a]"
+                    >
+                      {copy.account.terms}
+                    </a>
+                  );
+                }
+                if (part === "{privacy}") {
+                  return (
+                    <a
+                      key={index}
+                      href="/legal/privacidad"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#466447] underline underline-offset-2 dark:text-[#d4ed8a]"
+                    >
+                      {copy.account.privacy}
+                    </a>
+                  );
+                }
+                return <Fragment key={index}>{part}</Fragment>;
+              })}
           </span>
         </label>
 
-        <AuthSubmitButton loading={loading} onTap={() => tapHaptic()}>{t.submit}</AuthSubmitButton>
+        <AuthSubmitButton loading={loading} onTap={() => tapHaptic()}>
+          {t.submit}
+        </AuthSubmitButton>
       </form>
       <div className="my-4 flex items-center gap-3 text-xs font-medium text-[#aaa7b1] dark:text-[#948fa0]">
-        <div className="h-px flex-1 bg-[#dedfd5]" />{copy.auth.login.orDivider}<div className="h-px flex-1 bg-[#dedfd5]" />
+        <div className="h-px flex-1 bg-[#dedfd5]" />
+        {copy.auth.login.orDivider}
+        <div className="h-px flex-1 bg-[#dedfd5]" />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <SocialButton provider="google" loading={socialLoading === "google"} disabled={socialLoading !== null} onClick={() => void withSocial("google", signInWithGoogle)}>{copy.auth.login.google}</SocialButton>
+        <SocialButton
+          provider="google"
+          loading={socialLoading === "google"}
+          disabled={socialLoading !== null}
+          onClick={() => void withSocial("google", signInWithGoogle)}
+        >
+          {copy.auth.login.google}
+        </SocialButton>
         {showApple ? (
-          <SocialButton provider="apple" loading={socialLoading === "apple"} disabled={socialLoading !== null} onClick={() => void withSocial("apple", signInWithApple)}>{copy.auth.login.apple}</SocialButton>
+          <SocialButton
+            provider="apple"
+            loading={socialLoading === "apple"}
+            disabled={socialLoading !== null}
+            onClick={() => void withSocial("apple", signInWithApple)}
+          >
+            {copy.auth.login.apple}
+          </SocialButton>
         ) : null}
       </div>
     </AuthShell>

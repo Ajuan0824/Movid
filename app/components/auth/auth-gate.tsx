@@ -37,9 +37,20 @@ export function AuthGate({ copy, locale, children }: AuthGateProps) {
 
   return (
     <AnimatePresence mode="wait">
-      {view === "login" ? <LoginScreen key="login" copy={copy} onNavigate={setView} /> : null}
-      {view === "register" ? <RegisterScreen key="register" copy={copy} onNavigate={setView} /> : null}
-      {view === "forgot" ? <ForgotPasswordScreen key="forgot" copy={copy} locale={locale} onNavigate={setView} /> : null}
+      {view === "login" ? (
+        <LoginScreen key="login" copy={copy} onNavigate={setView} />
+      ) : null}
+      {view === "register" ? (
+        <RegisterScreen key="register" copy={copy} onNavigate={setView} />
+      ) : null}
+      {view === "forgot" ? (
+        <ForgotPasswordScreen
+          key="forgot"
+          copy={copy}
+          locale={locale}
+          onNavigate={setView}
+        />
+      ) : null}
     </AnimatePresence>
   );
 }

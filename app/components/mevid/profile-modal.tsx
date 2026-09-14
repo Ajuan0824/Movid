@@ -93,7 +93,7 @@ export function ProfileModal({ copy, onClose, onManageAccount }: ProfileModalPro
             </div>
             <p className="truncate text-sm font-semibold text-[#403d4b] dark:text-[#d7d2e2]">{user.email}</p>
           </div>
-          <button onClick={onClose} aria-label={t.close} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/70 dark:bg-white/5 text-[#73776e] dark:text-[#a6b0a3] hover:bg-white dark:hover:bg-white/15">
+          <button onClick={onClose} aria-label={t.close} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/70 dark:bg-white/5 text-[#697061] dark:text-[#a6b0a3] hover:bg-white dark:hover:bg-white/15">
             <X size={20} />
           </button>
         </div>

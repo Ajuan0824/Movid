@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { resolveAuthErrorKey } from "../../../lib/firebase/auth-errors";
-import { signInWithApple, signInWithEmail, signInWithGoogle } from "../../../lib/firebase/auth";
+import {
+  signInWithApple,
+  signInWithEmail,
+  signInWithGoogle,
+} from "../../../lib/firebase/auth";
 import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
 import { supportsAppleSignIn } from "../../../lib/mevid/platform";
@@ -23,7 +27,9 @@ export function LoginScreen({ copy, onNavigate }: LoginScreenProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(null);
+  const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(
+    null,
+  );
 
   const submit = async () => {
     if (!email || !password) {
@@ -41,7 +47,10 @@ export function LoginScreen({ copy, onNavigate }: LoginScreenProps) {
     }
   };
 
-  const withSocial = async (provider: "google" | "apple", fn: () => Promise<unknown>) => {
+  const withSocial = async (
+    provider: "google" | "apple",
+    fn: () => Promise<unknown>,
+  ) => {
     setError(null);
     setSocialLoading(provider);
     try {
@@ -62,7 +71,12 @@ export function LoginScreen({ copy, onNavigate }: LoginScreenProps) {
       footer={
         <>
           {t.noAccount}{" "}
-          <button onClick={() => onNavigate("register")} className="font-semibold text-[#466447] dark:text-[#d4ed8a] hover:underline">{t.createAccount}</button>
+          <button
+            onClick={() => onNavigate("register")}
+            className="font-semibold text-[#466447] dark:text-[#d4ed8a] hover:underline"
+          >
+            {t.createAccount}
+          </button>
         </>
       }
     >
@@ -74,20 +88,55 @@ export function LoginScreen({ copy, onNavigate }: LoginScreenProps) {
           void submit();
         }}
       >
-        <GlassTextField label={t.emailLabel} type="email" value={email} onChange={setEmail} autoComplete="email" />
-        <GlassTextField label={t.passwordLabel} type="password" value={password} onChange={setPassword} autoComplete="current-password" />
-        <button type="button" onClick={() => onNavigate("forgot")} className="-mt-1 self-end text-sm font-semibold text-[#466447] dark:text-[#d4ed8a] hover:underline">
+        <GlassTextField
+          label={t.emailLabel}
+          type="email"
+          value={email}
+          onChange={setEmail}
+          autoComplete="email"
+        />
+        <GlassTextField
+          label={t.passwordLabel}
+          type="password"
+          visibilityLabels={copy.passwordVisibility}
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+        />
+        <button
+          type="button"
+          onClick={() => onNavigate("forgot")}
+          className="-mt-1 self-end text-sm font-semibold text-[#466447] dark:text-[#d4ed8a] hover:underline"
+        >
           {t.forgot}
         </button>
-        <AuthSubmitButton loading={loading} onTap={() => tapHaptic()}>{t.submit}</AuthSubmitButton>
+        <AuthSubmitButton loading={loading} onTap={() => tapHaptic()}>
+          {t.submit}
+        </AuthSubmitButton>
       </form>
       <div className="my-4 flex items-center gap-3 text-sm font-medium text-[#aaa7b1] dark:text-[#948fa0]">
-        <div className="h-px flex-1 bg-[#dedfd5]" />{t.orDivider}<div className="h-px flex-1 bg-[#dedfd5]" />
+        <div className="h-px flex-1 bg-[#dedfd5]" />
+        {t.orDivider}
+        <div className="h-px flex-1 bg-[#dedfd5]" />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <SocialButton provider="google" loading={socialLoading === "google"} disabled={socialLoading !== null} onClick={() => void withSocial("google", signInWithGoogle)}>{t.google}</SocialButton>
+        <SocialButton
+          provider="google"
+          loading={socialLoading === "google"}
+          disabled={socialLoading !== null}
+          onClick={() => void withSocial("google", signInWithGoogle)}
+        >
+          {t.google}
+        </SocialButton>
         {showApple ? (
-          <SocialButton provider="apple" loading={socialLoading === "apple"} disabled={socialLoading !== null} onClick={() => void withSocial("apple", signInWithApple)}>{t.apple}</SocialButton>
+          <SocialButton
+            provider="apple"
+            loading={socialLoading === "apple"}
+            disabled={socialLoading !== null}
+            onClick={() => void withSocial("apple", signInWithApple)}
+          >
+            {t.apple}
+          </SocialButton>
         ) : null}
       </div>
     </AuthShell>

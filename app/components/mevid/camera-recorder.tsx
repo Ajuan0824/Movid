@@ -22,7 +22,12 @@ type CameraRecorderProps = {
   onRecorded: (video: Blob, duration: number) => void;
 };
 
-export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel, onRecorded }: CameraRecorderProps) {
+export function CameraRecorder({
+  copy,
+  maxSeconds = MAX_VIDEO_SECONDS,
+  onCancel,
+  onRecorded,
+}: CameraRecorderProps) {
   const t = copy.camera;
   const previewRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -52,7 +57,11 @@ export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel,
       .getUserMedia({
         // `ideal` (not `exact`) so a camera that can't hit 1080p still starts,
         // just at its best available resolution instead of a low default.
-        video: { facingMode: facing, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        video: {
+          facingMode: facing,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
         audio: true,
       })
       .then((stream) => {
@@ -75,9 +84,12 @@ export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel,
     };
   }, [facing, stopStream]);
 
-  useEffect(() => () => {
-    if (tickRef.current !== undefined) window.clearInterval(tickRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (tickRef.current !== undefined) window.clearInterval(tickRef.current);
+    },
+    [],
+  );
 
   const stopRecording = useCallback(() => {
     if (tickRef.current !== undefined) {
@@ -106,8 +118,13 @@ export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel,
     };
     recorder.onstop = () => {
       // Measured from the wall clock: the file itself carries no duration.
-      const seconds = Math.min((Date.now() - startedAtRef.current) / 1000, maxSeconds);
-      const blob = new Blob(chunksRef.current, { type: recorder.mimeType || mimeType || "video/mp4" });
+      const seconds = Math.min(
+        (Date.now() - startedAtRef.current) / 1000,
+        maxSeconds,
+      );
+      const blob = new Blob(chunksRef.current, {
+        type: recorder.mimeType || mimeType || "video/mp4",
+      });
       stopStream();
       if (blob.size > 0) onRecorded(blob, seconds);
       else onCancel();
@@ -148,10 +165,21 @@ export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel,
 
       {status === "error" ? (
         <div className="absolute inset-0 grid place-items-center px-8 text-center">
-          <p className="text-sm leading-6 text-white/85">{t.permissionDenied}</p>
+          <p className="text-sm leading-6 text-white/85">
+            {t.permissionDenied}
+          </p>
         </div>
       ) : null}
 
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-6 bottom-44 top-28 grid grid-cols-3 grid-rows-3 overflow-hidden rounded-3xl border border-white/15"
+      >
+        {Array.from({ length: 9 }, (_, index) => (
+          <span key={index} className="border-b border-r border-white/10" />
+        ))}
+      </div>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-black/75 to-transparent" />
       <div className="relative flex items-start justify-between p-[calc(1rem+env(safe-area-inset-top))_1rem_0]">
         <button
           type="button"
@@ -167,7 +195,9 @@ export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel,
         </button>
 
         <span className="rounded-full bg-black/45 px-3.5 py-2 font-mono text-sm font-bold text-white backdrop-blur-sm">
-          {recording ? `${remaining.toFixed(1)}s` : t.maxHint.replace("{max}", String(maxSeconds))}
+          {recording
+            ? `${remaining.toFixed(1)}s`
+            : t.maxHint.replace("{max}", String(maxSeconds))}
         </span>
 
         <button
@@ -175,7 +205,9 @@ export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel,
           disabled={recording}
           onClick={() => {
             tapHaptic();
-            setFacing((current) => (current === "user" ? "environment" : "user"));
+            setFacing((current) =>
+              current === "user" ? "environment" : "user",
+            );
           }}
           aria-label={t.flip}
           className="grid h-12 w-12 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm disabled:opacity-30"
@@ -184,7 +216,7 @@ export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel,
         </button>
       </div>
 
-      <div className="relative mt-auto flex items-center justify-center pb-[calc(2.5rem+env(safe-area-inset-bottom))]">
+      <div className="relative mt-auto flex flex-col items-center justify-center gap-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
         <button
           type="button"
           disabled={status === "starting" || status === "error"}
@@ -197,7 +229,14 @@ export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel,
           className="relative grid h-[104px] w-[104px] place-items-center disabled:opacity-40"
         >
           <svg viewBox="0 0 104 104" className="absolute inset-0 -rotate-90">
-            <circle cx="52" cy="52" r={RING_RADIUS} fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="6" />
+            <circle
+              cx="52"
+              cy="52"
+              r={RING_RADIUS}
+              fill="none"
+              stroke="rgba(255,255,255,.32)"
+              strokeWidth="6"
+            />
             <circle
               cx="52"
               cy="52"
@@ -214,6 +253,9 @@ export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel,
             className={`bg-[#eb795e] transition-all duration-200 ${recording ? "h-9 w-9 rounded-[9px]" : "h-[76px] w-[76px] rounded-full"}`}
           />
         </button>
+        <p className="text-xs font-medium tracking-wide text-white/80">
+          {recording ? t.stop : t.start}
+        </p>
       </div>
     </motion.div>
   );

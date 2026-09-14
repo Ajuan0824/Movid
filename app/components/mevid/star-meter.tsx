@@ -23,36 +23,39 @@ export function StarMeter({ copy, left, total }: StarMeterProps) {
   const pct = Math.max(0, Math.min(100, (left / safeTotal) * 100));
   const label = empty
     ? copy.stars.spent
-    : copy.stars.remaining.replace("{left}", String(left)).replace("{total}", String(total));
+    : copy.stars.remaining
+        .replace("{left}", String(left))
+        .replace("{total}", String(total));
 
   return (
-    <div className="flex flex-col gap-2.5" role="img" aria-label={label}>
-      <div className="flex items-center gap-2.5">
-        <Star
-          size={20}
-          strokeWidth={2}
-          className={empty ? "shrink-0 fill-[#b65742] text-[#b65742]" : "shrink-0 fill-[#8c9d57] text-[#8c9d57]"}
-        />
-        <p className="flex min-w-0 flex-1 items-baseline gap-1.5">
-          <span className={`font-display text-2xl font-bold leading-none tracking-[-0.04em] ${empty ? "text-[#b65742] dark:text-[#f2a18a]" : "text-[#25352d] dark:text-[#f1f2e8]"}`}>
+    <div className="flex flex-col gap-3" role="img" aria-label={label}>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex shrink-0 items-center gap-2">
+          <Star
+            size={18}
+            className={
+              empty ? "text-[#b65742]" : "fill-[#8c9d57] text-[#8c9d57]"
+            }
+          />
+          <span className="font-display text-2xl font-semibold">
             {left}
+            <span className="ml-1 text-sm font-normal text-muted">
+              / {total}
+            </span>
           </span>
-          <span className="font-mono text-sm text-[#7b8075] dark:text-[#a0aa99]">/ {total}</span>
-        </p>
+        </div>
+        <span className="max-w-[175px] text-right text-xs leading-4 text-muted">
+          {label}
+        </span>
       </div>
-
-      <div className="h-2 overflow-hidden rounded-full bg-[#e6e9dc] dark:bg-white/10">
+      <div className="h-1.5 overflow-hidden rounded-full bg-[var(--line)]">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className={`h-full rounded-full ${empty ? "bg-[#b65742]" : "bg-gradient-to-r from-[#8c9d57] to-[#b3c977]"}`}
+          transition={{ duration: 0.5 }}
+          className="h-full rounded-full bg-[#91aa59]"
         />
       </div>
-
-      <p className={`text-sm font-semibold ${empty ? "text-[#b65742] dark:text-[#f2a18a]" : "text-[#7b8075] dark:text-[#a0aa99]"}`}>
-        {label}
-      </p>
     </div>
   );
 }
@@ -62,7 +65,17 @@ export function StarMeter({ copy, left, total }: StarMeterProps) {
  * settings gear: "3/7 · 4 used". Tapping it takes free users to Pro and Pro
  * users to their account.
  */
-export function HeaderStars({ copy, left, total, onClick }: { copy: AppCopy; left: number; total: number; onClick: () => void }) {
+export function HeaderStars({
+  copy,
+  left,
+  total,
+  onClick,
+}: {
+  copy: AppCopy;
+  left: number;
+  total: number;
+  onClick: () => void;
+}) {
   const used = Math.max(0, total - left);
   const empty = left <= 0;
   const label = copy.stars.headerSummary
@@ -76,25 +89,48 @@ export function HeaderStars({ copy, left, total, onClick }: { copy: AppCopy; lef
       aria-label={label}
       className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 text-[11px] font-bold leading-none text-[var(--ink)]"
     >
-      <Star size={13} strokeWidth={2.4} className={empty ? "fill-[#b65742] text-[#b65742]" : "fill-[#8c9d57] text-[#8c9d57]"} />
-      <span className="whitespace-nowrap">{left}<span className="font-normal opacity-60"> / {total}</span></span>
+      <Star
+        size={13}
+        strokeWidth={2.4}
+        className={
+          empty
+            ? "fill-[#b65742] text-[#b65742]"
+            : "fill-[#8c9d57] text-[#8c9d57]"
+        }
+      />
+      <span className="whitespace-nowrap">
+        {left}
+        <span className="font-normal opacity-60"> / {total}</span>
+      </span>
     </button>
   );
 }
 
 /** Shown when the plan doc couldn't be read — the count is unknown, not zero. */
-export function StarMeterError({ copy, onRetry }: { copy: AppCopy; onRetry: () => void }) {
+export function StarMeterError({
+  copy,
+  onRetry,
+}: {
+  copy: AppCopy;
+  onRetry: () => void;
+}) {
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex items-center gap-2.5">
-        <Star size={20} strokeWidth={2} className="shrink-0 fill-transparent text-[#cfc8df] dark:text-[#4a4458]" />
-        <span className="font-mono text-sm text-[#7b8075] dark:text-[#a0aa99]">— / —</span>
+        <Star
+          size={20}
+          strokeWidth={2}
+          className="shrink-0 fill-transparent text-[#cfc8df] dark:text-[#4a4458]"
+        />
+        <span className="font-mono text-sm text-[#697061] dark:text-[#a0aa99]">
+          — / —
+        </span>
       </div>
       <div className="h-2 rounded-full bg-[#e6e9dc] dark:bg-white/10" />
       <button
         type="button"
         onClick={onRetry}
-        className="flex items-center gap-1.5 text-left text-sm font-semibold text-[#7b8075] transition hover:text-[#73776e] dark:text-[#a0aa99] dark:hover:text-[#a6b0a3]"
+        className="flex items-center gap-1.5 text-left text-sm font-semibold text-[#697061] transition hover:text-[#697061] dark:text-[#a0aa99] dark:hover:text-[#a6b0a3]"
       >
         {copy.stars.loadError}
         <span className="inline-flex items-center gap-1 text-[#466447] dark:text-[#d4ed8a]">
@@ -109,9 +145,17 @@ export function StarMeterError({ copy, onRetry }: { copy: AppCopy; onRetry: () =
 /** Skeleton shown while the plan doc loads, so the layout doesn't jump. */
 export function StarMeterPlaceholder() {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.4 }} className="flex flex-col gap-2.5">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 0.4 }}
+      className="flex flex-col gap-2.5"
+    >
       <div className="flex items-center gap-2.5">
-        <Star size={20} strokeWidth={2} className="shrink-0 fill-transparent text-[#cfc8df] dark:text-[#4a4458]" />
+        <Star
+          size={20}
+          strokeWidth={2}
+          className="shrink-0 fill-transparent text-[#cfc8df] dark:text-[#4a4458]"
+        />
         <div className="h-5 w-16 rounded-full bg-[#dedfd5] dark:bg-white/10" />
       </div>
       <div className="h-2 rounded-full bg-[#e6e9dc] dark:bg-white/10" />

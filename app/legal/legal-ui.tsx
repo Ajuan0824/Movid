@@ -16,8 +16,8 @@ export function LegalHeader({ title, subtitle }: { title: string; subtitle: stri
     <header className="mb-10 border-b border-[#dedfd5] pb-6 dark:border-white/10">
       <Link href="/" className="text-sm font-bold text-[#466447] dark:text-[#d4ed8a]">MoVid</Link>
       <h1 className="mt-3 font-display text-4xl font-bold tracking-[-0.05em]">{title}</h1>
-      <p className="mt-2 text-sm text-[#73776e] dark:text-[#a6b0a3]">{subtitle}</p>
-      <p className="mt-1 text-sm text-[#7b8075] dark:text-[#a0aa99]">
+      <p className="mt-2 text-sm text-[#697061] dark:text-[#a6b0a3]">{subtitle}</p>
+      <p className="mt-1 text-sm text-[#697061] dark:text-[#a0aa99]">
         Última actualización / Last updated: {LAST_UPDATED}
       </p>
     </header>
@@ -48,7 +48,7 @@ export function LanguageDivider({ label }: { label: string }) {
   return (
     <div className="my-12 flex items-center gap-4">
       <span className="h-px flex-1 bg-[#dedfd5] dark:bg-white/10" />
-      <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#7b8075] dark:text-[#a0aa99]">{label}</span>
+      <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#697061] dark:text-[#a0aa99]">{label}</span>
       <span className="h-px flex-1 bg-[#dedfd5] dark:bg-white/10" />
     </div>
   );

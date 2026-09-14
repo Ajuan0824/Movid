@@ -1,5 +1,9 @@
 # MoVid
 
+**Rediseño de septiembre:** ejecutar `npm run dev:design` y abrir
+[la galería local](http://localhost:3000/design) para revisar las pantallas sin credenciales.
+[Sistema de diseño y validación](docs/design-system.md).
+
 Aplicación móvil que analiza un clip de 15 segundos y selecciona automáticamente
 los 5 mejores momentos, listos para descargar o compartir. Se puede grabar dentro
 de la app o subir un vídeo de hasta 10 minutos y recortar qué ventana analizar.
@@ -76,7 +80,7 @@ storage.lifecycle.json      Regla de caducidad a 30 días del bucket
 
 ### Flujo principal
 
-0. **Apertura** — un splash animado (`SplashScreen`, 1,5 s) cubre el arranque.
+0. **Apertura** — un splash animado (`SplashScreen`, 0,8 s; 0,15 s con movimiento reducido) cubre el arranque.
    Se renderiza también en servidor, así que además tapa el fotograma en blanco
    que había mientras se resuelven idioma y sesión tras el montaje.
 1. **Inicio** — el usuario graba con la cámara integrada o sube un vídeo. Al
@@ -91,9 +95,9 @@ storage.lifecycle.json      Regla de caducidad a 30 días del bucket
      un JPEG a resolución completa por momento. Las imágenes son fotogramas
      reales del vídeo, no arte generado. Ver **Selección de fotograma** abajo.
    - Si todo ha ido bien, **ahora** se cobra la estrella.
-4. **Resultado** — se muestra al instante desde ficheros locales, mientras la
-   subida a Firebase ocurre en segundo plano.
-5. **Momentos** — biblioteca con todo lo generado en los últimos 30 días.
+4. **Resultado** — foto completa y tira horizontal de momentos, con selección y descarga.
+   Se muestra desde ficheros locales mientras la subida a Firebase ocurre en segundo plano.
+5. **Momentos** — biblioteca paginada de cuatro vídeos por página con lo generado en los últimos 30 días.
 
 ### Selección de fotograma
 
