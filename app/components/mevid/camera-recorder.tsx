@@ -203,7 +203,7 @@ export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel,
               cy="52"
               r={RING_RADIUS}
               fill="none"
-              stroke="#ff5c82"
+              stroke="#eb795e"
               strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray={RING_CIRCUMFERENCE}
@@ -211,7 +211,7 @@ export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel,
             />
           </svg>
           <span
-            className={`bg-[#ff5c82] transition-all duration-200 ${recording ? "h-9 w-9 rounded-[9px]" : "h-[76px] w-[76px] rounded-full"}`}
+            className={`bg-[#eb795e] transition-all duration-200 ${recording ? "h-9 w-9 rounded-[9px]" : "h-[76px] w-[76px] rounded-full"}`}
           />
         </button>
       </div>

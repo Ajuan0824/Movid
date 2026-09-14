@@ -10,7 +10,6 @@ import { AuthGate } from "./components/auth/auth-gate";
 import { Brand } from "./components/mevid/brand";
 import { CameraRecorder } from "./components/mevid/camera-recorder";
 import { DesktopGate } from "./components/mevid/desktop-gate";
-import { DotGrid } from "./components/mevid/dot-grid";
 import { IntroScreen } from "./components/mevid/intro-screen";
 import { MomentsLibrary } from "./components/mevid/moments-library";
 import { ProScreen } from "./components/mevid/pro-screen";
@@ -41,8 +40,8 @@ type FlowView = "idle" | "review" | "analysing";
 function Toast({ tone, message, onDismiss }: { tone: "error" | "notice"; message: string; onDismiss: () => void }) {
   const palette =
     tone === "error"
-      ? "border-[#ffc8d3] dark:border-[#5c2f3d] bg-white dark:bg-[#211e2c] text-[#9d3450] dark:text-[#ffb4c8]"
-      : "border-[#dfd4ff] dark:border-[#4a3f73] bg-[#f0ecff] dark:bg-[#2c2740] font-semibold text-[#5c3fc4] dark:text-[#b9a6ff]";
+      ? "border-[#ffc8d3] dark:border-[#5c2f3d] bg-white dark:bg-[#212d25] text-[#9d3450] dark:text-[#ffb4c8]"
+      : "border-[#d7dfc7] dark:border-[#4a6043] bg-[#e8eddb] dark:bg-[#2c3c2b] font-semibold text-[#466447] dark:text-[#d4ed8a]";
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-[calc(7rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4">
       <motion.div
@@ -76,7 +75,7 @@ export default function Home() {
   const [selected, setSelected] = useState(0);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [analysisStep, setAnalysisStep] = useState(0);
-  // The moments the model actually returned; drives the folder animation.
+  // Only real analysis results drive the completed-state animation.
   const [analysisFound, setAnalysisFound] = useState<VideoHighlight[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -269,9 +268,7 @@ export default function Home() {
     }
     window.clearInterval(interval);
 
-    // Hand the real moments to the analysis screen and let the hand actually
-    // file them away before we move on. The magnifier hunted for exactly as
-    // long as the model took, so the folder filling up is a real signal.
+    // Reveal the actual selected photos before opening the collection.
     setAnalysisFound(hydrated);
     await new Promise((resolve) => window.setTimeout(resolve, captureSequenceMs(hydrated.length)));
 
@@ -379,7 +376,7 @@ export default function Home() {
     downloadHighlights((openGeneration?.highlights ?? []).filter((_, index) => checked.has(index)));
 
   if (mobileState === "checking" || !localeReady) {
-    return <main className="min-h-dvh bg-[#f8f7fb] dark:bg-[#121018]" />;
+    return <main className="min-h-dvh bg-[#f5f3ec] dark:bg-[#151d19]" />;
   }
 
   if (mobileState === "desktop") {
@@ -387,12 +384,9 @@ export default function Home() {
   }
 
   return (
-    <main className="relative h-dvh overflow-hidden bg-[#f8f7fb] dark:bg-[#121018] text-[#232331] dark:text-[#f1eff7]">
-      <DotGrid />
-      <div className="ambient-orb ambient-orb-left" />
-      <div className="ambient-orb ambient-orb-right" />
-      <div className="relative mx-auto flex h-dvh w-full max-w-xl flex-col pl-[calc(1.25rem+env(safe-area-inset-left))] pr-[calc(1.25rem+env(safe-area-inset-right))] pt-[calc(1.25rem+env(safe-area-inset-top))] sm:pl-[calc(2rem+env(safe-area-inset-left))] sm:pr-[calc(2rem+env(safe-area-inset-right))]">
-        <header className="flex shrink-0 items-center justify-between gap-2">
+    <main className="app-shell">
+      <div className="app-frame">
+        <header className="app-header">
           <Brand />
           <div className="flex items-center gap-2">
             {planReady && !planError ? (
@@ -418,7 +412,7 @@ export default function Home() {
           {/* overflow-x-hidden on purpose: `overflow-y-auto` alone computes
               overflow-x to `auto` too, so anything a few pixels too wide gives
               the whole app a sideways scroll. Nothing here scrolls sideways. */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pb-[calc(6rem+env(safe-area-inset-bottom))]">
+          <div className="app-content">
           <AnimatePresence mode="wait">
             {tab === "home" && flowView === "idle" ? (
               <IntroScreen

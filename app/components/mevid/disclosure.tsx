@@ -41,15 +41,15 @@ export function Disclosure({ icon, label, open, onToggle, sectionRef, onOpened, 
         className="flex w-full items-center justify-between gap-3 py-3 text-left transition-opacity active:opacity-60"
       >
         <span className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#f0ecff] text-[#7657dd] dark:bg-[#2c2740] dark:text-[#c4b3ff]">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#e8eddb] text-[#466447] dark:bg-[#2c3c2b] dark:text-[#d4ed8a]">
             {icon}
           </span>
-          <span className="text-base font-bold text-[#242432] dark:text-[#f2f0f8]">{label}</span>
+          <span className="text-base font-bold text-[#25352d] dark:text-[#f1f2e8]">{label}</span>
         </span>
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: DISCLOSURE_DURATION, ease: EASE_CLOSE }}
-          className="shrink-0 text-[#7657dd] dark:text-[#c4b3ff]"
+          className="shrink-0 text-[#466447] dark:text-[#d4ed8a]"
         >
           <ChevronDown size={20} />
         </motion.span>

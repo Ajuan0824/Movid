@@ -28,7 +28,7 @@ const FALLBACK: PlanContextValue = {
   reload: () => {},
 };
 
-const PlanContext = createContext<PlanContextValue>(FALLBACK);
+export const PlanContext = createContext<PlanContextValue>(FALLBACK);
 
 /** How often a long-lived session re-checks for the weekly refill. */
 const REFILL_POLL_MS = 10 * 60 * 1000;

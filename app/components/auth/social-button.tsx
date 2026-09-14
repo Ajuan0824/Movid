@@ -37,6 +37,7 @@ export function SocialButton({ provider, children, onClick, disabled, loading }:
   return (
     <motion.button
       type="button"
+      aria-label={typeof children === "string" ? children : undefined}
       whileTap={loading ? undefined : { scale: tapScale }}
       disabled={disabled}
       onClick={() => {
@@ -44,7 +45,7 @@ export function SocialButton({ provider, children, onClick, disabled, loading }:
         onClick();
       }}
       className={`flex w-full items-center justify-center gap-2.5 rounded-full border px-5 py-3.5 text-base font-semibold shadow-sm transition disabled:opacity-60 ${
-        isApple ? "border-black bg-black text-white hover:bg-[#1a1a1a]" : "border-[#e2dfe8] dark:border-white/10 bg-white dark:bg-[#211e2c] text-[#3c3946] dark:text-[#ece9f4] hover:border-[#cfc8df]"
+        isApple ? "border-black bg-black text-white hover:bg-[#1a1a1a]" : "border-[#dedfd5] dark:border-white/10 bg-white dark:bg-[#212d25] text-[#354538] dark:text-[#eaf0e4] hover:border-[#cfc8df]"
       }`}
     >
       <AnimatePresence mode="popLayout" initial={false}>
@@ -55,12 +56,12 @@ export function SocialButton({ provider, children, onClick, disabled, loading }:
             animate={{ opacity: 1, rotate: 360 }}
             exit={{ opacity: 0 }}
             transition={{ rotate: { duration: 0.7, repeat: Infinity, ease: "linear" }, opacity: { duration: 0.15 } }}
-            className={`inline-block h-4 w-4 rounded-full border-2 ${isApple ? "border-white/35 border-t-white" : "border-[#d8d5e1] border-t-[#7657dd]"}`}
+            className={`inline-block h-4 w-4 rounded-full border-2 ${isApple ? "border-white/35 border-t-white" : "border-[#d8d5e1] border-t-[#466447]"}`}
           />
         ) : (
           <motion.span key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2.5">
             {isApple ? <AppleMark /> : <GoogleMark />}
-            {children}
+            <span>{isApple ? "Apple" : "Google"}</span>
           </motion.span>
         )}
       </AnimatePresence>

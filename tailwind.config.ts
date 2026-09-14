@@ -6,7 +6,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "Arial", "sans-serif"],
+        sans: ["var(--font-dm-sans)", "Arial", "sans-serif"],
       },
     },
   },

@@ -48,18 +48,18 @@ export function ForgotPasswordScreen({ copy, locale, onNavigate }: ForgotPasswor
       onBack={() => onNavigate("login")}
       backLabel={copy.auth.backToLogin}
       footer={
-        <button onClick={() => onNavigate("login")} className="font-semibold text-[#7657dd] dark:text-[#c4b3ff] hover:underline">{t.back}</button>
+        <button onClick={() => onNavigate("login")} className="font-semibold text-[#466447] dark:text-[#d4ed8a] hover:underline">{t.back}</button>
       }
     >
       {error ? <AuthErrorBanner message={error} /> : null}
       {sent ? (
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center gap-3 py-4 text-center">
-          <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f0ecff] dark:bg-[#2c2740] text-[#7657dd] dark:text-[#c4b3ff]"><MailCheck size={26} /></div>
+          <div className="grid h-14 w-14 place-items-center rounded-full bg-[#e8eddb] dark:bg-[#2c3c2b] text-[#466447] dark:text-[#d4ed8a]"><MailCheck size={26} /></div>
           {/* Deliberately conditional: with email enumeration protection on,
               Firebase reports success whether or not an account exists, so
               claiming "we sent it" would be a guess. */}
-          <p className="text-sm leading-6 text-[#4f4d5a] dark:text-[#d8d3e2]">{t.sent}</p>
-          <p className="rounded-2xl bg-[#f3f1fa] dark:bg-[#26222f] px-4 py-3 text-xs leading-5 text-[#6d6b79] dark:text-[#a79fb5]">{t.sentSocialHint}</p>
+          <p className="text-sm leading-6 text-[#53604e] dark:text-[#d1dbc9]">{t.sent}</p>
+          <p className="rounded-2xl bg-[#eceee4] dark:bg-[#253329] px-4 py-3 text-xs leading-5 text-[#73776e] dark:text-[#a6b0a3]">{t.sentSocialHint}</p>
         </motion.div>
       ) : (
         <form

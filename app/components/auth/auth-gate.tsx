@@ -25,7 +25,7 @@ export function AuthGate({ copy, locale, children }: AuthGateProps) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
         <motion.div
-          className="h-9 w-9 rounded-full border-2 border-[#e5ddff] dark:border-[#4a3f73] border-t-[#7657dd]"
+          className="h-9 w-9 rounded-full border-2 border-[#e5ddff] dark:border-[#4a6043] border-t-[#466447]"
           animate={{ rotate: 360 }}
           transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
         />

@@ -31,7 +31,7 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
   const strength = password.length >= 12 ? 3 : password.length >= 8 ? 2 : password.length > 0 ? 1 : 0;
   const strengthLabel = [t.strengthWeak, t.strengthWeak, t.strengthGood, t.strengthStrong][strength];
   const strengthWidth = ["4%", "34%", "68%", "100%"][strength];
-  const strengthColor = strength >= 3 ? "#1f7a4d" : strength === 2 ? "#7657dd" : "#f5b64a";
+  const strengthColor = strength >= 3 ? "#1f7a4d" : strength === 2 ? "#466447" : "#f5b64a";
 
   const submit = async () => {
     if (!email || !password || !confirm) {
@@ -106,21 +106,21 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
             onChange={(event) => setTerms(event.target.checked)}
             className="peer sr-only"
           />
-          <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-[7px] border-2 border-[#cfc8df] text-transparent transition peer-checked:border-[#7657dd] peer-checked:bg-[#7657dd] peer-checked:text-white">
+          <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-[7px] border-2 border-[#cfc8df] text-transparent transition peer-checked:border-[#466447] peer-checked:bg-[#466447] peer-checked:text-white">
             <Check size={12} strokeWidth={3} />
           </span>
-          <span className="text-xs leading-4 text-[#6d6b79] dark:text-[#a79fb5]">
+          <span className="text-xs leading-4 text-[#73776e] dark:text-[#a6b0a3]">
             {t.consentText.split(/(\{terms\}|\{privacy\})/g).map((part, index) => {
               if (part === "{terms}") {
                 return (
-                  <a key={index} href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="text-[#7657dd] underline underline-offset-2 dark:text-[#c4b3ff]">
+                  <a key={index} href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="text-[#466447] underline underline-offset-2 dark:text-[#d4ed8a]">
                     {copy.account.terms}
                   </a>
                 );
               }
               if (part === "{privacy}") {
                 return (
-                  <a key={index} href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="text-[#7657dd] underline underline-offset-2 dark:text-[#c4b3ff]">
+                  <a key={index} href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="text-[#466447] underline underline-offset-2 dark:text-[#d4ed8a]">
                     {copy.account.privacy}
                   </a>
                 );
@@ -133,9 +133,9 @@ export function RegisterScreen({ copy, onNavigate }: RegisterScreenProps) {
         <AuthSubmitButton loading={loading} onTap={() => tapHaptic()}>{t.submit}</AuthSubmitButton>
       </form>
       <div className="my-4 flex items-center gap-3 text-xs font-medium text-[#aaa7b1] dark:text-[#948fa0]">
-        <div className="h-px flex-1 bg-[#e7e3ee]" />{copy.auth.login.orDivider}<div className="h-px flex-1 bg-[#e7e3ee]" />
+        <div className="h-px flex-1 bg-[#dedfd5]" />{copy.auth.login.orDivider}<div className="h-px flex-1 bg-[#dedfd5]" />
       </div>
-      <div className="flex flex-col gap-2.5">
+      <div className="grid grid-cols-2 gap-2">
         <SocialButton provider="google" loading={socialLoading === "google"} disabled={socialLoading !== null} onClick={() => void withSocial("google", signInWithGoogle)}>{copy.auth.login.google}</SocialButton>
         {showApple ? (
           <SocialButton provider="apple" loading={socialLoading === "apple"} disabled={socialLoading !== null} onClick={() => void withSocial("apple", signInWithApple)}>{copy.auth.login.apple}</SocialButton>

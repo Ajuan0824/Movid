@@ -88,12 +88,12 @@ export function ProfileModal({ copy, onClose, onManageAccount }: ProfileModalPro
           />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h2 className="truncate font-display text-xl font-bold tracking-[-0.03em] text-[#232331] dark:text-[#f1eff7]">{t.title}</h2>
+              <h2 className="truncate font-display text-xl font-bold tracking-[-0.03em] text-[#25352d] dark:text-[#f1f2e8]">{t.title}</h2>
               {planReady ? <PlanBadge copy={copy} plan={plan} /> : null}
             </div>
             <p className="truncate text-sm font-semibold text-[#403d4b] dark:text-[#d7d2e2]">{user.email}</p>
           </div>
-          <button onClick={onClose} aria-label={t.close} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/70 dark:bg-white/5 text-[#6d6b79] dark:text-[#a79fb5] hover:bg-white dark:hover:bg-white/15">
+          <button onClick={onClose} aria-label={t.close} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/70 dark:bg-white/5 text-[#73776e] dark:text-[#a6b0a3] hover:bg-white dark:hover:bg-white/15">
             <X size={20} />
           </button>
         </div>
@@ -121,13 +121,13 @@ export function ProfileModal({ copy, onClose, onManageAccount }: ProfileModalPro
             className="liquid-glass-strong mt-3 flex w-full items-center gap-3 rounded-2xl p-4 text-left transition hover:brightness-[.97] dark:hover:brightness-125"
           >
             <span className="min-w-0 flex-1">
-              <span className="block text-base font-bold text-[#232331] dark:text-[#f1eff7]">{t.passwordTitle}</span>
+              <span className="block text-base font-bold text-[#25352d] dark:text-[#f1f2e8]">{t.passwordTitle}</span>
               <span className="mt-0.5 block truncate text-sm font-medium text-[#565361] dark:text-[#bdb7ca]">{t.passwordDescription}</span>
             </span>
-            <ChevronRight size={20} className="shrink-0 text-[#7657dd] dark:text-[#c4b3ff]" />
+            <ChevronRight size={20} className="shrink-0 text-[#466447] dark:text-[#d4ed8a]" />
           </button>
         ) : (
-          <p className="mt-3 rounded-2xl bg-[#f3f1fa] dark:bg-[#26222f] px-4 py-3.5 text-sm font-medium leading-5 text-[#565361] dark:text-[#bdb7ca]">{t.noPasswordProvider}</p>
+          <p className="mt-3 rounded-2xl bg-[#eceee4] dark:bg-[#253329] px-4 py-3.5 text-sm font-medium leading-5 text-[#565361] dark:text-[#bdb7ca]">{t.noPasswordProvider}</p>
         )}
       </motion.div>
     </motion.div>
