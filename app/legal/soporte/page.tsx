@@ -73,9 +73,9 @@ export default function SupportPage() {
 
       <Section title="Documentos">
         <p>
-          <a href="/legal/terminos" className="font-semibold text-[#7657dd] underline underline-offset-2 dark:text-[#c4b3ff]">Condiciones de uso</a>
+          <a href="/legal/terminos" className="font-semibold text-[#466447] underline underline-offset-2 dark:text-[#d4ed8a]">Condiciones de uso</a>
           {" · "}
-          <a href="/legal/privacidad" className="font-semibold text-[#7657dd] underline underline-offset-2 dark:text-[#c4b3ff]">Política de privacidad</a>
+          <a href="/legal/privacidad" className="font-semibold text-[#466447] underline underline-offset-2 dark:text-[#d4ed8a]">Política de privacidad</a>
         </p>
       </Section>
     </>

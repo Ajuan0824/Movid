@@ -20,7 +20,7 @@ export function GlassTextField({ label, type = "text", value, onChange, error, a
 
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-semibold text-[#6d6b79] dark:text-[#a79fb5]">{label}</label>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-semibold text-[#73776e] dark:text-[#a6b0a3]">{label}</label>
       <div className="relative">
         <input
           id={id}
@@ -35,14 +35,14 @@ export function GlassTextField({ label, type = "text", value, onChange, error, a
           <button
             type="button"
             onClick={() => setReveal((current) => !current)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9996a4] dark:text-[#8b8697] hover:text-[#4f4d5a] dark:hover:text-[#d8d3e2]"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7b8075] dark:text-[#a0aa99] hover:text-[#53604e] dark:hover:text-[#d1dbc9]"
             aria-label={reveal ? "Hide password" : "Show password"}
           >
             {reveal ? <EyeOff size={17} /> : <Eye size={17} />}
           </button>
         ) : null}
       </div>
-      {error ? <p className="mt-1.5 text-xs font-medium text-[#e0507a] dark:text-[#ff8fae]">{error}</p> : null}
+      {error ? <p className="mt-1.5 text-xs font-medium text-[#b65742] dark:text-[#f2a18a]">{error}</p> : null}
     </div>
   );
 }

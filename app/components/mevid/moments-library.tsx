@@ -1,173 +1,52 @@
 "use client";
-
-import { AnimatePresence, motion } from "framer-motion";
-import { Clapperboard, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Images, Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { AppCopy } from "../../../lib/mevid/copy";
-import { tapHaptic } from "../../../lib/mevid/haptics";
-import { heroTextItemVariants, heroTextVariants, iosSpring, resultsItemVariants, resultsListVariants, screenTransition, tapScale } from "../../../lib/mevid/motion";
 import { RETENTION_DAYS } from "../../../lib/firebase/generations";
 import type { StoredGeneration } from "../../../lib/mevid/types";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+import { PageHeading, Screen } from "../ui/screen";
+import { Sheet } from "../ui/sheet";
+const PAGE_SIZE = 4;
+const DAY_MS = 86400000;
+function relativeDay(copy: AppCopy, date: Date) {
+  const today = new Date();
+  const days = Math.round((new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() - new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()) / DAY_MS);
+  return days <= 0 ? copy.library.today : days === 1 ? copy.library.yesterday : copy.library.daysAgo.replace("{days}", String(days));
 }
-
-function relativeDay(copy: AppCopy, createdAt: Date) {
-  const days = Math.round((startOfDay(new Date()) - startOfDay(createdAt)) / DAY_MS);
-  if (days <= 0) return copy.library.today;
-  if (days === 1) return copy.library.yesterday;
-  return copy.library.daysAgo.replace("{days}", String(days));
-}
-
-function expiryLabel(copy: AppCopy, createdAt: Date) {
-  const left = RETENTION_DAYS - Math.floor((Date.now() - createdAt.getTime()) / DAY_MS);
-  if (left <= 0) return copy.library.expiresToday;
-  return copy.library.expiresIn.replace("{days}", String(left));
-}
-
-type MomentsLibraryProps = {
-  copy: AppCopy;
-  generations: StoredGeneration[];
-  onOpen: (generation: StoredGeneration) => void;
-  onDelete: (generation: StoredGeneration) => void;
-  onGoHome: () => void;
-};
-
-export function MomentsLibrary({ copy, generations, onOpen, onDelete, onGoHome }: MomentsLibraryProps) {
+export function MomentsLibrary({ copy, generations, onOpen, onDelete, onGoHome }: { copy: AppCopy; generations: StoredGeneration[]; onOpen: (generation: StoredGeneration) => void; onDelete: (generation: StoredGeneration) => void; onGoHome: () => void }) {
   const [confirming, setConfirming] = useState<StoredGeneration | null>(null);
-
-  if (generations.length === 0) {
-    return (
-      <motion.section
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -12 }}
-        transition={screenTransition}
-        className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center py-16 text-center"
-      >
-        <motion.div variants={heroTextVariants} initial="hidden" animate="visible">
-          <motion.div variants={heroTextItemVariants} className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] dark:bg-[#2c2740] px-3.5 py-2 text-sm font-bold text-[#7657dd] dark:text-[#c4b3ff]">
-            <Sparkles size={15} />{copy.results.eyebrow}
-          </motion.div>
-          <motion.h1 variants={heroTextItemVariants} className="font-display text-4xl font-bold tracking-[-0.06em]">{copy.momentsEmpty.title}</motion.h1>
-          <motion.p variants={heroTextItemVariants} className="mx-auto mt-3 max-w-sm text-base leading-6 text-[#6d6b79] dark:text-[#a79fb5]">{copy.momentsEmpty.description}</motion.p>
-        </motion.div>
-        <motion.button whileTap={{ scale: tapScale }} onClick={onGoHome} className="primary-button mt-6">{copy.momentsEmpty.cta}</motion.button>
-      </motion.section>
-    );
-  }
-
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -12 }}
-      transition={screenTransition}
-      className="mx-auto flex w-full max-w-2xl flex-1 flex-col py-6"
-    >
-      <motion.div className="mb-5" variants={heroTextVariants} initial="hidden" animate="visible">
-        <motion.div variants={heroTextItemVariants} className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#f0ecff] dark:bg-[#2c2740] px-3.5 py-2 text-sm font-bold text-[#7657dd] dark:text-[#c4b3ff]">
-          <Clapperboard size={15} />{copy.library.eyebrow}
-        </motion.div>
-        <motion.h1 variants={heroTextItemVariants} className="font-display text-4xl font-bold tracking-[-0.06em] sm:text-5xl">{copy.library.title}</motion.h1>
-        <motion.p variants={heroTextItemVariants} className="mt-2.5 text-base leading-6 text-[#6d6b79] dark:text-[#a79fb5]">{copy.library.description}</motion.p>
-      </motion.div>
-
-      <motion.ul className="grid grid-cols-2 gap-3" variants={resultsListVariants} initial="hidden" animate="visible">
-        {generations.map((generation) => {
-          const cover = generation.highlights[0]?.image;
-          return (
-            <motion.li key={generation.id} variants={resultsItemVariants} className="overflow-hidden rounded-[22px] border border-white/92 dark:border-white/10 bg-white dark:bg-[#211e2c] shadow-panel">
-              <button
-                type="button"
-                onClick={() => {
-                  tapHaptic();
-                  onOpen(generation);
-                }}
-                aria-label={`${copy.library.open} — ${relativeDay(copy, generation.createdAt)}`}
-                className="relative block aspect-[4/3] w-full bg-[#17151f]"
-                style={cover ? { backgroundImage: `url(${cover})`, backgroundPosition: "center", backgroundSize: "cover" } : undefined}
-              >
-                {generation.pending ? (
-                  <span className="absolute inset-0 grid place-items-center bg-black/45">
-                    <span className="flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-bold text-white">
-                      <Loader2 size={13} className="animate-spin" />{copy.library.saving}
-                    </span>
-                  </span>
-                ) : null}
-                <span className="absolute left-2 top-2 rounded-full bg-black/50 px-2.5 py-1 font-mono text-xs font-bold text-white backdrop-blur-sm">
-                  {relativeDay(copy, generation.createdAt)}
-                </span>
-              </button>
-              <div className="flex items-center gap-2 px-3.5 py-3">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-[#242432] dark:text-[#f2f0f8]">
-                    {copy.library.momentsCount.replace("{count}", String(generation.highlights.length))}
-                  </p>
-                  <p className="mt-0.5 truncate text-xs text-[#9996a4] dark:text-[#8b8697]">{expiryLabel(copy, generation.createdAt)}</p>
-                </div>
-                <motion.button
-                  whileTap={{ scale: tapScale }}
-                  disabled={generation.pending}
-                  aria-label={`${copy.library.delete} — ${relativeDay(copy, generation.createdAt)}`}
-                  onClick={() => {
-                    tapHaptic();
-                    setConfirming(generation);
-                  }}
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#fff3f6] dark:bg-[#2e2030] text-[#e0507a] dark:text-[#ff8fae] transition hover:bg-[#ffe4ec] disabled:opacity-40"
-                >
-                  <Trash2 size={17} />
-                </motion.button>
-              </div>
-            </motion.li>
-          );
-        })}
-      </motion.ul>
-
-      <AnimatePresence>
-        {confirming ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-5 backdrop-blur-sm"
-            onClick={() => setConfirming(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 24, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.96 }}
-              transition={iosSpring}
-              onClick={(event) => event.stopPropagation()}
-              className="liquid-glass w-full max-w-xs rounded-[28px] p-6 text-center"
-            >
-              <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-[#fff3f6] dark:bg-[#2e2030] text-[#e0507a] dark:text-[#ff8fae]">
-                <Trash2 size={24} />
-              </div>
-              <p className="text-base font-semibold leading-6 text-[#232331] dark:text-[#f1eff7]">{copy.library.deleteConfirm}</p>
-              <div className="mt-5 flex gap-2">
-                <motion.button whileTap={{ scale: tapScale }} onClick={() => setConfirming(null)} className="secondary-button flex-1">
-                  {copy.auth.profile.close}
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: tapScale }}
-                  onClick={() => {
-                    tapHaptic();
-                    onDelete(confirming);
-                    setConfirming(null);
-                  }}
-                  className="primary-button flex-1 !bg-[#e0507a]"
-                >
-                  {copy.library.delete}
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </motion.section>
-  );
+  const [page, setPage] = useState(0);
+  const pages = Math.max(1, Math.ceil(generations.length / PAGE_SIZE));
+  // Clamp after deletion so an emptied final page never strands the user.
+  const current = Math.min(page, pages - 1);
+  const visible = generations.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE);
+  if (!generations.length) return <Screen>
+    <PageHeading eyebrow={copy.studio.collection} title={copy.library.title} />
+    <div className="flex flex-1 flex-col items-center justify-center text-center">
+      <div className="relative mb-9 h-36 w-28"><div className="absolute inset-0 rotate-[-12deg] rounded-2xl border border-[var(--line)] bg-[var(--surface)]" /><div className="absolute inset-0 grid rotate-[8deg] place-items-center rounded-2xl bg-[#d4ed8a] text-[#466447]"><Images size={38} strokeWidth={1} /></div></div>
+      <h2 className="font-editorial text-3xl">{copy.momentsEmpty.title}</h2><p className="mt-3 max-w-[265px] text-sm leading-6 text-muted">{copy.momentsEmpty.description}</p>
+    </div><button className="primary-button" onClick={onGoHome}>{copy.momentsEmpty.cta}<ArrowUpRight size={18} /></button>
+  </Screen>;
+  return <Screen>
+    <PageHeading eyebrow={copy.studio.collection} title={copy.library.title} action={<button className="icon-button" onClick={onGoHome} aria-label={copy.results.newVideo}><Plus size={20} /></button>} />
+    <motion.ul key={current} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="library-grid">
+      {visible.map((generation) => {
+        const left = Math.max(0, RETENTION_DAYS - Math.floor((Date.now() - generation.createdAt.getTime()) / DAY_MS));
+        return <li key={generation.id} className="library-card">
+          <button className="library-cover" style={{ backgroundImage: `url("${generation.highlights[0]?.image ?? ""}")` }} onClick={() => onOpen(generation)} aria-label={copy.library.open + " — " + relativeDay(copy, generation.createdAt)}>
+            <span className="absolute left-2 top-2 rounded-full bg-black/40 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-sm">{relativeDay(copy, generation.createdAt)}</span>
+            {generation.pending && <span className="absolute inset-0 flex items-center justify-center gap-1 bg-black/40 text-xs text-white"><Loader2 size={14} className="animate-spin" />{copy.library.saving}</span>}
+          </button>
+          <div className="flex shrink-0 items-center gap-1 py-2 pl-3 pr-1"><div className="min-w-0 flex-1"><p className="text-xs font-semibold">{copy.library.momentsCount.replace("{count}", String(generation.highlights.length))}</p><p className="mt-1 text-[10px] text-muted">{left === 0 ? copy.library.expiresToday : copy.library.expiresIn.replace("{days}", String(left))}</p></div><button className="grid h-11 w-10 shrink-0 place-items-center text-muted" disabled={generation.pending} onClick={() => setConfirming(generation)} aria-label={copy.library.delete + " — " + relativeDay(copy, generation.createdAt)}><Trash2 size={15} /></button></div>
+        </li>;
+      })}
+    </motion.ul>
+    <div className="flex shrink-0 items-center justify-between border-t border-[var(--line)] pt-2">
+      <span className="text-xs text-muted" aria-live="polite">{copy.studio.page} {current + 1} / {pages}</span>
+      <div className="flex gap-2"><button className="icon-button" disabled={current === 0} aria-label={copy.studio.previous} onClick={() => setPage(current - 1)}><ChevronLeft size={18} /></button><button className="icon-button" disabled={current === pages - 1} aria-label={copy.studio.next} onClick={() => setPage(current + 1)}><ChevronRight size={18} /></button></div>
+    </div>
+    <p className="text-[11px] leading-4 text-muted">{copy.library.description}</p>
+    {confirming && <Sheet title={copy.library.deleteConfirm} closeLabel={copy.auth.profile.close} onClose={() => setConfirming(null)}><div className="grid grid-cols-2 gap-3"><button className="secondary-button" onClick={() => setConfirming(null)}>{copy.account.deleteCancel}</button><button className="primary-button !bg-[#b64d37] !text-white" onClick={() => { onDelete(confirming); setConfirming(null); }}>{copy.library.delete}</button></div></Sheet>}
+  </Screen>;
 }

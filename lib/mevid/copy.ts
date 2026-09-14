@@ -1,6 +1,7 @@
 import type { Locale } from "./types";
 
 export type AppCopy = {
+  studio: { tagline: string; heroHint: string; liveLife: string; fromVideo: string; toMemories: string; aiSelected: string; previous: string; next: string; page: string; selected: string; selectPhoto: string; collection: string; ready: string; analysingHint: string; oneStar: string; allPhotos: string; proEyebrow: string };
   language: { label: string; english: string; spanish: string; system: string };
   appearance: { label: string; system: string; light: string; dark: string };
   hero: { title: string; titleAccent: string; description: string; maxLength: string; record: string; upload: string };
@@ -68,6 +69,7 @@ export type AppCopy = {
 
 const dictionary: Record<Locale, AppCopy> = {
   en: {
+    studio: { tagline: "Life moves. Keep a little.", heroHint: "Turn the video on your phone into photos worth keeping.", liveLife: "LIVE A LITTLE", fromVideo: "From everyday videos", toMemories: "to forever moments.", aiSelected: "PICKED\nBY AI", previous: "Previous", next: "Next", page: "Page", selected: "selected", selectPhoto: "Select photo", collection: "THE COLLECTION", ready: "Your keepers are ready.", analysingHint: "A little attention to every detail. You can stay right here.", oneStar: "1 analysis · 1 star", allPhotos: "All photos", proEyebrow: "A LITTLE MORE MOVID" },
     language: { label: "Language", english: "English", spanish: "Spanish", system: "Automatic" },
     appearance: { label: "Appearance", system: "Automatic", light: "Light", dark: "Dark" },
     hero: {
@@ -286,6 +288,7 @@ const dictionary: Record<Locale, AppCopy> = {
     },
   },
   es: {
+    studio: { tagline: "La vida pasa. Quédate un poco.", heroHint: "Convierte el vídeo de tu móvil en fotos que merecen quedarse.", liveLife: "VIVE EL MOMENTO", fromVideo: "De vídeos cotidianos", toMemories: "a recuerdos para siempre.", aiSelected: "ELEGIDO\nPOR IA", previous: "Anterior", next: "Siguiente", page: "Página", selected: "seleccionadas", selectPhoto: "Seleccionar foto", collection: "LA COLECCIÓN", ready: "Estas merecen quedarse.", analysingHint: "Un poco de atención a cada detalle. Quédate por aquí.", oneStar: "1 análisis · 1 estrella", allPhotos: "Todas las fotos", proEyebrow: "UN POCO MÁS DE MOVID" },
     language: { label: "Idioma", english: "Inglés", spanish: "Español", system: "Automático" },
     appearance: { label: "Apariencia", system: "Automático", light: "Claro", dark: "Oscuro" },
     hero: {

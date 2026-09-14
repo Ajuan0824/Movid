@@ -12,7 +12,7 @@ type AuthContextValue = {
   refreshUser: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextValue>({ status: "loading", user: null, refreshUser: async () => {} });
+export const AuthContext = createContext<AuthContextValue>({ status: "loading", user: null, refreshUser: async () => {} });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

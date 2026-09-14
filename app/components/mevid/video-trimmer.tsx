@@ -203,7 +203,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
   return (
     <div className="mx-auto w-full max-w-[420px]">
       <div className="glass-panel overflow-hidden rounded-[28px] p-2 shadow-panel">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-[20px] bg-[#17151f]">
+        <div className="trim-preview relative overflow-hidden rounded-[20px] bg-[#18231d]">
           <video
             ref={videoRef}
             src={videoUrl}
@@ -222,7 +222,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
             className="absolute inset-0 grid place-items-center"
           >
             <span
-              className={`grid h-14 w-14 place-items-center rounded-full bg-white/90 text-[#242432] shadow-lg transition-opacity ${
+              className={`grid h-14 w-14 place-items-center rounded-full bg-white/90 text-[#25352d] shadow-lg transition-opacity ${
                 playing ? "opacity-0" : "opacity-100"
               }`}
             >
@@ -236,7 +236,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
 
         <div
           ref={trackRef}
-          className="relative mt-2 h-16 touch-none select-none overflow-hidden rounded-[14px] bg-[#17151f]"
+          className="relative mt-2 h-16 touch-none select-none overflow-hidden rounded-[14px] bg-[#18231d]"
           {...trackDragProps}
         >
           <div className="absolute inset-0 flex">
@@ -259,7 +259,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
           />
 
           <div
-            className="absolute inset-y-0 cursor-grab touch-none border-y-[3px] border-[#ff5c82] active:cursor-grabbing"
+            className="absolute inset-y-0 cursor-grab touch-none border-y-[3px] border-[#eb795e] active:cursor-grabbing"
             style={{ left: pct(draft.start), width: pct(selectedLength) }}
             onPointerDown={beginDrag("window")}
           />
@@ -272,7 +272,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
             style={{ left: pct(draft.start) }}
             onPointerDown={beginDrag("start")}
           >
-            <span className="h-full w-[2px] rounded-full bg-[#ff5c82] shadow-[0_0_4px_rgba(0,0,0,0.45)]" />
+            <span className="h-full w-[2px] rounded-full bg-[#eb795e] shadow-[0_0_4px_rgba(0,0,0,0.45)]" />
           </button>
           <button
             type="button"
@@ -281,7 +281,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
             style={{ left: pct(draft.end) }}
             onPointerDown={beginDrag("end")}
           >
-            <span className="h-full w-[2px] rounded-full bg-[#ff5c82] shadow-[0_0_4px_rgba(0,0,0,0.45)]" />
+            <span className="h-full w-[2px] rounded-full bg-[#eb795e] shadow-[0_0_4px_rgba(0,0,0,0.45)]" />
           </button>
 
           <div
@@ -292,7 +292,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
           </div>
         </div>
 
-        <p className="px-2 pb-1 pt-2.5 text-center text-xs text-[#8f8b99] dark:text-[#a79fb5]">{copy.review.trimHint.replace("{max}", String(maxSeconds))}</p>
+        <p className="px-2 pb-1 pt-2.5 text-center text-xs text-[#8f8b99] dark:text-[#a6b0a3]">{copy.review.trimHint.replace("{max}", String(maxSeconds))}</p>
       </div>
     </div>
   );

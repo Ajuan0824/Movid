@@ -36,7 +36,7 @@ export function HeroCarousel() {
   }, [reduce]);
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[#252334]">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[#25352d]">
       <AnimatePresence initial={false}>
         <motion.img
           key={SHOTS[index]}
@@ -53,7 +53,7 @@ export function HeroCarousel() {
         />
       </AnimatePresence>
       {/* Keeps the white viewfinder chrome (label, timer, corners) legible over any frame. */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/45" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/10" />
     </div>
   );
 }
