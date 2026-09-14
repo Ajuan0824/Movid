@@ -16,6 +16,8 @@ type VideoTrimmerProps = {
   copy: AppCopy;
   videoUrl: string;
   sourceDuration: number;
+  /** Longest window this plan can keep — 15s on free, 30s on Pro. */
+  maxSeconds?: number;
   value: TrimValue;
   /** Fired once when a drag settles. */
   onChange: (value: TrimValue) => void;
@@ -26,7 +28,7 @@ type Drag = { mode: DragMode; pointerId: number; originX: number; from: TrimValu
 
 /**
  * Instagram-style trimmer: a scrubbable filmstrip with two draggable handles.
- * The window is clamped to [MIN_VIDEO_SECONDS, MAX_VIDEO_SECONDS]; the file is
+ * The window is clamped to [MIN_VIDEO_SECONDS, maxSeconds]; the file is
  * never re-encoded — the parent stores the picked in-point and analyses only
  * that slice.
  *
@@ -34,7 +36,7 @@ type Drag = { mode: DragMode; pointerId: number; originX: number; from: TrimValu
  * single rAF loop that writes DOM styles — never React state — so the preview
  * stays smooth and never fights a re-render on a phone.
  */
-export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }: VideoTrimmerProps) {
+export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_VIDEO_SECONDS, value, onChange }: VideoTrimmerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const playheadRef = useRef<HTMLDivElement>(null);
@@ -157,13 +159,13 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
     if (drag.mode === "start") {
       let start = drag.from.start + delta;
       start = Math.min(start, drag.from.end - MIN_VIDEO_SECONDS);
-      start = Math.max(start, 0, drag.from.end - MAX_VIDEO_SECONDS);
+      start = Math.max(start, 0, drag.from.end - maxSeconds);
       next = { start, end: drag.from.end };
       scrubTo(start);
     } else if (drag.mode === "end") {
       let end = drag.from.end + delta;
       end = Math.max(end, drag.from.start + MIN_VIDEO_SECONDS);
-      end = Math.min(end, sourceDuration, drag.from.start + MAX_VIDEO_SECONDS);
+      end = Math.min(end, sourceDuration, drag.from.start + maxSeconds);
       next = { start: drag.from.start, end };
       scrubTo(Math.max(drag.from.start, end - 0.1));
     } else {
@@ -290,7 +292,7 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, value, onChange }
           </div>
         </div>
 
-        <p className="px-2 pb-1 pt-2.5 text-center text-xs text-[#8f8b99] dark:text-[#a79fb5]">{copy.review.trimHint}</p>
+        <p className="px-2 pb-1 pt-2.5 text-center text-xs text-[#8f8b99] dark:text-[#a79fb5]">{copy.review.trimHint.replace("{max}", String(maxSeconds))}</p>
       </div>
     </div>
   );

@@ -1,7 +1,46 @@
 export type Plan = "free" | "pro";
 
+export type PlanLimits = {
+  /** Stars = one video generation each. Refilled at the start of every week. */
+  stars: number;
+  /** How many moments the AI is asked to return per video. */
+  moments: number;
+  /** Longest window that gets analysed; longer uploads are trimmed down to it. */
+  videoSeconds: number;
+  /** Frames sampled from that window and handed to the model. */
+  frames: number;
+};
+
+/**
+ * Everything a plan buys, in one place — the app reads all four numbers from
+ * here so a tier change is a single edit.
+ *
+ * Only `stars` is enforced server-side (firestore.rules `limitFor`, which must
+ * be kept in sync). The rest are client-declared: `/api/analyze` trusts the
+ * plan the client sends, because the expensive part — burning a star — is
+ * already gated by the rules, so the worst a forged "pro" buys is a slightly
+ * richer analysis of a run they still paid a star for.
+ */
+export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
+  free: { stars: 3, moments: 5, videoSeconds: 15, frames: 16 },
+  pro: { stars: 15, moments: 10, videoSeconds: 30, frames: 24 },
+};
+
+export function limitsFor(plan: Plan): PlanLimits {
+  return PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
+}
+
 /** Stars = one video generation each. Refilled at the start of every week. */
-export const WEEKLY_STARS: Record<Plan, number> = { free: 3, pro: 7 };
+export const WEEKLY_STARS: Record<Plan, number> = {
+  free: PLAN_LIMITS.free.stars,
+  pro: PLAN_LIMITS.pro.stars,
+};
+
+/**
+ * The widest window any plan can analyse. Used for clamps that run before the
+ * plan is known (formatting a timer, sizing the trimmer's ceiling).
+ */
+export const MAX_PLAN_VIDEO_SECONDS = PLAN_LIMITS.pro.videoSeconds;
 
 /**
  * Accounts that already existed when plans launched keep pro.

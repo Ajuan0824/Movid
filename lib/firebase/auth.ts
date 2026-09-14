@@ -11,9 +11,11 @@ import {
   onIdTokenChanged,
   setPersistence,
   signInWithCredential,
+  signInWithCustomToken,
   signInWithEmailAndPassword as jsSignIn,
   signOut as jsSignOut,
 } from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { ensureFirebaseApp } from "./config";
 import type { Locale } from "../mevid/types";
 
@@ -43,6 +45,27 @@ const persistenceReady = setPersistence(jsAuth(), browserLocalPersistence).catch
   console.error("Could not set Firebase JS auth persistence", error);
 });
 
+/**
+ * Last-resort bridge when replaying the provider credential doesn't work.
+ *
+ * Apple is the case that needs it: the native SDK accepts the idToken + raw
+ * nonce, but the JS SDK rejects the very same pair with
+ * `auth/missing-or-invalid-nonce`. Instead of fighting the nonce, we take the
+ * ID token the native session already holds and swap it for a custom token via
+ * the `sessionToken` Cloud Function, which the JS SDK signs in with directly.
+ * Provider-agnostic, so it covers any future quirk too.
+ */
+async function bridgeNativeSession() {
+  const { token: idToken } = await FirebaseAuthentication.getIdToken();
+  if (!idToken) throw new Error("No native ID token to bridge from");
+  const call = httpsCallable<{ idToken: string }, { token: string }>(
+    getFunctions(undefined, "us-central1"),
+    "sessionToken",
+  );
+  const { data } = await call({ idToken });
+  await signInWithCustomToken(jsAuth(), data.token);
+}
+
 async function syncJsSignIn(run: () => Promise<unknown>) {
   await persistenceReady;
   try {
@@ -50,9 +73,20 @@ async function syncJsSignIn(run: () => Promise<unknown>) {
   } catch (error) {
     // On the web the plugin already signed the JS SDK in, and an OAuth
     // credential is single-use — replaying it throws. If we're signed in, we're
-    // where we want to be; only a genuine failure (no JS user) should surface.
-    if (!jsAuth().currentUser) throw error;
-    console.warn("JS SDK already signed in; ignoring sync error", error);
+    // where we want to be.
+    if (jsAuth().currentUser) {
+      console.warn("JS SDK already signed in; ignoring sync error", error);
+      return;
+    }
+    // Genuine failure: fall back to the custom-token bridge before giving up,
+    // so a credential the JS SDK won't take doesn't strand the whole sign-in.
+    console.warn("Credential replay failed; bridging the native session instead", error);
+    try {
+      await bridgeNativeSession();
+    } catch (bridgeError) {
+      console.error("Native session bridge failed", bridgeError);
+      throw error;
+    }
   }
 }
 

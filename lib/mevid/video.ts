@@ -1,6 +1,12 @@
+import { MAX_PLAN_VIDEO_SECONDS, PLAN_LIMITS } from "./plan";
 import type { VideoFrame } from "./types";
 
-export const MAX_VIDEO_SECONDS = 15;
+/**
+ * Default analysis window — what a free account gets. Pro doubles it, so
+ * anything that knows the plan should use `limitsFor(plan).videoSeconds`; this
+ * constant only stands in before the plan doc has loaded.
+ */
+export const MAX_VIDEO_SECONDS = PLAN_LIMITS.free.videoSeconds;
 
 /** Shortest window the in-app trimmer will let you settle on. */
 export const MIN_VIDEO_SECONDS = 3;
@@ -13,12 +19,13 @@ export const MIN_VIDEO_SECONDS = 3;
 export const MAX_SOURCE_SECONDS = 10 * 60;
 
 /**
- * Frames handed to the AI. Denser sampling than the eye needs, because the
- * model can only place a moment as precisely as the timeline it was shown:
- * at 16 samples over 15s it sees one every ~0.9s instead of every 1.5s.
- * Keep `app/api/analyze/route.ts` in sync — it caps the array it accepts.
+ * Frames handed to the AI, when the plan isn't known. Denser sampling than the
+ * eye needs, because the model can only place a moment as precisely as the
+ * timeline it was shown: at 16 samples over 15s it sees one every ~0.9s instead
+ * of every 1.5s. Pro's longer window gets proportionally more samples so the
+ * spacing stays comparable — see `PLAN_LIMITS[plan].frames`.
  */
-export const SAMPLE_COUNT = 16;
+export const SAMPLE_COUNT = PLAN_LIMITS.free.frames;
 
 /**
  * Candidate frames scored per highlight. Every one costs a seek and a decode,
@@ -42,8 +49,8 @@ const SCORING_WIDTH = 480;
  */
 const PEAK_BIAS = 0.35;
 
-export function formatTime(value: number) {
-  const seconds = Math.max(0, Math.min(value, MAX_VIDEO_SECONDS));
+export function formatTime(value: number, max = MAX_PLAN_VIDEO_SECONDS) {
+  const seconds = Math.max(0, Math.min(value, max));
   return `00:${seconds.toFixed(1).padStart(4, "0")}`;
 }
 
@@ -267,6 +274,7 @@ export async function extractFrames(
   source: string,
   windowSeconds: number,
   offsetSeconds = 0,
+  sampleCount = SAMPLE_COUNT,
 ): Promise<VideoFrame[]> {
   const video = await loadVideoElement(source);
   try {
@@ -275,8 +283,8 @@ export async function extractFrames(
       const { canvas, context } = createCanvas(video, 480);
 
       const frames: VideoFrame[] = [];
-      for (let index = 0; index < SAMPLE_COUNT; index += 1) {
-        const local = Math.min(span - 0.05, Math.max(0, ((index + 0.5) / SAMPLE_COUNT) * span));
+      for (let index = 0; index < sampleCount; index += 1) {
+        const local = Math.min(span - 0.05, Math.max(0, ((index + 0.5) / sampleCount) * span));
         await seekTo(video, start + local);
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         frames.push({ time: Number(local.toFixed(2)), image: canvas.toDataURL("image/jpeg", 0.68) });

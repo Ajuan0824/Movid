@@ -1,4 +1,4 @@
-# Movid
+# MoVid
 
 Aplicación móvil que analiza un clip de 15 segundos y selecciona automáticamente
 los 5 mejores momentos, listos para descargar o compartir. Se puede grabar dentro
@@ -475,7 +475,7 @@ node scripts/apply-google-plist.mjs
 - **`currentPeriodStart()` está duplicado** en `lib/mevid/plan.ts` y en
   `functions/index.js` (la función no comparte el bundle de la app). Si se toca
   uno hay que tocar el otro, o cliente y servidor discreparán sobre qué semana es.
-- **Los identificadores siguen diciendo `mevid`** aunque la app se llame Movid:
+- **Los identificadores siguen diciendo `mevid`** aunque la app se llame MoVid:
   `appId` (`com.mevid.app`), la clave de localStorage `mevid-theme-pref`, el
   scope de logs y los nombres de carpeta. Es deliberado — cambiar el `appId`
   desvincularía la app nativa instalada y su registro en Firebase.

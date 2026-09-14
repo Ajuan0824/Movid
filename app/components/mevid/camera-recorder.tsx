@@ -16,11 +16,13 @@ type Status = "starting" | "ready" | "recording" | "error";
 
 type CameraRecorderProps = {
   copy: AppCopy;
+  /** Recording cap for the caller's plan — 15s on free, 30s on Pro. */
+  maxSeconds?: number;
   onCancel: () => void;
   onRecorded: (video: Blob, duration: number) => void;
 };
 
-export function CameraRecorder({ copy, onCancel, onRecorded }: CameraRecorderProps) {
+export function CameraRecorder({ copy, maxSeconds = MAX_VIDEO_SECONDS, onCancel, onRecorded }: CameraRecorderProps) {
   const t = copy.camera;
   const previewRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -104,7 +106,7 @@ export function CameraRecorder({ copy, onCancel, onRecorded }: CameraRecorderPro
     };
     recorder.onstop = () => {
       // Measured from the wall clock: the file itself carries no duration.
-      const seconds = Math.min((Date.now() - startedAtRef.current) / 1000, MAX_VIDEO_SECONDS);
+      const seconds = Math.min((Date.now() - startedAtRef.current) / 1000, maxSeconds);
       const blob = new Blob(chunksRef.current, { type: recorder.mimeType || mimeType || "video/mp4" });
       stopStream();
       if (blob.size > 0) onRecorded(blob, seconds);
@@ -121,13 +123,13 @@ export function CameraRecorder({ copy, onCancel, onRecorded }: CameraRecorderPro
       setElapsed(seconds);
       // The whole point of the in-app camera: cut it off at the limit instead
       // of letting someone film a minute and get told it's too long after.
-      if (seconds >= MAX_VIDEO_SECONDS) stopRecording();
+      if (seconds >= maxSeconds) stopRecording();
     }, TICK_MS);
   };
 
   const recording = status === "recording";
-  const progress = Math.min(elapsed / MAX_VIDEO_SECONDS, 1);
-  const remaining = Math.max(0, MAX_VIDEO_SECONDS - elapsed);
+  const progress = Math.min(elapsed / maxSeconds, 1);
+  const remaining = Math.max(0, maxSeconds - elapsed);
 
   return (
     <motion.div
@@ -165,7 +167,7 @@ export function CameraRecorder({ copy, onCancel, onRecorded }: CameraRecorderPro
         </button>
 
         <span className="rounded-full bg-black/45 px-3.5 py-2 font-mono text-sm font-bold text-white backdrop-blur-sm">
-          {recording ? `${remaining.toFixed(1)}s` : t.maxHint}
+          {recording ? `${remaining.toFixed(1)}s` : t.maxHint.replace("{max}", String(maxSeconds))}
         </span>
 
         <button

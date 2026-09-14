@@ -6,7 +6,7 @@ import type { AppCopy } from "../../../lib/mevid/copy";
 import type { Locale } from "../../../lib/mevid/types";
 import { tapHaptic } from "../../../lib/mevid/haptics";
 import { iosSpring, tapScale } from "../../../lib/mevid/motion";
-import { nextPeriodStart, type Plan } from "../../../lib/mevid/plan";
+import { nextPeriodStart, PLAN_LIMITS, type Plan } from "../../../lib/mevid/plan";
 
 type StarsEmptyModalProps = {
   copy: AppCopy;
@@ -58,7 +58,7 @@ export function StarsEmptyModal({ copy, locale, plan, total, onClose, onGoPro }:
           {isPro ? t.emptyProTitle : t.emptyFreeTitle}
         </h2>
         <p className="mt-2 text-sm leading-6 text-[#6d6b79] dark:text-[#a79fb5]">
-          {(isPro ? t.emptyProBody : t.emptyFreeBody).replace("{total}", String(total))}
+          {(isPro ? t.emptyProBody : t.emptyFreeBody).replace("{total}", String(total)).replace("{pro}", String(PLAN_LIMITS.pro.stars))}
         </p>
         <p className="mt-3 inline-block rounded-full bg-[#f3f1fa] dark:bg-[#26222f] px-3 py-1.5 text-xs font-semibold text-[#6d6b79] dark:text-[#a79fb5]">
           {t.refillsOn.replace("{date}", refillDate)}

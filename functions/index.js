@@ -1,9 +1,11 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { onRequest } = require("firebase-functions/v2/https");
+const { onRequest, onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const { logger } = require("firebase-functions/v2");
 const { initializeApp } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, Timestamp } = require("firebase-admin/firestore");
+const { getStorage } = require("firebase-admin/storage");
 
 initializeApp();
 const db = getFirestore();
@@ -208,3 +210,107 @@ exports.revenuecatWebhook = onRequest(
     }
   },
 );
+
+/**
+ * Permanent account deletion, required by App Store guideline 5.1.1(v): an app
+ * that lets you create an account must let you delete it from inside the app.
+ *
+ * Callable rather than an HTTP endpoint so the caller's identity comes from the
+ * verified Firebase ID token — a client can only ever delete itself.
+ *
+ * Order matters. Everything the user owns goes first and the Auth record last,
+ * so a failure halfway through leaves an account that can sign in and retry
+ * rather than orphaned data nobody can reach (Storage and Firestore rules both
+ * key off request.auth.uid, so deleting Auth first would strand the rest).
+ *
+ * Idempotent: every step tolerates "already gone", so a retry after a partial
+ * failure completes the job.
+ */
+exports.deleteAccount = onCall({ region: "us-central1" }, async (request) => {
+  const uid = request.auth && request.auth.uid;
+  if (!uid) {
+    throw new HttpsError("unauthenticated", "Sign in before deleting your account.");
+  }
+
+  const bucket = getStorage().bucket();
+  const summary = { generations: 0, docs: 0 };
+
+  try {
+    // 1. Stored clips and stills, plus the avatar. Two prefixes because
+    //    generations live outside users/ so the bucket's 30-day lifecycle rule
+    //    can target them alone (see storage.rules).
+    await Promise.all([
+      bucket.deleteFiles({ prefix: `generations/${uid}/`, force: true }),
+      bucket.deleteFiles({ prefix: `users/${uid}/`, force: true }),
+    ]);
+
+    // 2. The generations subcollection. Paged: deleting a parent doc in
+    //    Firestore does NOT delete its subcollections.
+    for (;;) {
+      const page = await db.collection("users").doc(uid).collection("generations").limit(PAGE_SIZE).get();
+      if (page.empty) break;
+      const batch = db.batch();
+      page.docs.forEach((entry) => batch.delete(entry.ref));
+      await batch.commit();
+      summary.generations += page.size;
+      if (page.size < PAGE_SIZE) break;
+    }
+
+    // 3. The plan doc and the RevenueCat mirror.
+    const batch = db.batch();
+    batch.delete(db.collection("users").doc(uid));
+    batch.delete(db.collection("billing").doc(uid));
+    await batch.commit();
+    summary.docs = 2;
+
+    // 4. The Auth record last — this is what makes the account irrecoverable.
+    await getAuth().deleteUser(uid);
+
+    logger.info(`deleteAccount: removed ${uid}`, summary);
+    return { ok: true };
+  } catch (error) {
+    logger.error(`deleteAccount failed for ${uid}`, error);
+    throw new HttpsError("internal", "Could not delete the account. Please try again.");
+  }
+});
+
+/**
+ * Bridges a native Firebase session onto the JS SDK.
+ *
+ * Background: the app runs @capacitor-firebase/authentication with
+ * `skipNativeAuth: false`, so a social sign-in authenticates the *native* SDK
+ * only, while Firestore and Storage go through the *JS* SDK. `lib/firebase/auth.ts`
+ * normally closes that gap by replaying the provider credential, but Apple's
+ * replay fails with `auth/missing-or-invalid-nonce` — the same idToken and raw
+ * nonce the native SDK just accepted are rejected by the JS one.
+ *
+ * This is the provider-agnostic way out: the client sends the ID token the
+ * native SDK already holds, we verify it, and hand back a custom token the JS
+ * SDK can sign in with. No nonce, no credential replay.
+ *
+ * Security: `verifyIdToken` checks the signature, expiry and audience against
+ * this project, so the uid can't be forged. The call is intentionally
+ * unauthenticated in the callable sense — the caller has no JS session yet;
+ * the ID token in the payload *is* the credential.
+ */
+exports.sessionToken = onCall({ region: "us-central1" }, async (request) => {
+  const idToken = request.data && request.data.idToken;
+  if (typeof idToken !== "string" || idToken.length === 0) {
+    throw new HttpsError("invalid-argument", "An ID token is required.");
+  }
+
+  let decoded;
+  try {
+    decoded = await getAuth().verifyIdToken(idToken);
+  } catch (error) {
+    logger.warn("sessionToken: rejected an ID token", error);
+    throw new HttpsError("unauthenticated", "That session is not valid.");
+  }
+
+  try {
+    return { token: await getAuth().createCustomToken(decoded.uid) };
+  } catch (error) {
+    logger.error(`sessionToken: could not mint a token for ${decoded.uid}`, error);
+    throw new HttpsError("internal", "Could not start the session.");
+  }
+});

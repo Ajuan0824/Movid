@@ -2,15 +2,17 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.mevid.app',
-  appName: 'Movid',
+  appName: 'MoVid',
   webDir: 'public',
   server: {
-    // El simulador de iOS comparte la red del Mac, así que `localhost` apunta al
-    // `npm run dev` que corre en el propio Mac. Para un iPhone físico en la misma
-    // red WiFi hay que usar la IP LAN del Mac (ej. CAP_SERVER_URL=http://192.168.68.54:3000).
-    // Al desplegar en Vercel: poner aquí la URL de producción (https) y quitar cleartext.
-    url: process.env.CAP_SERVER_URL ?? 'http://localhost:3000',
-    cleartext: true
+    // Por defecto la app (simulador y dispositivo) carga la web de producción.
+    // Para desarrollo con live-reload, arrancar `npm run dev` y sincronizar con:
+    //   CAP_SERVER_URL=http://localhost:3000 npx cap sync ios
+    // Para un iPhone físico en la misma WiFi usar la IP LAN del Mac:
+    //   CAP_SERVER_URL=http://192.168.68.54:3000 npx cap sync ios
+    url: process.env.CAP_SERVER_URL ?? 'https://movid-iota.vercel.app',
+    // cleartext solo hace falta para las URLs http de desarrollo.
+    cleartext: (process.env.CAP_SERVER_URL ?? '').startsWith('http://')
   },
   ios: {
     // 'never': el WebView va a pantalla completa por debajo de la barra de

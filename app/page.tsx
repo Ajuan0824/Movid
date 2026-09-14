@@ -16,6 +16,7 @@ import { MomentsLibrary } from "./components/mevid/moments-library";
 import { ProScreen } from "./components/mevid/pro-screen";
 import { ResultsScreen } from "./components/mevid/results-screen";
 import { ReviewScreen } from "./components/mevid/review-screen";
+import { HeaderStars } from "./components/mevid/star-meter";
 import { StarsEmptyModal } from "./components/mevid/stars-empty-modal";
 import { TabBar, type AppTab } from "./components/mevid/tab-bar";
 import { useGenerations } from "../hooks/use-generations";
@@ -25,6 +26,7 @@ import { useIsMobile } from "../hooks/use-is-mobile";
 import { useLocalePref } from "../hooks/use-locale-pref";
 import { useThemePref } from "../hooks/use-theme-pref";
 import { getCopy } from "../lib/mevid/copy";
+import { limitsFor } from "../lib/mevid/plan";
 import { isInAppCameraSupported } from "../lib/mevid/recorder";
 import type { AnalysisResponse, StoredGeneration, VideoHighlight } from "../lib/mevid/types";
 import { extractFrames, getVideoDuration, hydrateHighlightImages, MAX_SOURCE_SECONDS, MAX_VIDEO_SECONDS } from "../lib/mevid/video";
@@ -87,6 +89,10 @@ export default function Home() {
   const urlRef = useRef<string | null>(null);
   const videoBlobRef = useRef<Blob | null>(null);
   const copy = getCopy(locale);
+  // Pro analyses a longer window, samples it more densely and gets more
+  // moments back. Everything downstream reads these three numbers.
+  const limits = limitsFor(plan);
+  const maxSeconds = limits.videoSeconds;
 
   const { generations, save: saveGeneration, remove: removeGeneration } = useGenerations();
   const openGeneration = generations.find((entry) => entry.id === openGenerationId) ?? null;
@@ -105,11 +111,11 @@ export default function Home() {
     setVideoUrl(nextUrl);
     setSourceDuration(duration);
     setTrimStart(0);
-    // Default window: the first 15s (or the whole clip if it's shorter). The
-    // trimmer, shown only for longer clips, moves it from here.
-    setVideoDuration(Math.min(duration, MAX_VIDEO_SECONDS));
+    // Default window: the first 15s (30s on Pro), or the whole clip if it's
+    // shorter. The trimmer, shown only for longer clips, moves it from here.
+    setVideoDuration(Math.min(duration, maxSeconds));
     setFlowView("review");
-  }, [clearVideo]);
+  }, [clearVideo, maxSeconds]);
 
   const handleTrimChange = useCallback((start: number, end: number) => {
     setTrimStart(start);
@@ -131,8 +137,8 @@ export default function Home() {
   }, []);
 
   const handleSubscribe = useCallback(
-    async (billing: "monthly" | "yearly") => {
-      const outcome = await purchases.subscribe(billing);
+    async () => {
+      const outcome = await purchases.subscribe();
       if (outcome === "ok") setNotice(copy.pro.activating);
       else if (outcome === "unavailable") setNotice(copy.pro.unavailable);
       else if (outcome === "error") setError(copy.pro.errorGeneric);
@@ -233,7 +239,7 @@ export default function Home() {
     try {
       let capturedFrames;
       try {
-        capturedFrames = await extractFrames(videoUrl, videoDuration, trimStart);
+        capturedFrames = await extractFrames(videoUrl, videoDuration, trimStart, limits.frames);
       } catch (frameError) {
         errorKey = "analysisVideoUnreadable";
         throw frameError;
@@ -242,7 +248,7 @@ export default function Home() {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ frames: capturedFrames, duration: videoDuration, locale }),
+        body: JSON.stringify({ frames: capturedFrames, duration: videoDuration, locale, plan }),
       });
       if (!response.ok) {
         // 503 is the server telling us it has no OpenAI key — retrying won't
@@ -303,8 +309,8 @@ export default function Home() {
     setSelected(0);
     setChecked(new Set());
     setTrimStart(0);
-    setVideoDuration(MAX_VIDEO_SECONDS);
-    setSourceDuration(MAX_VIDEO_SECONDS);
+    setVideoDuration(maxSeconds);
+    setSourceDuration(maxSeconds);
     setAnalysisFound(null);
     setFlowView("idle");
     setTab("home");
@@ -333,7 +339,7 @@ export default function Home() {
     const blob = await (await fetch(src)).blob();
     const subtype = (blob.type.split("/")[1] ?? "jpeg").toLowerCase();
     const extension = subtype === "svg+xml" ? "svg" : subtype === "jpeg" ? "jpg" : subtype;
-    return new File([blob], `movid-${slugify(highlight.title)}.${extension}`, { type: blob.type || "image/jpeg" });
+    return new File([blob], `MoVid-${slugify(highlight.title)}.${extension}`, { type: blob.type || "image/jpeg" });
   };
 
   /**
@@ -386,9 +392,17 @@ export default function Home() {
       <div className="ambient-orb ambient-orb-left" />
       <div className="ambient-orb ambient-orb-right" />
       <div className="relative mx-auto flex h-dvh w-full max-w-xl flex-col pl-[calc(1.25rem+env(safe-area-inset-left))] pr-[calc(1.25rem+env(safe-area-inset-right))] pt-[calc(1.25rem+env(safe-area-inset-top))] sm:pl-[calc(2rem+env(safe-area-inset-left))] sm:pr-[calc(2rem+env(safe-area-inset-right))]">
-        <header className="flex shrink-0 items-center justify-between">
+        <header className="flex shrink-0 items-center justify-between gap-2">
           <Brand />
           <div className="flex items-center gap-2">
+            {planReady && !planError ? (
+              <HeaderStars
+                copy={copy}
+                left={starsLeft}
+                total={starsTotal}
+                onClick={() => changeTab(plan === "pro" ? "cuenta" : "pro")}
+              />
+            ) : null}
             <AccountMenu
               copy={copy}
               onManageAccount={() => changeTab("cuenta")}
@@ -397,12 +411,14 @@ export default function Home() {
               themePref={themePref}
               onThemePrefChange={setThemePref}
             />
-            <div className="hidden items-center gap-2 rounded-full border border-white dark:border-white/10 bg-white/70 dark:bg-white/5 px-4 py-2 text-xs font-semibold text-[#666474] dark:text-[#b3aec0] shadow-sm backdrop-blur-sm sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-[#ff5c82]" />SHIPATON 2026</div>
           </div>
         </header>
 
         <AuthGate copy={copy} locale={locale}>
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(6rem+env(safe-area-inset-bottom))]">
+          {/* overflow-x-hidden on purpose: `overflow-y-auto` alone computes
+              overflow-x to `auto` too, so anything a few pixels too wide gives
+              the whole app a sideways scroll. Nothing here scrolls sideways. */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pb-[calc(6rem+env(safe-area-inset-bottom))]">
           <AnimatePresence mode="wait">
             {tab === "home" && flowView === "idle" ? (
               <IntroScreen
@@ -414,14 +430,9 @@ export default function Home() {
                 onUpload={() => uploadInputRef.current?.click()}
                 onRecordFileChange={handleFileInputChange}
                 onUploadFileChange={handleFileInputChange}
-                planReady={planReady}
-                planError={planError}
-                onReloadPlan={reloadPlan}
-                starsLeft={starsLeft}
-                starsTotal={starsTotal}
               />
             ) : null}
-            {tab === "home" && flowView === "review" && videoUrl ? <ReviewScreen key="home-review" copy={copy} videoUrl={videoUrl} duration={videoDuration} sourceDuration={sourceDuration} trimStart={trimStart} onTrimChange={handleTrimChange} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
+            {tab === "home" && flowView === "review" && videoUrl ? <ReviewScreen key="home-review" copy={copy} videoUrl={videoUrl} duration={videoDuration} sourceDuration={sourceDuration} trimStart={trimStart} maxSeconds={maxSeconds} onTrimChange={handleTrimChange} onRetry={startOver} onAnalyse={analyseVideo} /> : null}
             {tab === "home" && flowView === "analysing" ? <AnalysisScreen key="home-analysing" copy={copy} step={analysisStep} videoUrl={videoUrl} duration={videoDuration} trimStart={trimStart} found={analysisFound} /> : null}
 
             {tab === "momentos" && openGeneration ? (
@@ -460,9 +471,8 @@ export default function Home() {
                 copy={copy}
                 available={purchases.available}
                 busy={purchases.busy}
+                hasOffering={purchases.hasOffering}
                 monthlyPrice={purchases.monthlyPrice}
-                yearlyPrice={purchases.yearlyPrice}
-                yearlyPerMonthPrice={purchases.yearlyPerMonthPrice}
                 onSubscribe={handleSubscribe}
                 onRestore={handleRestore}
               />
@@ -490,6 +500,7 @@ export default function Home() {
         {cameraOpen ? (
           <CameraRecorder
             copy={copy}
+            maxSeconds={maxSeconds}
             onCancel={() => setCameraOpen(false)}
             onRecorded={(video, duration) => {
               setCameraOpen(false);

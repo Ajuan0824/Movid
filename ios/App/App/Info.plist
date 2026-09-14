@@ -6,8 +6,12 @@
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<!-- Export compliance: the app uses only the standard HTTPS/TLS exemption,
+	     so App Store Connect stops asking on every upload. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleDisplayName</key>
-        <string>MeVid</string>
+        <string>MoVid</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -62,12 +66,16 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>MeVid necesita acceso a la cámara para grabar tus momentos.</string>
+	<string>MoVid necesita acceso a la cámara para grabar tus momentos.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>MeVid necesita acceso al micrófono para grabar el audio de tus vídeos.</string>
+	<string>MoVid necesita acceso al micrófono para grabar el audio de tus vídeos.</string>
+	<!-- Local networking only, not a blanket allow: the dev server runs over
+	     plain http on localhost / the LAN, while production is https on Vercel.
+	     NSAllowsArbitraryLoads would disable ATS for every host and draws an
+	     App Store review question for no benefit. -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>NSAllowsArbitraryLoads</key>
+		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
 	<key>CFBundleURLTypes</key>

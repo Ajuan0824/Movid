@@ -3,9 +3,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{uid} {
-      // Keep in sync with WEEKLY_STARS in lib/mevid/plan.ts.
+      // Keep in sync with PLAN_LIMITS[plan].stars in lib/mevid/plan.ts.
       function limitFor(plan) {
-        return plan == 'pro' ? 7 : 3;
+        return plan == 'pro' ? 15 : 3;
       }
 
       // Everyone who already had an account when plans launched keeps pro.

@@ -34,11 +34,15 @@ type PurchasesContextValue = {
   entitledPro: boolean;
   /** A purchase/restore is in flight, or we're waiting for the webhook to land. */
   busy: boolean;
+  /**
+   * The current offering actually carries a monthly package. False means the
+   * RevenueCat dashboard has no product wired to its current offering (SDK
+   * error 23), so there is nothing to buy — don't offer a CTA that must fail.
+   */
+  hasOffering: boolean;
+  /** Localised price of the monthly package, straight from the store. */
   monthlyPrice: string | null;
-  yearlyPrice: string | null;
-  /** Per-month price of the annual plan, for the "€4.08/mo" line. */
-  yearlyPerMonthPrice: string | null;
-  subscribe: (billing: "monthly" | "yearly") => Promise<PurchaseOutcome>;
+  subscribe: () => Promise<PurchaseOutcome>;
   restore: () => Promise<RestoreOutcome>;
 };
 
@@ -47,9 +51,8 @@ const FALLBACK: PurchasesContextValue = {
   ready: false,
   entitledPro: false,
   busy: false,
+  hasOffering: false,
   monthlyPrice: null,
-  yearlyPrice: null,
-  yearlyPerMonthPrice: null,
   subscribe: async () => "unavailable",
   restore: async () => "unavailable",
 };
@@ -81,11 +84,8 @@ export function PurchasesProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(!available);
   const [entitledPro, setEntitledPro] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [prices, setPrices] = useState<{ monthly: string | null; yearly: string | null; yearlyPerMonth: string | null }>({
-    monthly: null,
-    yearly: null,
-    yearlyPerMonth: null,
-  });
+  const [monthlyPrice, setMonthlyPrice] = useState<string | null>(null);
+  const [hasOffering, setHasOffering] = useState(false);
 
   // Keep the latest reloadPlan without making the poller depend on it.
   const reloadPlanRef = useRef(reloadPlan);
@@ -106,11 +106,8 @@ export function PurchasesProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const applyOfferings = useCallback((offering: import("@revenuecat/purchases-capacitor").PurchasesOffering | null) => {
-    setPrices({
-      monthly: offering?.monthly?.product.priceString ?? null,
-      yearly: offering?.annual?.product.priceString ?? null,
-      yearlyPerMonth: offering?.annual?.product.pricePerMonthString ?? null,
-    });
+    setMonthlyPrice(offering?.monthly?.product.priceString ?? null);
+    setHasOffering(Boolean(offering?.monthly));
   }, []);
 
   useEffect(() => {
@@ -151,13 +148,13 @@ export function PurchasesProvider({ children }: { children: ReactNode }) {
   }, [available, uid, applyOfferings]);
 
   const subscribe = useCallback<PurchasesContextValue["subscribe"]>(
-    async (billing) => {
+    async () => {
       if (!available) return "unavailable";
       setBusy(true);
       try {
         const { Purchases } = await loadPurchases();
         const offerings = await Purchases.getOfferings();
-        const pkg = billing === "yearly" ? offerings.current?.annual : offerings.current?.monthly;
+        const pkg = offerings.current?.monthly;
         if (!pkg) {
           setBusy(false);
           return "error";
@@ -209,13 +206,12 @@ export function PurchasesProvider({ children }: { children: ReactNode }) {
       ready,
       entitledPro,
       busy,
-      monthlyPrice: prices.monthly,
-      yearlyPrice: prices.yearly,
-      yearlyPerMonthPrice: prices.yearlyPerMonth,
+      hasOffering,
+      monthlyPrice,
       subscribe,
       restore,
     }),
-    [available, ready, entitledPro, busy, prices, subscribe, restore],
+    [available, ready, entitledPro, busy, hasOffering, monthlyPrice, subscribe, restore],
   );
 
   return <PurchasesContext.Provider value={value}>{children}</PurchasesContext.Provider>;

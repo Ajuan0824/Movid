@@ -85,7 +85,7 @@ export function SplashScreen() {
               animate={{ opacity: 1, y: 0, letterSpacing: "-0.06em", paddingLeft: "0em" }}
               transition={{ duration: 0.75, delay: 0.32, ease: [0.22, 1, 0.36, 1] }}
             >
-              Movid
+              MoVid
             </motion.p>
           </div>
         </motion.div>

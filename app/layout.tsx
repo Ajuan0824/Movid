@@ -18,7 +18,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Movid — find your best moments",
+  title: "MoVid — find your best moments",
   description: "Record. Analyse. Share your best moments.",
 };
 

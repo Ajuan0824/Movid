@@ -1,6 +1,6 @@
 {
   "name": "functions",
-  "description": "Cloud Functions for MeVid",
+  "description": "Cloud Functions for MoVid",
   "private": true,
   "main": "index.js",
   "engines": {

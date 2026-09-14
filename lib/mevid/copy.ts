@@ -3,7 +3,7 @@ import type { Locale } from "./types";
 export type AppCopy = {
   language: { label: string; english: string; spanish: string; system: string };
   appearance: { label: string; system: string; light: string; dark: string };
-  hero: { title: string; titleAccent: string; description: string; maxLength: string; record: string; upload: string; private: string; aiReady: string };
+  hero: { title: string; titleAccent: string; description: string; maxLength: string; record: string; upload: string };
   review: { eyebrow: string; title: string; description: string; retry: string; analyse: string; trimTitle: string; trimHint: string; preview: string; trimStartHandle: string; trimEndHandle: string };
   analysis: { eyebrow: string; title: string; steps: string[] };
   results: { eyebrow: string; title: string; newVideo: string; moments: string; tipStart: string; tipEnd: string; selectHint: string; download: string; downloadEmpty: string; downloadOne: string; topFive: string; moment: string };
@@ -17,17 +17,27 @@ export type AppCopy = {
     expiresIn: string; expiresToday: string;
   };
   pro: {
-    eyebrow: string; title: string; freeLabel: string; proLabel: string; popular: string; perMonth: string;
-    freeFeatures: string[]; proFeatures: string[];
-    monthly: string; yearly: string; monthlySub: string; yearlySub: string; discount: string;
-    ctaMonthly: string; ctaYearly: string; trial: string;
+    title: string; subtitle: string;
+    freeLabel: string; proLabel: string; perMonth: string;
+    /** Row labels for the Free-vs-Pro table; the numbers come from PLAN_LIMITS. */
+    compare: { videos: string; moments: string; length: string };
+    /** Launch-offer block: struck-through list price, discount ribbon, billing line. */
+    wasPrice: string; discount: string; launchOffer: string; billedMonthly: string;
+    cta: string; trial: string; noOffering: string;
     restore: string; restoring: string; activating: string;
     errorGeneric: string; restoredOk: string; restoreNothing: string; unavailable: string;
   };
-  account: { eyebrow: string; title: string; plan: string; upgrade: string; upgradeSub: string };
+  account: {
+    eyebrow: string; title: string; plan: string; upgrade: string; upgradeSub: string;
+    /** Permanent account deletion — required by App Store guideline 5.1.1(v). */
+    deleteTitle: string; deleteBody: string; deleteCta: string; deleteConfirm: string;
+    deleteCancel: string; deleting: string; deleteError: string;
+    /** Footer links to the published legal pages. */
+    terms: string; privacy: string;
+  };
   plans: { free: string; pro: string };
   stars: {
-    remaining: string; spent: string;
+    remaining: string; spent: string; headerSummary: string;
     emptyFreeTitle: string; emptyFreeBody: string; emptyFreeCta: string;
     emptyProTitle: string; emptyProBody: string;
     refillsOn: string; dismiss: string;
@@ -41,12 +51,12 @@ export type AppCopy = {
   desktopGate: { title: string; description: string };
   auth: {
     login: { eyebrow: string; title: string; description: string; emailLabel: string; passwordLabel: string; forgot: string; submit: string; noAccount: string; createAccount: string; orDivider: string; google: string; apple: string };
-    register: { eyebrow: string; title: string; description: string; emailLabel: string; passwordLabel: string; confirmLabel: string; submit: string; haveAccount: string; signIn: string; termsText: string; strengthWeak: string; strengthGood: string; strengthStrong: string };
+    register: { eyebrow: string; title: string; description: string; emailLabel: string; passwordLabel: string; confirmLabel: string; submit: string; haveAccount: string; signIn: string; consentText: string; strengthWeak: string; strengthGood: string; strengthStrong: string };
     forgot: { eyebrow: string; title: string; description: string; emailLabel: string; submit: string; back: string; sent: string; sentSocialHint: string };
     /** Label on the back chip that returns to the sign-in screen. */
     backToLogin: string;
     errors: { invalidEmail: string; userNotFound: string; wrongPassword: string; emailInUse: string; weakPassword: string; tooManyRequests: string; networkError: string; cancelled: string; unknown: string; passwordMismatch: string; required: string; termsRequired: string };
-    account: { signedInAs: string; signOut: string; profile: string };
+    account: { signedInAs: string; signOut: string; profile: string; settings: string };
     profile: {
       title: string; description: string; close: string;
       changePhoto: string; photoUpdated: string; photoTooLarge: string; photoInvalidType: string; photoUnreadable: string;
@@ -67,8 +77,6 @@ const dictionary: Record<Locale, AppCopy> = {
       maxLength: "15 SECONDS MAX.",
       record: "Start recording",
       upload: "Upload a video",
-      private: "Private to your account · Deleted after 30 days",
-      aiReady: "AI READY",
     },
     review: {
       eyebrow: "VIDEO READY",
@@ -77,7 +85,7 @@ const dictionary: Record<Locale, AppCopy> = {
       retry: "Record again",
       analyse: "Find my moments",
       trimTitle: "Trim to your best moment.",
-      trimHint: "Drag the edges to pick up to 15 seconds.",
+      trimHint: "Drag the edges to pick up to {max} seconds.",
       preview: "Play preview",
       trimStartHandle: "Move start of selection",
       trimEndHandle: "Move end of selection",
@@ -88,7 +96,7 @@ const dictionary: Record<Locale, AppCopy> = {
       steps: ["Reading pace and composition", "Finding energy shifts", "Spotting memorable peaks", "Refining your selection"],
     },
     results: {
-      eyebrow: "5 MOMENTS FOUND",
+      eyebrow: "MOMENTS FOUND",
       title: "Here’s what you shouldn’t miss.",
       newVideo: "New video",
       moments: "Your best moments",
@@ -106,8 +114,8 @@ const dictionary: Record<Locale, AppCopy> = {
       flip: "Flip camera",
       start: "Start recording",
       stop: "Stop recording",
-      maxHint: "15s max",
-      permissionDenied: "We can’t reach your camera. Check that Movid has camera and microphone permission, then try again.",
+      maxHint: "{max}s max",
+      permissionDenied: "We can’t reach your camera. Check that MoVid has camera and microphone permission, then try again.",
     },
     momentsEmpty: {
       title: "No moments yet",
@@ -131,43 +139,50 @@ const dictionary: Record<Locale, AppCopy> = {
       expiresToday: "Expires today",
     },
     pro: {
-      eyebrow: "MOVID PRO",
-      title: "More quality, no limits.",
+      title: "Five times the moments.",
+      subtitle: "More videos, more moments, and clips twice as long.",
       freeLabel: "Free",
       proLabel: "Pro",
-      popular: "POPULAR",
       perMonth: "/mo",
-      freeFeatures: ["Up to 5 moments per video", "Standard JPEG downloads", "No account limits"],
-      proFeatures: ["Priority AI analysis", "Higher-resolution exports", "Early access to new features"],
-      monthly: "Monthly",
-      yearly: "Yearly",
-      monthlySub: "€6.99 billed every month",
-      yearlySub: "€49 a year · €4.08/mo",
-      discount: "-42%",
-      ctaMonthly: "Start trial · €6.99/mo",
-      ctaYearly: "Start trial · €49/yr",
-      trial: "7 days free · cancel anytime",
+      compare: { videos: "Videos a week", moments: "Moments per video", length: "Clip length" },
+      wasPrice: "€6.99",
+      discount: "-43%",
+      launchOffer: "LAUNCH OFFER",
+      billedMonthly: "billed monthly, cancel anytime",
+      cta: "Start 3 days free",
+      trial: "3 days free, then {price}/mo",
       restore: "Restore purchases",
       restoring: "Restoring…",
-      activating: "Activating Movid Pro…",
+      activating: "Activating MoVid Pro…",
       errorGeneric: "The purchase couldn't be completed. Please try again.",
       restoredOk: "Your subscription is back.",
       restoreNothing: "No previous purchases found for this Apple ID.",
-      unavailable: "Subscriptions are only available in the Movid iOS app.",
+      unavailable: "Subscriptions are only available in the MoVid iOS app.",
+      noOffering: "Pro isn’t on sale just yet — check back in a moment.",
     },
     account: {
       eyebrow: "YOUR ACCOUNT",
       title: "Account",
       plan: "FREE",
       upgrade: "Upgrade to Pro",
-      upgradeSub: "Priority analysis and higher-resolution exports",
+      upgradeSub: "{pro} videos a week, {moments} moments each, {seconds}s clips",
+      deleteTitle: "Delete account",
+      deleteBody: "Your profile, your videos and every moment you've saved are erased for good. This can't be undone.",
+      deleteCta: "Delete my account",
+      deleteConfirm: "Yes, delete everything",
+      deleteCancel: "Cancel",
+      deleting: "Deleting…",
+      deleteError: "We couldn't delete the account. Please try again.",
+      terms: "Terms of Use",
+      privacy: "Privacy Policy",
     },
     plans: { free: "FREE", pro: "PRO" },
     stars: {
       remaining: "{left} of {total} stars left this week",
       spent: "No stars left this week",
+      headerSummary: "{left}/{total} · {used} used",
       emptyFreeTitle: "You’re out of stars",
-      emptyFreeBody: "Free accounts get {total} videos a week. Go Pro for 7 a week and keep creating.",
+      emptyFreeBody: "Free accounts get {total} videos a week. Go Pro for {pro} a week and keep creating.",
       emptyFreeCta: "See Pro",
       emptyProTitle: "You’ve used all your stars",
       emptyProBody: "You’ve used your {total} videos for this week. They refill automatically.",
@@ -188,18 +203,18 @@ const dictionary: Record<Locale, AppCopy> = {
     },
     desktopGate: {
       title: "Open this on your phone",
-      description: "Movid is designed for mobile — please visit this page from your phone’s browser to record and analyse your video.",
+      description: "MoVid is designed for mobile — please visit this page from your phone’s browser to record and analyse your video.",
     },
     auth: {
       login: {
         eyebrow: "WELCOME BACK",
-        title: "Sign in to Movid.",
+        title: "Sign in to MoVid.",
         description: "Your moments, saved and ready when you are.",
         emailLabel: "Email",
         passwordLabel: "Password",
         forgot: "Forgot password?",
         submit: "Sign in",
-        noAccount: "New to Movid?",
+        noAccount: "New to MoVid?",
         createAccount: "Create an account",
         orDivider: "or continue with",
         google: "Continue with Google",
@@ -207,7 +222,7 @@ const dictionary: Record<Locale, AppCopy> = {
       },
       register: {
         eyebrow: "CREATE ACCOUNT",
-        title: "Join Movid.",
+        title: "Join MoVid.",
         description: "One quick step and you’re in.",
         emailLabel: "Email",
         passwordLabel: "Password",
@@ -215,7 +230,7 @@ const dictionary: Record<Locale, AppCopy> = {
         submit: "Create account",
         haveAccount: "Already have an account?",
         signIn: "Sign in",
-        termsText: "I accept Movid’s terms and privacy policy.",
+        consentText: "I accept MoVid’s {terms} and {privacy}.",
         strengthWeak: "WEAK",
         strengthGood: "GOOD",
         strengthStrong: "STRONG",
@@ -227,7 +242,7 @@ const dictionary: Record<Locale, AppCopy> = {
         emailLabel: "Email",
         submit: "Send reset link",
         back: "Back to sign in",
-        sent: "If that address has a Movid account with a password, the reset link is on its way. Check your spam folder too.",
+        sent: "If that address has a MoVid account with a password, the reset link is on its way. Check your spam folder too.",
         sentSocialHint: "Signed up with Google or Apple? There’s no password to reset — go back and use that button instead.",
       },
       backToLogin: "Back to sign in",
@@ -245,10 +260,10 @@ const dictionary: Record<Locale, AppCopy> = {
         required: "This field is required.",
         termsRequired: "Accept the terms to continue.",
       },
-      account: { signedInAs: "Signed in as", signOut: "Sign out", profile: "Profile" },
+      account: { signedInAs: "Signed in as", signOut: "Sign out", profile: "Profile", settings: "Settings" },
       profile: {
         title: "Your profile",
-        description: "Update how you appear across Movid.",
+        description: "Update how you appear across MoVid.",
         close: "Close",
         changePhoto: "Change photo",
         photoUpdated: "Photo updated.",
@@ -280,8 +295,6 @@ const dictionary: Record<Locale, AppCopy> = {
       maxLength: "15 SEGUNDOS MÁX.",
       record: "Grabar ahora",
       upload: "Subir un vídeo",
-      private: "Privado en tu cuenta · Se borra a los 30 días",
-      aiReady: "IA LISTA",
     },
     review: {
       eyebrow: "VÍDEO LISTO",
@@ -290,7 +303,7 @@ const dictionary: Record<Locale, AppCopy> = {
       retry: "Grabar de nuevo",
       analyse: "Encontrar mis momentos",
       trimTitle: "Recorta hasta tu mejor momento.",
-      trimHint: "Arrastra los extremos para elegir hasta 15 segundos.",
+      trimHint: "Arrastra los extremos para elegir hasta {max} segundos.",
       preview: "Reproducir vista previa",
       trimStartHandle: "Mover inicio de la selección",
       trimEndHandle: "Mover fin de la selección",
@@ -301,7 +314,7 @@ const dictionary: Record<Locale, AppCopy> = {
       steps: ["Leyendo ritmo y composición", "Detectando cambios de energía", "Encontrando los picos memorables", "Afinando tu selección"],
     },
     results: {
-      eyebrow: "5 MOMENTOS ENCONTRADOS",
+      eyebrow: "MOMENTOS ENCONTRADOS",
       title: "Esto es lo que no te puedes perder.",
       newVideo: "Nuevo vídeo",
       moments: "Tus mejores momentos",
@@ -319,8 +332,8 @@ const dictionary: Record<Locale, AppCopy> = {
       flip: "Cambiar cámara",
       start: "Empezar a grabar",
       stop: "Parar de grabar",
-      maxHint: "15s máx.",
-      permissionDenied: "No podemos acceder a tu cámara. Comprueba que Movid tiene permiso de cámara y micrófono, y vuelve a intentarlo.",
+      maxHint: "{max}s máx.",
+      permissionDenied: "No podemos acceder a tu cámara. Comprueba que MoVid tiene permiso de cámara y micrófono, y vuelve a intentarlo.",
     },
     momentsEmpty: {
       title: "Aún no hay momentos",
@@ -344,43 +357,50 @@ const dictionary: Record<Locale, AppCopy> = {
       expiresToday: "Caduca hoy",
     },
     pro: {
-      eyebrow: "MOVID PRO",
-      title: "Más calidad, sin límites.",
+      title: "Cinco veces más momentos.",
+      subtitle: "Más vídeos, más momentos y clips el doble de largos.",
       freeLabel: "Free",
       proLabel: "Pro",
-      popular: "POPULAR",
       perMonth: "/mes",
-      freeFeatures: ["Hasta 5 momentos por vídeo", "Descargas JPEG estándar", "Sin límites de cuenta"],
-      proFeatures: ["Análisis de IA prioritario", "Exportación en mayor resolución", "Acceso anticipado a nuevas funciones"],
-      monthly: "Mensual",
-      yearly: "Anual",
-      monthlySub: "6,99 € facturados cada mes",
-      yearlySub: "49 € al año · 4,08 €/mes",
-      discount: "-42%",
-      ctaMonthly: "Empezar prueba · 6,99 €/mes",
-      ctaYearly: "Empezar prueba · 49 €/año",
-      trial: "7 días gratis · cancela cuando quieras",
+      compare: { videos: "Vídeos por semana", moments: "Momentos por vídeo", length: "Duración del clip" },
+      wasPrice: "6,99 €",
+      discount: "-43%",
+      launchOffer: "OFERTA DE LANZAMIENTO",
+      billedMonthly: "facturado cada mes, cancela cuando quieras",
+      cta: "Empezar 3 días gratis",
+      trial: "3 días gratis y luego {price}/mes",
       restore: "Restaurar compras",
       restoring: "Restaurando…",
-      activating: "Activando Movid Pro…",
+      activating: "Activando MoVid Pro…",
       errorGeneric: "No se pudo completar la compra. Inténtalo de nuevo.",
       restoredOk: "Tu suscripción está de vuelta.",
       restoreNothing: "No hay compras previas con este Apple ID.",
-      unavailable: "Las suscripciones solo están disponibles en la app de Movid para iOS.",
+      unavailable: "Las suscripciones solo están disponibles en la app de MoVid para iOS.",
+      noOffering: "Pro todavía no está a la venta — vuelve a intentarlo en un momento.",
     },
     account: {
       eyebrow: "TU CUENTA",
       title: "Cuenta",
       plan: "FREE",
       upgrade: "Mejorar a Pro",
-      upgradeSub: "Análisis prioritario y exportación en mayor resolución",
+      upgradeSub: "{pro} vídeos por semana, {moments} momentos y clips de {seconds}s",
+      deleteTitle: "Eliminar cuenta",
+      deleteBody: "Se borran para siempre tu perfil, tus vídeos y todos los momentos que hayas guardado. No se puede deshacer.",
+      deleteCta: "Eliminar mi cuenta",
+      deleteConfirm: "Sí, eliminarlo todo",
+      deleteCancel: "Cancelar",
+      deleting: "Eliminando…",
+      deleteError: "No pudimos eliminar la cuenta. Inténtalo de nuevo.",
+      terms: "Condiciones de uso",
+      privacy: "Política de privacidad",
     },
     plans: { free: "FREE", pro: "PRO" },
     stars: {
       remaining: "Te quedan {left} de {total} estrellas esta semana",
       spent: "Sin estrellas esta semana",
+      headerSummary: "{left}/{total} · {used} usadas",
       emptyFreeTitle: "Te has quedado sin estrellas",
-      emptyFreeBody: "Las cuentas free tienen {total} vídeos por semana. Pasa a Pro para tener 7 y seguir creando.",
+      emptyFreeBody: "Las cuentas free tienen {total} vídeos por semana. Pasa a Pro para tener {pro} y seguir creando.",
       emptyFreeCta: "Ver Pro",
       emptyProTitle: "Has agotado tus estrellas",
       emptyProBody: "Ya has usado tus {total} vídeos de esta semana. Se recargan automáticamente.",
@@ -401,18 +421,18 @@ const dictionary: Record<Locale, AppCopy> = {
     },
     desktopGate: {
       title: "Abrí esto desde tu teléfono",
-      description: "Movid está pensado para móvil — abrí esta página desde el navegador de tu teléfono para grabar y analizar tu vídeo.",
+      description: "MoVid está pensado para móvil — abrí esta página desde el navegador de tu teléfono para grabar y analizar tu vídeo.",
     },
     auth: {
       login: {
         eyebrow: "BIENVENIDO DE NUEVO",
-        title: "Inicia sesión en Movid.",
+        title: "Inicia sesión en MoVid.",
         description: "Tus momentos, guardados y listos cuando tú lo estés.",
         emailLabel: "Correo electrónico",
         passwordLabel: "Contraseña",
         forgot: "¿Olvidaste tu contraseña?",
         submit: "Iniciar sesión",
-        noAccount: "¿Nuevo en Movid?",
+        noAccount: "¿Nuevo en MoVid?",
         createAccount: "Crear una cuenta",
         orDivider: "o continúa con",
         google: "Continuar con Google",
@@ -420,7 +440,7 @@ const dictionary: Record<Locale, AppCopy> = {
       },
       register: {
         eyebrow: "CREAR CUENTA",
-        title: "Únete a Movid.",
+        title: "Únete a MoVid.",
         description: "Un paso rápido y ya estamos.",
         emailLabel: "Correo electrónico",
         passwordLabel: "Contraseña",
@@ -428,7 +448,7 @@ const dictionary: Record<Locale, AppCopy> = {
         submit: "Crear cuenta",
         haveAccount: "¿Ya tienes una cuenta?",
         signIn: "Inicia sesión",
-        termsText: "Acepto las condiciones y la política de privacidad de Movid.",
+        consentText: "Acepto las {terms} y la {privacy} de MoVid.",
         strengthWeak: "DÉBIL",
         strengthGood: "BIEN",
         strengthStrong: "FUERTE",
@@ -440,7 +460,7 @@ const dictionary: Record<Locale, AppCopy> = {
         emailLabel: "Correo electrónico",
         submit: "Enviar enlace",
         back: "Volver a iniciar sesión",
-        sent: "Si esa dirección tiene una cuenta de Movid con contraseña, el enlace va de camino. Mira también en la carpeta de spam.",
+        sent: "Si esa dirección tiene una cuenta de MoVid con contraseña, el enlace va de camino. Mira también en la carpeta de spam.",
         sentSocialHint: "¿Te registraste con Google o Apple? Entonces no hay contraseña que restablecer — vuelve atrás y entra con ese botón.",
       },
       backToLogin: "Volver a iniciar sesión",
@@ -458,10 +478,10 @@ const dictionary: Record<Locale, AppCopy> = {
         required: "Este campo es obligatorio.",
         termsRequired: "Acepta las condiciones para continuar.",
       },
-      account: { signedInAs: "Sesión iniciada como", signOut: "Cerrar sesión", profile: "Perfil" },
+      account: { signedInAs: "Sesión iniciada como", signOut: "Cerrar sesión", profile: "Perfil", settings: "Ajustes" },
       profile: {
         title: "Tu perfil",
-        description: "Actualiza cómo apareces en Movid.",
+        description: "Actualiza cómo apareces en MoVid.",
         close: "Cerrar",
         changePhoto: "Cambiar foto",
         photoUpdated: "Foto actualizada.",
