@@ -158,7 +158,7 @@ export function DesignGallery() {
           reload: () => {},
         }}
       >
-        <main className="app-shell">
+        <main className={view === "home" ? "app-shell home-shell" : "app-shell"}>
           <div className="app-frame">
             <header className="app-header">
               <Brand />

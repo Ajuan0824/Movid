@@ -27,6 +27,8 @@ import { usePurchases } from "../hooks/use-purchases";
 import { useIsMobile } from "../hooks/use-is-mobile";
 import { useLocalePref } from "../hooks/use-locale-pref";
 import { useThemePref } from "../hooks/use-theme-pref";
+import { useTabSwipe } from "../hooks/use-tab-swipe";
+import { tapHaptic } from "../lib/mevid/haptics";
 import { getCopy } from "../lib/mevid/copy";
 import { limitsFor } from "../lib/mevid/plan";
 import { isInAppCameraSupported } from "../lib/mevid/recorder";
@@ -148,6 +150,19 @@ export default function Home() {
     if (next !== "momentos") setOpenGenerationId(null);
     setTab(next);
   }, []);
+  const tabSwipe = useTabSwipe<AppTab>({
+    tab,
+    tabs:
+      planReady && plan === "pro"
+        ? ["home", "momentos", "cuenta"]
+        : ["home", "momentos", "pro", "cuenta"],
+    onChange: (next) => {
+      tapHaptic();
+      changeTab(next);
+    },
+    ignoreSelector:
+      'input, textarea, select, video, [role="slider"], [data-no-tab-swipe], .filmstrip, .touch-none',
+  });
 
   const handleSubscribe = useCallback(async () => {
     const outcome = await purchases.subscribe();
@@ -441,7 +456,7 @@ export default function Home() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={tab === "home" ? "app-shell home-shell" : "app-shell"}>
       <div className="app-frame">
         <header className="app-header">
           <Brand />
@@ -469,7 +484,7 @@ export default function Home() {
           {/* overflow-x-hidden on purpose: `overflow-y-auto` alone computes
               overflow-x to `auto` too, so anything a few pixels too wide gives
               the whole app a sideways scroll. Nothing here scrolls sideways. */}
-          <div className="app-content">
+          <div className="app-content" {...tabSwipe}>
             <AnimatePresence mode="wait">
               {tab === "home" && flowView === "idle" ? (
                 <IntroScreen

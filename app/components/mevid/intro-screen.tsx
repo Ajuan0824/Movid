@@ -1,5 +1,5 @@
 "use client";
-import { ArrowUpRight, Camera, Upload } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Camera, Upload } from "lucide-react";
 import { motion } from "framer-motion";
 import type { ChangeEvent, RefObject } from "react";
 import type { AppCopy } from "../../../lib/mevid/copy";
@@ -34,9 +34,6 @@ export function IntroScreen({
           {copy.hero.title}
           <span className="font-editorial block">{copy.hero.titleAccent}</span>
         </h1>
-        <p className="hero-support mt-3 max-w-[290px] text-sm leading-relaxed text-muted">
-          {copy.studio.heroHint}
-        </p>
       </div>
       <motion.div
         className="hero-art"
@@ -71,17 +68,19 @@ export function IntroScreen({
         </button>
       </motion.div>
       <div className="hero-actions">
-        <motion.button
-          whileTap={{ scale: 0.98 }}
-          onClick={onRecord}
-          className="primary-button justify-between"
-        >
-          <span className="flex items-center gap-3">
-            <Camera size={20} />
-            {copy.hero.record}
-          </span>
-          <ArrowUpRight size={20} />
-        </motion.button>
+        <div className="animated-edge record-button-shell">
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            onClick={onRecord}
+            className="primary-button record-button"
+          >
+            <span className="flex items-center gap-3">
+              <Camera size={23} />
+              {copy.hero.record}
+            </span>
+            <ArrowRight size={22} />
+          </motion.button>
+        </div>
         <button onClick={onUpload} className="secondary-button">
           <Upload size={17} />
           {copy.hero.upload}

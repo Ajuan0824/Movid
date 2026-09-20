@@ -39,64 +39,66 @@ export function ProScreen({
   return (
     <Screen className="pro-screen">
       <PageHeading eyebrow={copy.studio.proEyebrow} title={t.title} />
-      <div className="pro-card relative flex flex-1 flex-col justify-between overflow-hidden rounded-[26px] bg-[#253b2f] text-[#f4f5e9]">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-9 -top-9 h-52 w-52 rounded-full border border-[#d4ed8a]/15"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-2 -top-2 h-36 w-36 rounded-full border border-[#d4ed8a]/20"
-        />
-        <div className="relative flex items-center justify-between">
-          <span className="font-display text-xl font-medium tracking-tight">
-            MoVid{" "}
-            <span className="ml-1 rounded-full bg-[#d4ed8a] px-2 py-1 text-[11px] font-bold text-[#253b2f]">
-              PRO
+      <div className="animated-edge pro-card-edge">
+        <div className="pro-card relative flex flex-1 flex-col justify-between overflow-hidden rounded-[24px] text-[#f4f5e9]">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-9 -top-9 h-52 w-52 rounded-full border border-[#d4ed8a]/15"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-2 -top-2 h-36 w-36 rounded-full border border-[#d4ed8a]/20"
+          />
+          <div className="relative flex items-center justify-between">
+            <span className="font-display text-xl font-medium tracking-tight">
+              MoVid{" "}
+              <span className="ml-1 rounded-full bg-[#d4ed8a] px-2 py-1 text-[11px] font-bold text-[#253b2f]">
+                PRO
+              </span>
             </span>
-          </span>
-          <Sparkles size={25} strokeWidth={1.2} className="text-[#d4ed8a]" />
-        </div>
-        <div className="pro-card-copy relative">
-          <p className="pro-card-tagline font-editorial">{t.subtitle}</p>
-          <div className="mt-3 flex items-baseline gap-1">
-            <span className="font-display text-5xl font-medium tracking-[-.06em]">
-              {price}
-            </span>
-            <span className="text-sm text-[#c4d0be]">{t.perMonth}</span>
+            <Sparkles size={25} strokeWidth={1.2} className="text-[#d4ed8a]" />
           </div>
-          <p className="mt-1 text-[11px] text-[#c4d0be]">{t.billedMonthly}</p>
-        </div>
-        <table className="relative w-full border-collapse text-left text-xs">
-          <thead>
-            <tr className="text-[10px] uppercase tracking-wider text-[#bdcbb7]">
-              <th className="pb-1 font-normal">
-                <span className="sr-only">{t.subtitle}</span>
-              </th>
-              <th className="w-10 text-center font-normal">{t.freeLabel}</th>
-              <th className="w-12 text-right font-normal text-[#d4ed8a]">
-                {t.proLabel}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.label} className="border-t border-white/10">
-                <th className="py-2 font-normal">{row.label}</th>
-                <td className="text-center text-[#bdcbb7]">{row.free}</td>
-                <td className="text-right font-display text-lg font-semibold text-[#d4ed8a]">
-                  {row.pro}
-                </td>
+          <div className="pro-card-copy relative">
+            <p className="pro-card-tagline font-editorial">{t.subtitle}</p>
+            <div className="mt-3 flex items-baseline gap-1">
+              <span className="font-display text-5xl font-medium tracking-[-.06em]">
+                {price}
+              </span>
+              <span className="text-sm text-[#c4d0be]">{t.perMonth}</span>
+            </div>
+            <p className="mt-1 text-[11px] text-[#c4d0be]">{t.billedMonthly}</p>
+          </div>
+          <table className="relative w-full border-collapse text-left text-xs">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-[#bdcbb7]">
+                <th className="pb-1 font-normal">
+                  <span className="sr-only">{t.subtitle}</span>
+                </th>
+                <th className="w-10 text-center font-normal">{t.freeLabel}</th>
+                <th className="w-12 text-right font-normal text-[#d4ed8a]">
+                  {t.proLabel}
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.label} className="border-t border-white/10">
+                  <th className="py-2 font-normal">{row.label}</th>
+                  <td className="text-center text-[#bdcbb7]">{row.free}</td>
+                  <td className="text-right font-display text-lg font-semibold text-[#d4ed8a]">
+                    {row.pro}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div className="shrink-0">
         <button
           disabled={busy || nothingToSell}
           onClick={onSubscribe}
-          className="primary-button accent-button w-full justify-between"
+          className="primary-button w-full justify-between"
         >
           <span>{busy ? t.activating : t.cta}</span>
           <ArrowUpRight size={19} />
