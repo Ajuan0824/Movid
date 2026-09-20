@@ -1,121 +1,105 @@
 "use client";
-
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
-import { authScreenTransition, tapScale } from "../../../lib/mevid/motion";
-
+import { authScreenTransition } from "../../../lib/mevid/motion";
 type AuthShellProps = {
   title: string;
   description: string;
   children: ReactNode;
   footer?: ReactNode;
-  /**
-   * Shows a back chip above the title. The footer link alone isn't enough on a
-   * long screen like register — it sits below the social buttons, off-screen on
-   * a phone, so there's no visible way back until you scroll.
-   */
   onBack?: () => void;
   backLabel?: string;
-  /**
-   * Tightens type and spacing. Register is the only screen long enough to run
-   * past the bottom of a phone, and it has no scroll container to fall back on
-   * (AuthGate replaces the app shell entirely when signed out).
-   */
   compact?: boolean;
 };
-
-export function AuthShell({ title, description, children, footer, onBack, backLabel, compact = false }: AuthShellProps) {
+export function AuthShell({
+  title,
+  description,
+  children,
+  footer,
+  onBack,
+  backLabel,
+  compact = false,
+}: AuthShellProps) {
   return (
     <motion.section
-      initial={{ opacity: 0, y: 18, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -12, scale: 0.98 }}
+      initial={{ opacity: 0, x: 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -12 }}
       transition={authScreenTransition}
-      className={`mx-auto flex w-full max-w-md flex-1 flex-col overflow-y-auto ${compact ? "auth-compact pt-1" : "pt-2"} pb-[calc(0.5rem+env(safe-area-inset-bottom))]`}
+      className={`auth-shell ${compact ? "auth-compact" : ""}`}
     >
-      {/* m-auto (not justify-center) so a screen taller than the viewport
-          scrolls from the top instead of having its head clipped off. */}
-      <div className="m-auto w-full">
-      {onBack ? (
-        <motion.button
-          type="button"
-          whileHover={{ x: -2 }}
-          whileTap={{ scale: tapScale }}
-          onClick={onBack}
-          className={`${compact ? "mb-2.5" : "mb-4"} inline-flex items-center gap-1.5 self-start rounded-full border border-[#e2dcf5] bg-white/70 px-3.5 py-2 text-xs font-bold text-[#5c3fc4] shadow-sm backdrop-blur-sm transition-colors hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-[#c4b3ff] dark:hover:bg-white/10`}
-        >
-          <ChevronLeft size={15} strokeWidth={2.8} />
-          {backLabel}
-        </motion.button>
-      ) : null}
-      <div className={compact ? "mb-3 text-center" : "mb-4 text-center"}>
-        <h1 className="font-display text-[38px] font-bold leading-[1.02] tracking-[-0.05em] text-[#232331] dark:text-[#f1eff7]">{title}</h1>
-        <p className={`mx-auto max-w-sm text-[#6d6b79] dark:text-[#a79fb5] ${compact ? "mt-1.5 text-sm leading-5" : "mt-2.5 text-base leading-6"}`}>{description}</p>
-      </div>
-      <div className={`liquid-glass rounded-[30px] ${compact ? "p-4" : "p-5"}`}>{children}</div>
-      {footer ? <div className={`text-center text-[#6d6b79] dark:text-[#a79fb5] ${compact ? "mt-2.5 text-sm" : "mt-4 text-base"}`}>{footer}</div> : null}
+      <div className="auth-inner">
+        <div className="auth-heading">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="mb-2 flex min-h-9 items-center gap-2 text-xs font-semibold"
+            >
+              <ArrowLeft size={16} />
+              {backLabel}
+            </button>
+          )}
+          {!onBack && (
+            <div aria-hidden className="mb-5 flex -space-x-2">
+              {["01-selfie-friends", "04-dog-cafe", "02-street-food"].map(
+                (src, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={src}
+                    src={`/carousel/${src}.jpg`}
+                    alt=""
+                    className="h-12 w-12 rounded-full border-[3px] border-[var(--page-bg)] object-cover"
+                    style={{ transform: `rotate(${i % 2 ? 8 : -8}deg)` }}
+                  />
+                ),
+              )}
+            </div>
+          )}
+          <h1 className="auth-title">{title}</h1>
+          <p className="mt-2 max-w-[290px] text-sm leading-5 text-muted">
+            {description}
+          </p>
+        </div>
+        <div className="auth-card">{children}</div>
+        {footer && (
+          <div className="mt-4 text-center text-xs text-muted">{footer}</div>
+        )}
       </div>
     </motion.section>
   );
 }
-
-type AuthSubmitButtonProps = {
+export function AuthSubmitButton({
+  loading,
+  onTap,
+  children,
+}: {
   loading: boolean;
   onTap: () => void;
   children: ReactNode;
-};
-
-/** Primary submit button that cross-fades its label into a spinner while `loading`. */
-export function AuthSubmitButton({ loading, onTap, children }: AuthSubmitButtonProps) {
+}) {
   return (
     <motion.button
-      whileTap={loading ? undefined : { scale: tapScale }}
+      whileTap={{ scale: 0.98 }}
       disabled={loading}
+      aria-busy={loading}
       onClick={onTap}
       type="submit"
-      className="primary-button relative mt-1 w-full overflow-hidden disabled:opacity-90"
+      className="primary-button mt-1 w-full"
     >
-      <AnimatePresence mode="popLayout" initial={false}>
-        {loading ? (
-          <motion.span
-            key="spinner"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.16 }}
-            className="flex items-center justify-center gap-2"
-          >
-            <motion.span
-              className="h-4 w-4 rounded-full border-2 border-white/35 border-t-white"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
-            />
-          </motion.span>
-        ) : (
-          <motion.span
-            key="label"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.16 }}
-            className="flex items-center justify-center gap-2"
-          >
-            {children}
-          </motion.span>
-        )}
-      </AnimatePresence>
+      <span className={loading ? "sr-only" : ""}>{children}</span>
+      {loading && <Loader2 size={19} className="animate-spin" aria-hidden />}
     </motion.button>
   );
 }
-
 export function AuthErrorBanner({ message }: { message: string }) {
   return (
     <motion.p
-      initial={{ opacity: 0, y: -6 }}
+      role="alert"
+      initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      className="mb-4 rounded-2xl border border-[#ffc8d3] dark:border-[#5c2f3d] bg-[#fff3f6] dark:bg-[#2e2030] px-4 py-2.5 text-sm font-medium text-[#9d3450] dark:text-[#ffb4c8]"
+      className="my-3 rounded-xl border border-[#cb75634d] bg-[#cb756310] px-3 py-2 text-sm leading-5 text-[#a4432f] dark:text-[#f2a18a]"
     >
       {message}
     </motion.p>

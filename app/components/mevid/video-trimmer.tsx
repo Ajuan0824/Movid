@@ -2,11 +2,16 @@
 
 import { Pause, Play } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { PointerEvent as ReactPointerEvent, KeyboardEvent } from "react";
 import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
 import type { VideoFrame } from "../../../lib/mevid/types";
-import { extractFilmstrip, formatSeconds, MAX_VIDEO_SECONDS, MIN_VIDEO_SECONDS } from "../../../lib/mevid/video";
+import {
+  extractFilmstrip,
+  formatSeconds,
+  MAX_VIDEO_SECONDS,
+  MIN_VIDEO_SECONDS,
+} from "../../../lib/mevid/video";
 
 const STRIP_FRAMES = 10;
 
@@ -24,7 +29,12 @@ type VideoTrimmerProps = {
 };
 
 type DragMode = "start" | "end" | "window";
-type Drag = { mode: DragMode; pointerId: number; originX: number; from: TrimValue };
+type Drag = {
+  mode: DragMode;
+  pointerId: number;
+  originX: number;
+  from: TrimValue;
+};
 
 /**
  * Instagram-style trimmer: a scrubbable filmstrip with two draggable handles.
@@ -36,7 +46,14 @@ type Drag = { mode: DragMode; pointerId: number; originX: number; from: TrimValu
  * single rAF loop that writes DOM styles — never React state — so the preview
  * stays smooth and never fights a re-render on a phone.
  */
-export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_VIDEO_SECONDS, value, onChange }: VideoTrimmerProps) {
+export function VideoTrimmer({
+  copy,
+  videoUrl,
+  sourceDuration,
+  maxSeconds = MAX_VIDEO_SECONDS,
+  value,
+  onChange,
+}: VideoTrimmerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const playheadRef = useRef<HTMLDivElement>(null);
@@ -72,7 +89,8 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
   }, [videoUrl, sourceDuration]);
 
   const pct = useCallback(
-    (seconds: number) => `${Math.max(0, Math.min(100, (seconds / sourceDuration) * 100))}%`,
+    (seconds: number) =>
+      `${Math.max(0, Math.min(100, (seconds / sourceDuration) * 100))}%`,
     [sourceDuration],
   );
 
@@ -85,7 +103,8 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
       const head = playheadRef.current;
       if (node && head && sourceDuration > 0) {
         const { start, end } = winRef.current;
-        if (!node.paused && node.currentTime >= end - 0.03) node.currentTime = start;
+        if (!node.paused && node.currentTime >= end - 0.03)
+          node.currentTime = start;
         const t = Math.min(end, Math.max(start, node.currentTime || start));
         head.style.left = `${(t / sourceDuration) * 100}%`;
       }
@@ -114,7 +133,11 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
     const node = videoRef.current;
     if (!node) return;
     const { start, end } = winRef.current;
-    const target = from ?? (node.currentTime < start || node.currentTime >= end - 0.05 ? start : node.currentTime);
+    const target =
+      from ??
+      (node.currentTime < start || node.currentTime >= end - 0.05
+        ? start
+        : node.currentTime);
     try {
       node.currentTime = target;
     } catch {
@@ -132,28 +155,41 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
     else node.pause();
   };
 
-  const beginDrag = (mode: DragMode) => (event: ReactPointerEvent<HTMLElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    // Capture keeps moves flowing while the finger strays off the element; if
-    // the browser refuses it, the track-level listeners below still catch them.
-    try {
-      trackRef.current?.setPointerCapture(event.pointerId);
-    } catch {
-      // No active pointer / unsupported — fall back to bubbled events.
-    }
-    dragRef.current = { mode, pointerId: event.pointerId, originX: event.clientX, from: winRef.current };
-    tapHaptic();
-    const { start, end } = winRef.current;
-    if (mode === "start") scrubTo(start);
-    else if (mode === "end") scrubTo(Math.max(start, end - 0.1));
-  };
+  const beginDrag =
+    (mode: DragMode) => (event: ReactPointerEvent<HTMLElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      // Capture keeps moves flowing while the finger strays off the element; if
+      // the browser refuses it, the track-level listeners below still catch them.
+      try {
+        trackRef.current?.setPointerCapture(event.pointerId);
+      } catch {
+        // No active pointer / unsupported — fall back to bubbled events.
+      }
+      dragRef.current = {
+        mode,
+        pointerId: event.pointerId,
+        originX: event.clientX,
+        from: winRef.current,
+      };
+      tapHaptic();
+      const { start, end } = winRef.current;
+      if (mode === "start") scrubTo(start);
+      else if (mode === "end") scrubTo(Math.max(start, end - 0.1));
+    };
 
   const moveDrag = (event: ReactPointerEvent<HTMLElement>) => {
     const drag = dragRef.current;
     const rect = trackRef.current?.getBoundingClientRect();
-    if (!drag || drag.pointerId !== event.pointerId || !rect || rect.width === 0) return;
-    const delta = ((event.clientX - drag.originX) / rect.width) * sourceDuration;
+    if (
+      !drag ||
+      drag.pointerId !== event.pointerId ||
+      !rect ||
+      rect.width === 0
+    )
+      return;
+    const delta =
+      ((event.clientX - drag.originX) / rect.width) * sourceDuration;
 
     let next: TrimValue;
     if (drag.mode === "start") {
@@ -170,7 +206,10 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
       scrubTo(Math.max(drag.from.start, end - 0.1));
     } else {
       const span = drag.from.end - drag.from.start;
-      const start = Math.max(0, Math.min(drag.from.start + delta, sourceDuration - span));
+      const start = Math.max(
+        0,
+        Math.min(drag.from.start + delta, sourceDuration - span),
+      );
       next = { start, end: start + span };
       scrubTo(start);
     }
@@ -200,10 +239,43 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
 
   const selectedLength = draft.end - draft.start;
 
+  // The visual handles are also accessible sliders. Keyboard and switch users
+  // get the same limits as touch input; Shift adjusts a full second at a time.
+  const nudgeHandle =
+    (handle: "start" | "end") => (event: KeyboardEvent<HTMLButtonElement>) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
+        return;
+      event.preventDefault();
+      const window = winRef.current;
+      const min =
+        handle === "start"
+          ? Math.max(0, window.end - maxSeconds)
+          : window.start + MIN_VIDEO_SECONDS;
+      const max =
+        handle === "start"
+          ? window.end - MIN_VIDEO_SECONDS
+          : Math.min(sourceDuration, window.start + maxSeconds);
+      const delta =
+        (event.key === "ArrowLeft" ? -1 : 1) * (event.shiftKey ? 1 : 0.1);
+      const seconds =
+        event.key === "Home"
+          ? min
+          : event.key === "End"
+            ? max
+            : Math.min(max, Math.max(min, window[handle] + delta));
+      const next = { ...window, [handle]: Number(seconds.toFixed(2)) };
+      winRef.current = next;
+      setDraft(next);
+      scrubTo(
+        handle === "start" ? next.start : Math.max(next.start, next.end - 0.1),
+      );
+      onChange(next);
+    };
+
   return (
     <div className="mx-auto w-full max-w-[420px]">
       <div className="glass-panel overflow-hidden rounded-[28px] p-2 shadow-panel">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-[20px] bg-[#17151f]">
+        <div className="trim-preview relative overflow-hidden rounded-[20px] bg-[#18231d]">
           <video
             ref={videoRef}
             src={videoUrl}
@@ -222,11 +294,15 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
             className="absolute inset-0 grid place-items-center"
           >
             <span
-              className={`grid h-14 w-14 place-items-center rounded-full bg-white/90 text-[#242432] shadow-lg transition-opacity ${
+              className={`grid h-14 w-14 place-items-center rounded-full bg-white/90 text-[#25352d] shadow-lg transition-opacity ${
                 playing ? "opacity-0" : "opacity-100"
               }`}
             >
-              {playing ? <Pause size={22} fill="currentColor" /> : <Play size={22} fill="currentColor" />}
+              {playing ? (
+                <Pause size={22} fill="currentColor" />
+              ) : (
+                <Play size={22} fill="currentColor" />
+              )}
             </span>
           </button>
           <div className="absolute left-3 top-3 rounded-full bg-black/50 px-2.5 py-1 font-mono text-xs font-bold text-white backdrop-blur-sm">
@@ -236,30 +312,42 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
 
         <div
           ref={trackRef}
-          className="relative mt-2 h-16 touch-none select-none overflow-hidden rounded-[14px] bg-[#17151f]"
+          className="relative mt-2 h-16 touch-none select-none overflow-hidden rounded-[14px] bg-[#18231d]"
           {...trackDragProps}
         >
           <div className="absolute inset-0 flex">
             {frames
               ? frames.map((frame, index) => (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img key={index} src={frame.image} alt="" draggable={false} className="h-full flex-1 object-cover" />
+                  <img
+                    key={index}
+                    src={frame.image}
+                    alt=""
+                    draggable={false}
+                    className="h-full flex-1 object-cover"
+                  />
                 ))
               : stripFailed
                 ? null
                 : Array.from({ length: STRIP_FRAMES }).map((_, index) => (
-                    <div key={index} className="h-full flex-1 animate-pulse bg-white/[0.06]" />
+                    <div
+                      key={index}
+                      className="h-full flex-1 animate-pulse bg-white/[0.06]"
+                    />
                   ))}
           </div>
 
-          <div className="pointer-events-none absolute inset-y-0 left-0 bg-black/55" style={{ width: pct(draft.start) }} />
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 bg-black/55"
+            style={{ width: pct(draft.start) }}
+          />
           <div
             className="pointer-events-none absolute inset-y-0 right-0 bg-black/55"
             style={{ width: pct(sourceDuration - draft.end) }}
           />
 
           <div
-            className="absolute inset-y-0 cursor-grab touch-none border-y-[3px] border-[#ff5c82] active:cursor-grabbing"
+            className="absolute inset-y-0 cursor-grab touch-none border-y-[3px] border-[#eb795e] active:cursor-grabbing"
             style={{ left: pct(draft.start), width: pct(selectedLength) }}
             onPointerDown={beginDrag("window")}
           />
@@ -268,20 +356,32 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
           <button
             type="button"
             aria-label={copy.review.trimStartHandle}
+            role="slider"
+            aria-valuemin={Math.max(0, draft.end - maxSeconds)}
+            aria-valuemax={draft.end - MIN_VIDEO_SECONDS}
+            aria-valuenow={draft.start}
+            aria-valuetext={formatSeconds(draft.start)}
+            onKeyDown={nudgeHandle("start")}
             className="absolute inset-y-0 grid w-6 -translate-x-1/2 cursor-ew-resize touch-none place-items-center"
             style={{ left: pct(draft.start) }}
             onPointerDown={beginDrag("start")}
           >
-            <span className="h-full w-[2px] rounded-full bg-[#ff5c82] shadow-[0_0_4px_rgba(0,0,0,0.45)]" />
+            <span className="h-full w-[2px] rounded-full bg-[#eb795e] shadow-[0_0_4px_rgba(0,0,0,0.45)]" />
           </button>
           <button
             type="button"
             aria-label={copy.review.trimEndHandle}
+            role="slider"
+            aria-valuemin={draft.start + MIN_VIDEO_SECONDS}
+            aria-valuemax={Math.min(sourceDuration, draft.start + maxSeconds)}
+            aria-valuenow={draft.end}
+            aria-valuetext={formatSeconds(draft.end)}
+            onKeyDown={nudgeHandle("end")}
             className="absolute inset-y-0 grid w-6 -translate-x-1/2 cursor-ew-resize touch-none place-items-center"
             style={{ left: pct(draft.end) }}
             onPointerDown={beginDrag("end")}
           >
-            <span className="h-full w-[2px] rounded-full bg-[#ff5c82] shadow-[0_0_4px_rgba(0,0,0,0.45)]" />
+            <span className="h-full w-[2px] rounded-full bg-[#eb795e] shadow-[0_0_4px_rgba(0,0,0,0.45)]" />
           </button>
 
           <div
@@ -292,7 +392,9 @@ export function VideoTrimmer({ copy, videoUrl, sourceDuration, maxSeconds = MAX_
           </div>
         </div>
 
-        <p className="px-2 pb-1 pt-2.5 text-center text-xs text-[#8f8b99] dark:text-[#a79fb5]">{copy.review.trimHint.replace("{max}", String(maxSeconds))}</p>
+        <p className="px-2 pb-1 pt-2.5 text-center text-xs text-[#8f8b99] dark:text-[#a6b0a3]">
+          {copy.review.trimHint.replace("{max}", String(maxSeconds))}
+        </p>
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ export function AuthGate({ copy, locale, children }: AuthGateProps) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
         <motion.div
-          className="h-9 w-9 rounded-full border-2 border-[#e5ddff] dark:border-[#4a3f73] border-t-[#7657dd]"
+          className="h-9 w-9 rounded-full border-2 border-[#e5ddff] dark:border-[#4a6043] border-t-[#466447]"
           animate={{ rotate: 360 }}
           transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
         />
@@ -37,9 +37,20 @@ export function AuthGate({ copy, locale, children }: AuthGateProps) {
 
   return (
     <AnimatePresence mode="wait">
-      {view === "login" ? <LoginScreen key="login" copy={copy} onNavigate={setView} /> : null}
-      {view === "register" ? <RegisterScreen key="register" copy={copy} onNavigate={setView} /> : null}
-      {view === "forgot" ? <ForgotPasswordScreen key="forgot" copy={copy} locale={locale} onNavigate={setView} /> : null}
+      {view === "login" ? (
+        <LoginScreen key="login" copy={copy} onNavigate={setView} />
+      ) : null}
+      {view === "register" ? (
+        <RegisterScreen key="register" copy={copy} onNavigate={setView} />
+      ) : null}
+      {view === "forgot" ? (
+        <ForgotPasswordScreen
+          key="forgot"
+          copy={copy}
+          locale={locale}
+          onNavigate={setView}
+        />
+      ) : null}
     </AnimatePresence>
   );
 }

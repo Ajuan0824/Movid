@@ -1,49 +1,50 @@
 "use client";
-
-import { AnimatePresence, motion } from "framer-motion";
-import { Languages, LogOut, Moon, Settings, UserRound } from "lucide-react";
-import { useState } from "react";
+import { Languages, Moon, Settings, UserRound, ChevronRight } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { useAuth } from "../../../hooks/use-auth";
-import { usePlan } from "../../../hooks/use-plan";
-import { PlanBadge } from "./plan-badge";
-import { signOutUser } from "../../../lib/firebase/auth";
 import type { AppCopy } from "../../../lib/mevid/copy";
-import { tapHaptic } from "../../../lib/mevid/haptics";
 import type { LocalePref } from "../../../lib/mevid/locale-pref";
 import type { ThemePref } from "../../../lib/mevid/theme-pref";
-import { ProfileModal } from "./profile-modal";
-
-type SegmentOption<T extends string> = { value: T; label: string };
-
-function SettingsRow<T extends string>({ icon, label, value, options, onChange }: { icon: React.ReactNode; label: string; value: T; options: SegmentOption<T>[]; onChange: (next: T) => void }) {
+import { Sheet } from "../ui/sheet";
+function SettingsRow<T extends string>({
+  icon,
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (next: T) => void;
+}) {
   return (
-    <div className="mb-3">
-      <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-bold uppercase tracking-wide text-[#9996a4] dark:text-[#8b8697]">{icon}{label}</p>
-      <div className="flex items-center gap-1 rounded-xl bg-[#f3f1fa] dark:bg-white/5 p-1" role="radiogroup" aria-label={label}>
-        {options.map((option) => {
-          const active = value === option.value;
-          return (
-            <button
-              key={option.value}
-              type="button"
-              role="radio"
-              aria-checked={active}
-              onClick={() => {
-                tapHaptic();
-                onChange(option.value);
-              }}
-              className={`flex-1 rounded-lg px-2 py-2.5 text-xs font-bold transition ${active ? "bg-white text-[#232331] shadow-sm dark:bg-[#3c3652] dark:text-[#f1eff7]" : "text-[#817d8a] hover:text-[#3c3946] dark:text-[#a79fb5] dark:hover:text-[#ece9f4]"}`}
-            >
+    <fieldset className="mb-6">
+      <legend className="mb-3 flex items-center gap-2 text-sm font-semibold">
+        {icon}
+        {label}
+      </legend>
+      <div className="flex gap-1 rounded-2xl bg-[var(--page-bg)] p-1">
+        {options.map((option) => (
+          <label key={option.value} className="relative flex-1 cursor-pointer">
+            <input
+              className="peer sr-only"
+              type="radio"
+              name={label}
+              checked={value === option.value}
+              onChange={() => onChange(option.value)}
+            />
+            <span className="flex min-h-11 items-center justify-center rounded-xl px-1 text-xs text-muted peer-checked:bg-[var(--accent)] peer-checked:font-bold peer-checked:text-[#25352d] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-[var(--violet)]">
               {option.label}
-            </button>
-          );
-        })}
+            </span>
+          </label>
+        ))}
       </div>
-    </div>
+    </fieldset>
   );
 }
-
-type AccountMenuProps = {
+type Props = {
   copy: AppCopy;
   onManageAccount: () => void;
   localePref: LocalePref;
@@ -51,87 +52,84 @@ type AccountMenuProps = {
   themePref: ThemePref;
   onThemePrefChange: (pref: ThemePref) => void;
 };
-
-export function AccountMenu({ copy, onManageAccount, localePref, onLocalePrefChange, themePref, onThemePrefChange }: AccountMenuProps) {
-  const { status, user } = useAuth();
-  const { plan, ready: planReady } = usePlan();
+export function AccountMenu({
+  copy,
+  onManageAccount,
+  localePref,
+  onLocalePrefChange,
+  themePref,
+  onThemePrefChange,
+}: Props) {
+  const { status } = useAuth();
   const [open, setOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-
-  if (status !== "signed-in" || !user) return null;
-
-  const languageOptions: SegmentOption<LocalePref>[] = [
-    { value: "system", label: copy.language.system },
-    { value: "es", label: copy.language.spanish },
-    { value: "en", label: copy.language.english },
-  ];
-  const appearanceOptions: SegmentOption<ThemePref>[] = [
-    { value: "system", label: copy.appearance.system },
-    { value: "light", label: copy.appearance.light },
-    { value: "dark", label: copy.appearance.dark },
-  ];
-
   return (
-    <div className="relative">
+    <>
       <button
-        onClick={() => {
-          tapHaptic();
-          setOpen((current) => !current);
-        }}
+        type="button"
+        className="flex min-h-11 items-center gap-1.5 rounded-full border border-[var(--line)] px-3 text-[11px] font-semibold"
         aria-label={copy.auth.account.settings}
-        className="grid h-12 w-12 place-items-center rounded-full border border-white dark:border-white/10 bg-white/70 dark:bg-white/5 text-[#3c3946] dark:text-[#ece9f4] shadow-sm backdrop-blur-sm"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen(true)}
       >
-        <Settings size={21} strokeWidth={2} />
+        <Settings size={16} aria-hidden="true" />
+        {copy.auth.account.settings}
       </button>
-      <AnimatePresence>
-        {open ? (
-          <motion.div
-            initial={{ opacity: 0, y: -6, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.96 }}
-            transition={{ duration: 0.16 }}
-            className="liquid-glass-strong absolute right-0 top-14 z-40 w-[19rem] rounded-[22px] p-4"
-          >
-            <p className="truncate px-1 text-sm text-[#6d6b79] dark:text-[#a79fb5]">{copy.auth.account.signedInAs}</p>
-            <div className="mb-4 flex items-center gap-2 px-1">
-              <p className="min-w-0 flex-1 truncate text-base font-semibold text-[#232331] dark:text-[#f1eff7]">{user.displayName ?? user.email}</p>
-              {planReady ? <PlanBadge copy={copy} plan={plan} /> : null}
-            </div>
-
-            <SettingsRow icon={<Languages size={14} />} label={copy.language.label} value={localePref} options={languageOptions} onChange={onLocalePrefChange} />
-            <SettingsRow icon={<Moon size={14} />} label={copy.appearance.label} value={themePref} options={appearanceOptions} onChange={onThemePrefChange} />
-
-            <div className="my-2.5 h-px bg-[#e7e3ee] dark:bg-white/10" />
-
+      {open && (
+        <Sheet
+          title={copy.auth.account.settings}
+          closeLabel={copy.auth.profile.close}
+          onClose={() => setOpen(false)}
+        >
+          <SettingsRow
+            icon={<Languages size={18} />}
+            label={copy.language.label}
+            value={localePref}
+            options={[
+              { value: "system", label: copy.language.system },
+              { value: "en", label: copy.language.english },
+              { value: "es", label: copy.language.spanish },
+            ]}
+            onChange={onLocalePrefChange}
+          />
+          <SettingsRow
+            icon={<Moon size={18} />}
+            label={copy.appearance.label}
+            value={themePref}
+            options={[
+              { value: "system", label: copy.appearance.system },
+              { value: "light", label: copy.appearance.light },
+              { value: "dark", label: copy.appearance.dark },
+            ]}
+            onChange={onThemePrefChange}
+          />
+          {status === "signed-in" && (
             <button
+              className="settings-row"
               onClick={() => {
                 setOpen(false);
-                setProfileOpen(true);
+                onManageAccount();
               }}
-              className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-3 text-base font-semibold text-[#3c3946] dark:text-[#ece9f4] hover:bg-[#f3f1fa] hover:dark:bg-[#26222f]"
             >
-              <UserRound size={19} />{copy.auth.account.profile}
+              <UserRound size={18} />
+              {copy.auth.account.profile}
+              <ChevronRight size={17} />
             </button>
-            <button
-              onClick={() => {
-                setOpen(false);
-                void signOutUser();
-              }}
-              className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-3 text-base font-semibold text-[#e0507a] dark:text-[#ff8fae] hover:bg-[#fff3f6] hover:dark:bg-[#2e2030]"
+          )}
+          <div className="mt-4 flex gap-5 border-t border-[var(--line)] pt-5 text-xs text-muted">
+            <a href="/legal/terminos" target="_blank" rel="noopener noreferrer">
+              {copy.account.terms}
+            </a>
+            <a
+              href="/legal/privacidad"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <LogOut size={19} />{copy.auth.account.signOut}
-            </button>
-
-            <div className="my-2.5 h-px bg-[#e7e3ee] dark:bg-white/10" />
-
-            <div className="flex items-center justify-center gap-4 px-1 text-xs font-semibold text-[#9996a4] dark:text-[#8b8697]">
-              <a href="/legal/terminos" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{copy.account.terms}</a>
-              <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{copy.account.privacy}</a>
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-      <AnimatePresence>{profileOpen ? <ProfileModal copy={copy} onClose={() => setProfileOpen(false)} onManageAccount={onManageAccount} /> : null}</AnimatePresence>
-    </div>
+              {copy.account.privacy}
+            </a>
+          </div>
+        </Sheet>
+      )}
+    </>
   );
 }

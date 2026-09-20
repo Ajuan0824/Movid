@@ -90,7 +90,7 @@ export function AvatarPicker({ copy, size = 56, radiusClass = "rounded-full", on
     <div className="relative shrink-0" style={{ height: size, width: size }}>
       <div
         style={{ height: size, width: size, fontSize: Math.round(size * 0.36) }}
-        className={`relative grid place-items-center overflow-hidden border border-white bg-[#252334] font-bold text-white shadow-[0_8px_20px_rgba(36,29,80,.2)] ${radiusClass}`}
+        className={`relative grid place-items-center overflow-hidden border border-white bg-[#25352d] font-bold text-white shadow-[0_8px_20px_rgba(36,29,80,.2)] ${radiusClass}`}
       >
         {shown ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -110,7 +110,7 @@ export function AvatarPicker({ copy, size = 56, radiusClass = "rounded-full", on
         disabled={loading}
         aria-label={t.changePhoto}
         style={{ height: badge, width: badge }}
-        className="absolute -bottom-1.5 -right-1.5 grid place-items-center rounded-full border-2 border-white bg-[#7657dd] text-white shadow-[0_4px_12px_rgba(60,40,140,.35)] transition active:scale-95 disabled:opacity-60 dark:border-[#1c1a24]"
+        className="absolute -bottom-1.5 -right-1.5 grid place-items-center rounded-full border-2 border-white bg-[#466447] text-white shadow-[0_4px_12px_rgba(60,40,140,.35)] transition active:scale-95 disabled:opacity-60 dark:border-[#1c1a24]"
       >
         <Camera size={Math.round(badge * 0.55)} />
       </button>

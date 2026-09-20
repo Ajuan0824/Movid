@@ -1,11 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Space_Grotesk } from "next/font/google";
+import { DM_Sans, Space_Grotesk, Fraunces } from "next/font/google";
 import { ClientBootstrap } from "./components/mevid/client-bootstrap";
 import { SplashScreen } from "./components/mevid/splash-screen";
 import "./globals.css";
-import { AuthProvider } from "../hooks/use-auth";
-import { PlanProvider } from "../hooks/use-plan";
-import { PurchasesProvider } from "../hooks/use-purchases";
+import { AppProviders } from "./components/mevid/app-providers";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -15,6 +13,12 @@ const dmSans = DM_Sans({
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
+});
+
+const editorial = Fraunces({
+  variable: "--font-editorial",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -39,19 +43,19 @@ const THEME_INIT_SCRIPT = `
 })();
 `;
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className={`${dmSans.variable} ${spaceGrotesk.variable}`}>
+      <body
+        className={`${dmSans.variable} ${spaceGrotesk.variable} ${editorial.variable}`}
+      >
         <ClientBootstrap />
-        <AuthProvider>
-          <PlanProvider>
-            <PurchasesProvider>{children}</PurchasesProvider>
-          </PlanProvider>
-        </AuthProvider>
+        <AppProviders>{children}</AppProviders>
         {/* Last in the DOM so it paints over the app while it boots. */}
         <SplashScreen />
       </body>
