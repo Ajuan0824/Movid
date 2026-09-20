@@ -68,7 +68,7 @@ export function IntroScreen({
         </button>
       </motion.div>
       <div className="hero-actions">
-        <div className="record-button-shell">
+        <div className="animated-edge record-button-shell">
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={onRecord}

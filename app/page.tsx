@@ -456,7 +456,7 @@ export default function Home() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={tab === "home" ? "app-shell home-shell" : "app-shell"}>
       <div className="app-frame">
         <header className="app-header">
           <Brand />

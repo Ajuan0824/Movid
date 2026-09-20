@@ -111,7 +111,7 @@ export function MomentsLibrary({
               ),
           );
           return (
-            <li key={generation.id} className="library-card">
+            <li key={generation.id} className="library-card animated-edge">
               <button
                 className="library-cover"
                 style={{
@@ -134,7 +134,7 @@ export function MomentsLibrary({
                   </span>
                 )}
               </button>
-              <div className="flex shrink-0 items-center gap-1 py-2 pl-3 pr-1">
+              <div className="library-card-meta flex shrink-0 items-center gap-1 py-2 pl-3 pr-1">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold">
                     {copy.library.momentsCount.replace(

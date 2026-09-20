@@ -99,14 +99,14 @@ a {
   content: "";
 }
 .app-shell::before {
-  inset: -16% -35%;
+  inset: -22% -35%;
   background:
     radial-gradient(circle at 16% 14%, #9be879a6 0, transparent 26%),
     radial-gradient(circle at 84% 13%, #a5e5fa96 0, transparent 29%),
     radial-gradient(circle at 98% 67%, #f9e77d7d 0, transparent 25%),
     radial-gradient(circle at 8% 91%, #85d98fa3 0, transparent 28%);
-  filter: blur(26px);
-  animation: ambientDrift 22s ease-in-out infinite alternate;
+  filter: blur(22px);
+  animation: ambientDrift 11s ease-in-out infinite alternate;
 }
 .app-shell::after {
   inset: -22% -30%;
@@ -114,20 +114,37 @@ a {
     radial-gradient(circle at 0 51%, #c8f46d80 0, transparent 19%),
     radial-gradient(circle at 100% 40%, #65d9e685 0, transparent 21%),
     radial-gradient(circle at 66% 100%, #d0fa8c85 0, transparent 25%);
-  filter: blur(35px);
-  animation: ambientDriftReverse 28s ease-in-out infinite alternate;
+  filter: blur(28px);
+  animation: ambientDriftReverse 15s ease-in-out infinite alternate;
 }
 .dark .app-shell::before,
 .dark .app-shell::after {
-  opacity: 0.23;
+  opacity: 0.36;
+}
+.dark .home-shell {
+  background: #09271e;
+}
+.dark .home-shell::before {
+  opacity: 0.82;
+  background:
+    radial-gradient(circle at 12% 14%, #3a9c6e91 0, transparent 29%),
+    radial-gradient(circle at 84% 24%, #178a877d 0, transparent 28%),
+    radial-gradient(circle at 76% 84%, #64a84872 0, transparent 32%);
+}
+.dark .home-shell::after {
+  opacity: 0.7;
+  background:
+    radial-gradient(circle at 0 65%, #1a805574 0, transparent 27%),
+    radial-gradient(circle at 100% 48%, #229d9b70 0, transparent 25%),
+    radial-gradient(circle at 42% 100%, #3a88466b 0, transparent 29%);
 }
 @keyframes ambientDrift {
-  from { transform: translate3d(-3%, -1%, 0) scale(1); }
-  to { transform: translate3d(4%, 3%, 0) scale(1.08); }
+  from { transform: translate3d(-9%, -5%, 0) scale(1); }
+  to { transform: translate3d(9%, 7%, 0) scale(1.12); }
 }
 @keyframes ambientDriftReverse {
-  from { transform: translate3d(3%, 2%, 0) scale(1.05); }
-  to { transform: translate3d(-4%, -3%, 0) scale(0.98); }
+  from { transform: translate3d(8%, 6%, 0) scale(1.08); }
+  to { transform: translate3d(-8%, -8%, 0) scale(0.96); }
 }
 .app-frame {
   position: relative;
@@ -228,9 +245,10 @@ a {
     transform 0.2s;
 }
 .primary-button {
-  background: var(--ink);
-  color: var(--page-bg);
-  border: 1px solid transparent;
+  background: linear-gradient(118deg, #0b6b48, #064b38 56%, #102e26);
+  color: #f7fff5;
+  border: 1px solid #79b8756b;
+  box-shadow: inset 0 1px 0 #ffffff30, 0 4px 12px #0c473420;
 }
 .secondary-button {
   background: var(--surface);
@@ -250,9 +268,11 @@ a {
 .secondary-button:active {
   transform: scale(0.98);
 }
-.accent-button {
-  background: var(--accent);
-  color: #25352d;
+.account-upgrade-button {
+  min-height: 44px;
+  padding: 0.75rem;
+  border-radius: 12px;
+  font-size: 12px;
 }
 .icon-button {
   display: inline-flex;
@@ -322,11 +342,9 @@ a {
 .hero-title .font-editorial {
   position: relative;
   width: fit-content;
-  margin-top: -2px;
-  font-family: var(--font-handwriting), cursive;
-  font-size: 1.5em;
-  font-weight: 700;
-  line-height: 1.08;
+  margin-top: 4px;
+  font-size: 0.84em;
+  line-height: 1.16;
   letter-spacing: -0.055em;
 }
 .hero-title .font-editorial::after {
@@ -356,6 +374,9 @@ a {
   transform: rotate(-2deg);
   box-shadow: 0 14px 28px #1a2b2030;
 }
+.dark .home-shell .hero-photo {
+  box-shadow: 0 14px 28px #00170f55;
+}
 .hero-photo-back {
   display: none;
 }
@@ -372,10 +393,8 @@ a {
   text-align: left;
 }
 .hero-caption .font-editorial {
-  font-family: var(--font-handwriting), cursive;
-  font-size: clamp(34px, 5dvh, 48px);
-  font-weight: 700;
-  line-height: 0.88;
+  font-size: clamp(27px, 3.7dvh, 34px);
+  line-height: 1.05;
 }
 .photo-stamp {
   position: absolute;
@@ -400,17 +419,14 @@ a {
   flex-shrink: 0;
   padding: 0 4px;
 }
-.record-button-shell {
+.animated-edge {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   padding: 2px;
-  border-radius: 999px;
   background: #a8fa59;
-  box-shadow: 0 0 17px #b4f85b9c, 0 0 38px #77dc5261;
-  animation: recordGlow 2.8s ease-in-out infinite alternate;
 }
-.record-button-shell::before {
+.animated-edge::before {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -418,7 +434,16 @@ a {
   aspect-ratio: 1;
   background: conic-gradient(from 0deg, #69e24c, #eaff8c 18%, #3ddfba 32%, #d9ff71 49%, #4cdb56 67%, #f1ffad 84%, #69e24c);
   content: "";
-  animation: recordOrbit 4s linear infinite;
+  animation: edgeOrbit 4s linear infinite;
+}
+.animated-edge > * {
+  position: relative;
+  z-index: 1;
+}
+.record-button-shell {
+  border-radius: 999px;
+  box-shadow: 0 0 17px #b4f85b9c, 0 0 38px #77dc5261;
+  animation: recordGlow 2.8s ease-in-out infinite alternate;
 }
 .record-button-shell:focus-within {
   outline: 2px solid var(--violet);
@@ -449,7 +474,7 @@ a {
   box-shadow: 0 7px 22px #20332312, inset 0 1px 0 #fff9;
   font-size: 15px;
 }
-@keyframes recordOrbit {
+@keyframes edgeOrbit {
   to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 @keyframes recordGlow {
@@ -613,10 +638,18 @@ a {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: #9ced64;
+  border: 0;
   border-radius: 19px;
   overflow: hidden;
+  box-shadow: 0 5px 18px #6cae5030;
+}
+.library-card::before {
+  animation-duration: 5.5s;
+}
+.library-card-meta {
+  background: var(--surface);
+  border-radius: 0 0 17px 17px;
 }
 .library-cover {
   position: relative;
@@ -626,6 +659,7 @@ a {
   width: 100%;
   background-size: cover;
   background-position: center;
+  border-radius: 17px 17px 0 0;
 }
 .scan-sweep {
   position: absolute;
@@ -671,6 +705,19 @@ a {
 .pro-card {
   padding: 20px;
 }
+.pro-card-edge {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  border-radius: 28px;
+  box-shadow: 0 8px 26px #70c96839;
+}
+.pro-card-edge::before {
+  animation-duration: 5s;
+}
+.pro-card-edge > .pro-card {
+  min-width: 0;
+}
 .pro-card-copy {
   padding: 12px 0;
 }
@@ -683,10 +730,10 @@ a {
     font-size: 32px;
   }
   .hero-title .font-editorial {
-    font-size: 1.35em;
+    font-size: 0.82em;
   }
   .hero-caption .font-editorial {
-    font-size: 29px;
+    font-size: 25px;
   }
 }
 @media (max-height: 720px) {

@@ -181,7 +181,7 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
         {planReady && plan !== "pro" && (
           <button
             onClick={onGoPro}
-            className="mt-4 flex w-full items-center justify-between rounded-xl bg-[#d4ed8a] px-3 py-3 text-xs font-bold text-[#25352d]"
+            className="primary-button account-upgrade-button mt-4 w-full justify-between"
           >
             <span className="flex items-center gap-2">
               <Sparkles size={15} />
