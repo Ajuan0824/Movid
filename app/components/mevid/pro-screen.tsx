@@ -40,7 +40,7 @@ export function ProScreen({
     <Screen className="pro-screen">
       <PageHeading eyebrow={copy.studio.proEyebrow} title={t.title} />
       <div className="animated-edge pro-card-edge">
-        <div className="pro-card relative flex flex-1 flex-col justify-between overflow-hidden rounded-[24px] bg-[#253b2f] text-[#f4f5e9]">
+        <div className="pro-card relative flex flex-1 flex-col justify-between overflow-hidden rounded-[24px] text-[#f4f5e9]">
           <div
             aria-hidden
             className="pointer-events-none absolute -right-9 -top-9 h-52 w-52 rounded-full border border-[#d4ed8a]/15"

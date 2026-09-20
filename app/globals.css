@@ -704,6 +704,15 @@ a {
 }
 .pro-card {
   padding: 20px;
+  background:
+    radial-gradient(circle at 18% 20%, #53c88733 0, transparent 42%),
+    linear-gradient(120deg, #118458 0%, #0a6147 35%, #0b372b 58%, #0b8067 83%, #137950 100%);
+  background-size: 150% 150%, 180% 180%;
+  animation: proGradientFlow 7s ease-in-out infinite alternate;
+}
+@keyframes proGradientFlow {
+  from { background-position: 0% 0%, 0% 50%; }
+  to { background-position: 100% 100%, 100% 50%; }
 }
 .pro-card-edge {
   display: flex;
