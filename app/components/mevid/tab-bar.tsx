@@ -6,6 +6,7 @@ import type { AppCopy } from "../../../lib/mevid/copy";
 import { tapHaptic } from "../../../lib/mevid/haptics";
 import { useAuth } from "../../../hooks/use-auth";
 import { usePlan } from "../../../hooks/use-plan";
+import { useTabSwipe } from "../../../hooks/use-tab-swipe";
 export type AppTab = "home" | "momentos" | "pro" | "cuenta";
 const TABS: Array<{ key: AppTab; icon: typeof Aperture }> = [
   { key: "home", icon: Aperture },
@@ -29,8 +30,16 @@ export function TabBar({
   const avatar = user?.photoUrl && !avatarFailed ? user.photoUrl : null;
   const tabs =
     ready && plan === "pro" ? TABS.filter(({ key }) => key !== "pro") : TABS;
+  const swipe = useTabSwipe({
+    tab,
+    tabs: tabs.map(({ key }) => key),
+    onChange: (next) => {
+      tapHaptic();
+      onChange(next);
+    },
+  });
   return (
-    <nav className="tab-bar" aria-label={copy.tabs.nav}>
+    <nav className="tab-bar" aria-label={copy.tabs.nav} {...swipe}>
       {tabs.map(({ key, icon: Icon }) => (
         <motion.button
           key={key}

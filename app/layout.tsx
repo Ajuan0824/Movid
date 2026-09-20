@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Space_Grotesk, Fraunces } from "next/font/google";
+import { Caveat, DM_Sans, Space_Grotesk, Fraunces } from "next/font/google";
 import { ClientBootstrap } from "./components/mevid/client-bootstrap";
 import { SplashScreen } from "./components/mevid/splash-screen";
 import "./globals.css";
@@ -19,6 +19,12 @@ const editorial = Fraunces({
   variable: "--font-editorial",
   subsets: ["latin"],
   style: ["normal", "italic"],
+});
+
+const handwriting = Caveat({
+  variable: "--font-handwriting",
+  subsets: ["latin"],
+  weight: ["700"],
 });
 
 export const metadata: Metadata = {
@@ -52,7 +58,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body
-        className={`${dmSans.variable} ${spaceGrotesk.variable} ${editorial.variable}`}
+        className={`${dmSans.variable} ${spaceGrotesk.variable} ${editorial.variable} ${handwriting.variable}`}
       >
         <ClientBootstrap />
         <AppProviders>{children}</AppProviders>
