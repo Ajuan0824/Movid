@@ -48,10 +48,6 @@ export function IntroScreen({
           aria-label={copy.hero.record}
         >
           <HeroCarousel />
-          <span className="absolute left-5 top-5 flex items-center gap-2 rounded-full border border-white/25 bg-black/20 px-3 py-1.5 font-mono text-[10px] tracking-wider text-white backdrop-blur-sm">
-            <span className="record-dot" />
-            {copy.studio.liveLife}
-          </span>
           <span className="hero-caption">
             <span>
               <span className="mb-1 block text-[10px] font-medium uppercase tracking-[.15em] text-white/75">

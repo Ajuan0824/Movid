@@ -5,7 +5,6 @@ export type AppCopy = {
   studio: {
     tagline: string;
     heroHint: string;
-    liveLife: string;
     fromVideo: string;
     toMemories: string;
     aiSelected: string;
@@ -250,7 +249,6 @@ const dictionary: Record<Locale, AppCopy> = {
     studio: {
       tagline: "Life moves. Keep a little.",
       heroHint: "Turn the video on your phone into photos worth keeping.",
-      liveLife: "LIVE A LITTLE",
       fromVideo: "From everyday videos",
       toMemories: "to forever moments.",
       aiSelected: "PICKED\nBY AI",
@@ -540,7 +538,6 @@ const dictionary: Record<Locale, AppCopy> = {
     studio: {
       tagline: "La vida pasa. Quédate un poco.",
       heroHint: "Convierte el vídeo de tu móvil en fotos que merecen quedarse.",
-      liveLife: "VIVE EL MOMENTO",
       fromVideo: "De vídeos cotidianos",
       toMemories: "a recuerdos para siempre.",
       aiSelected: "ELEGIDO\nPOR IA",
