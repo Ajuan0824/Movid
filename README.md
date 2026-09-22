@@ -4,7 +4,7 @@
 
 MoVid is an iPhone-first application that records a short video or imports one from the photo library, lets the user refine the section they care about, and uses AI to identify its strongest visual moments. The result is a curated collection of real, high-resolution still images from the original video—never AI-generated artwork.
 
-MoVid was built for the **RevenueCat Shipaton 2026** and submitted to the **RevenueCat Design Award**. The experience is designed around a simple creative rhythm: **capture, refine, reveal**.
+MoVid was built for the **RevenueCat Shipaton 2026** and is being prepared for the **RevenueCat Design Award**. The experience is designed around a simple creative rhythm: **capture, refine, reveal**.
 
 ## How it works
 
