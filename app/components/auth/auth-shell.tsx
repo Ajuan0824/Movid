@@ -35,7 +35,7 @@ export function AuthShell({
             <button
               type="button"
               onClick={onBack}
-              className="mb-2 flex min-h-9 items-center gap-2 text-xs font-semibold"
+              className="mb-2 flex min-h-11 items-center gap-2 text-xs font-semibold"
             >
               <ArrowLeft size={16} />
               {backLabel}

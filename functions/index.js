@@ -97,6 +97,11 @@ const GRANTS_ACCESS = new Set([
   "PRODUCT_CHANGE",
   "SUBSCRIPTION_EXTENDED",
   "NON_RENEWING_PURCHASE",
+  // iOS can restore access after a reversed refund, and RevenueCat can grant
+  // short-lived access during an App Store outage. Both mean the entitlement
+  // is active until a later EXPIRATION says otherwise.
+  "REFUND_REVERSED",
+  "TEMPORARY_ENTITLEMENT_GRANT",
 ]);
 // Event types that mean "access just ended". CANCELLATION and BILLING_ISSUE
 // deliberately aren't here: access continues until an EXPIRATION arrives.

@@ -217,7 +217,7 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
       <div className="mt-auto flex flex-wrap items-center justify-between gap-2 text-[10px] text-muted">
         <div className="flex gap-3">
           <a
-            className="py-3"
+            className="inline-flex min-h-11 items-center"
             href="/legal/terminos"
             target="_blank"
             rel="noopener noreferrer"
@@ -225,7 +225,7 @@ export function AccountScreen({ copy, onGoPro }: AccountScreenProps) {
             {a.terms}
           </a>
           <a
-            className="py-3"
+            className="inline-flex min-h-11 items-center"
             href="/legal/privacidad"
             target="_blank"
             rel="noopener noreferrer"

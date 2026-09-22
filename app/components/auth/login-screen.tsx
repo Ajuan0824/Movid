@@ -72,8 +72,9 @@ export function LoginScreen({ copy, onNavigate }: LoginScreenProps) {
         <>
           {t.noAccount}{" "}
           <button
+            type="button"
             onClick={() => onNavigate("register")}
-            className="font-semibold text-[#466447] dark:text-[#d4ed8a] hover:underline"
+            className="inline-flex min-h-11 items-center font-semibold text-[#466447] dark:text-[#d4ed8a] hover:underline"
           >
             {t.createAccount}
           </button>
@@ -106,7 +107,7 @@ export function LoginScreen({ copy, onNavigate }: LoginScreenProps) {
         <button
           type="button"
           onClick={() => onNavigate("forgot")}
-          className="-mt-1 self-end text-sm font-semibold text-[#466447] dark:text-[#d4ed8a] hover:underline"
+          className="-my-2 inline-flex min-h-11 items-center self-end text-sm font-semibold text-[#466447] dark:text-[#d4ed8a] hover:underline"
         >
           {t.forgot}
         </button>

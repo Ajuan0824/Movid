@@ -130,7 +130,7 @@ export function StarMeterError({
       <button
         type="button"
         onClick={onRetry}
-        className="flex items-center gap-1.5 text-left text-sm font-semibold text-[#697061] transition hover:text-[#697061] dark:text-[#a0aa99] dark:hover:text-[#a6b0a3]"
+        className="flex min-h-11 items-center gap-1.5 text-left text-sm font-semibold text-[#697061] transition hover:text-[#697061] dark:text-[#a0aa99] dark:hover:text-[#a6b0a3]"
       >
         {copy.stars.loadError}
         <span className="inline-flex items-center gap-1 text-[#466447] dark:text-[#d4ed8a]">

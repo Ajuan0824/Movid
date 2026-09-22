@@ -41,9 +41,12 @@ function jsAuth() {
 
 // localStorage-backed persistence is the one storage that's reliable inside the
 // iOS WKWebView. Set it once, before any sign-in restores or runs.
-const persistenceReady = setPersistence(jsAuth(), browserLocalPersistence).catch((error) => {
-  console.error("Could not set Firebase JS auth persistence", error);
-});
+const persistenceReady =
+  typeof window === "undefined"
+    ? Promise.resolve()
+    : setPersistence(jsAuth(), browserLocalPersistence).catch((error) => {
+        console.error("Could not set Firebase JS auth persistence", error);
+      });
 
 /**
  * Last-resort bridge when replaying the provider credential doesn't work.

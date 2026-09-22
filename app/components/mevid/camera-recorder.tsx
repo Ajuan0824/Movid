@@ -153,6 +153,9 @@ export function CameraRecorder({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t.start}
       className="fixed inset-0 z-[60] flex flex-col bg-black"
     >
       <video
@@ -183,6 +186,7 @@ export function CameraRecorder({
       <div className="relative flex items-start justify-between p-[calc(1rem+env(safe-area-inset-top))_1rem_0]">
         <button
           type="button"
+          autoFocus
           onClick={() => {
             tapHaptic();
             stopStream();

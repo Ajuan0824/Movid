@@ -116,11 +116,17 @@ export function AccountMenu({
               <ChevronRight size={17} />
             </button>
           )}
-          <div className="mt-4 flex gap-5 border-t border-[var(--line)] pt-5 text-xs text-muted">
-            <a href="/legal/terminos" target="_blank" rel="noopener noreferrer">
+          <div className="mt-4 flex gap-5 border-t border-[var(--line)] pt-3 text-xs text-muted">
+            <a
+              className="inline-flex min-h-11 items-center"
+              href="/legal/terminos"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {copy.account.terms}
             </a>
             <a
+              className="inline-flex min-h-11 items-center"
               href="/legal/privacidad"
               target="_blank"
               rel="noopener noreferrer"

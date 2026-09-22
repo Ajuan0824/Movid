@@ -30,6 +30,12 @@ export function useLocalePref() {
     return () => window.removeEventListener("languagechange", handleChange);
   }, [pref]);
 
+  // Keep assistive technology and native pronunciation aligned with the
+  // language currently rendered by the app.
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+
   const setPref = useCallback((next: LocalePref) => {
     setPrefState(next);
     storeLocalePref(next);

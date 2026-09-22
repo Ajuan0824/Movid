@@ -94,7 +94,7 @@ export function ResultsScreen({
     <Screen className="results-screen">
       <div className="flex shrink-0 items-center justify-between">
         <button
-          className="flex min-h-9 items-center gap-2 text-xs font-semibold"
+          className="flex min-h-11 items-center gap-2 text-xs font-semibold"
           onClick={onNewVideo}
         >
           <ArrowLeft size={17} />
@@ -142,7 +142,7 @@ export function ResultsScreen({
           <span className="eyebrow !mb-0">{copy.studio.allPhotos}</span>
           <div className="flex gap-1">
             <button
-              className="grid h-9 w-9 place-items-center rounded-full disabled:opacity-20"
+              className="grid h-11 w-11 place-items-center rounded-full disabled:opacity-20"
               disabled={selected === 0}
               aria-label={copy.studio.previous}
               onClick={() => change(selected - 1)}
@@ -150,7 +150,7 @@ export function ResultsScreen({
               <ChevronLeft size={18} />
             </button>
             <button
-              className="grid h-9 w-9 place-items-center rounded-full disabled:opacity-20"
+              className="grid h-11 w-11 place-items-center rounded-full disabled:opacity-20"
               disabled={selected === highlights.length - 1}
               aria-label={copy.studio.next}
               onClick={() => change(selected + 1)}

@@ -33,7 +33,7 @@ export function ReviewScreen({
   return (
     <Screen className="review-screen">
       <button
-        className="flex min-h-9 shrink-0 items-center gap-2 self-start text-xs font-semibold"
+        className="flex min-h-11 shrink-0 items-center gap-2 self-start text-xs font-semibold"
         onClick={onRetry}
       >
         <ArrowLeft size={17} />

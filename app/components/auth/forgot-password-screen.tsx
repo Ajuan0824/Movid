@@ -53,8 +53,9 @@ export function ForgotPasswordScreen({
       backLabel={copy.auth.backToLogin}
       footer={
         <button
+          type="button"
           onClick={() => onNavigate("login")}
-          className="font-semibold text-[#466447] dark:text-[#d4ed8a] hover:underline"
+          className="inline-flex min-h-11 items-center font-semibold text-[#466447] dark:text-[#d4ed8a] hover:underline"
         >
           {t.back}
         </button>
