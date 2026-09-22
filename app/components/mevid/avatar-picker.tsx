@@ -109,10 +109,14 @@ export function AvatarPicker({ copy, size = 56, radiusClass = "rounded-full", on
         onClick={pick}
         disabled={loading}
         aria-label={t.changePhoto}
-        style={{ height: badge, width: badge }}
-        className="absolute -bottom-1.5 -right-1.5 grid place-items-center rounded-full border-2 border-white bg-[#466447] text-white shadow-[0_4px_12px_rgba(60,40,140,.35)] transition active:scale-95 disabled:opacity-60 dark:border-[#1c1a24]"
+        className="absolute -bottom-2.5 -right-2.5 grid h-11 w-11 place-items-center rounded-full transition active:scale-95 disabled:opacity-60"
       >
-        <Camera size={Math.round(badge * 0.55)} />
+        <span
+          style={{ height: badge, width: badge }}
+          className="grid place-items-center rounded-full border-2 border-white bg-[#466447] text-white shadow-[0_4px_12px_rgba(60,40,140,.35)] dark:border-[#1c1a24]"
+        >
+          <Camera size={Math.round(badge * 0.55)} />
+        </span>
       </button>
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(event) => void onSelected(event)} />
     </div>

@@ -16,5 +16,10 @@ const firebaseConfig = {
  * during fast refresh.
  */
 export function ensureFirebaseApp() {
+  // Client SDK modules are imported while Next prerenders client components.
+  // Initialising Auth on the server makes `next build` require browser-only
+  // public config and causes even the generated 404 page to fail. The browser
+  // evaluates this module again and performs the real initialisation there.
+  if (typeof window === "undefined") return;
   if (!getApps().length) initializeApp(firebaseConfig);
 }

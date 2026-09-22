@@ -809,6 +809,10 @@ a {
     padding-top: 6px;
     padding-bottom: 6px;
   }
+  .pro-screen {
+    gap: 9px;
+    padding-bottom: 10px;
+  }
   .review-screen .page-heading .eyebrow {
     display: none;
   }

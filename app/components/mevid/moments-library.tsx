@@ -149,7 +149,7 @@ export function MomentsLibrary({
                   </p>
                 </div>
                 <button
-                  className="grid h-11 w-10 shrink-0 place-items-center text-muted"
+                  className="grid h-11 w-11 shrink-0 place-items-center text-muted"
                   disabled={generation.pending}
                   onClick={() => setConfirming(generation)}
                   aria-label={

@@ -362,7 +362,7 @@ export function VideoTrimmer({
             aria-valuenow={draft.start}
             aria-valuetext={formatSeconds(draft.start)}
             onKeyDown={nudgeHandle("start")}
-            className="absolute inset-y-0 grid w-6 -translate-x-1/2 cursor-ew-resize touch-none place-items-center"
+            className="absolute inset-y-0 grid w-11 -translate-x-1/2 cursor-ew-resize touch-none place-items-center"
             style={{ left: pct(draft.start) }}
             onPointerDown={beginDrag("start")}
           >
@@ -377,7 +377,7 @@ export function VideoTrimmer({
             aria-valuenow={draft.end}
             aria-valuetext={formatSeconds(draft.end)}
             onKeyDown={nudgeHandle("end")}
-            className="absolute inset-y-0 grid w-6 -translate-x-1/2 cursor-ew-resize touch-none place-items-center"
+            className="absolute inset-y-0 grid w-11 -translate-x-1/2 cursor-ew-resize touch-none place-items-center"
             style={{ left: pct(draft.end) }}
             onPointerDown={beginDrag("end")}
           >

@@ -109,7 +109,7 @@ export function ProScreen({
         <button
           disabled={busy}
           onClick={onRestore}
-          className="mx-auto block min-h-10 text-xs font-semibold"
+          className="mx-auto block min-h-11 text-xs font-semibold"
         >
           {busy ? t.restoring : t.restore}
         </button>
