@@ -323,6 +323,32 @@ export async function extractFilmstrip(
 }
 
 /**
+ * Builds the still shown before playback on the review screen.
+ *
+ * WebKit on iOS often stops after loading video metadata, which is enough to
+ * report the duration but leaves the element without a decoded frame. Using a
+ * real `poster` avoids the blank preview and also keeps the image visible while
+ * the full-resolution video is still being prepared by Photos.
+ */
+export async function extractVideoPoster(
+  source: string,
+  durationHint: number,
+): Promise<string> {
+  const video = await loadVideoElement(source);
+  try {
+    const total = await resolveDuration(video, durationHint);
+    const { canvas, context } = createCanvas(video, 960);
+    // Avoid opening fades and camera-start blur while staying near the start.
+    const time = Math.min(Math.max(total * 0.2, 0.1), Math.max(0.1, total - 0.05));
+    await seekTo(video, time);
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.84);
+  } finally {
+    releaseVideoElement(video);
+  }
+}
+
+/**
  * Re-opens the original video and grabs one full-resolution JPEG per highlight,
  * so results show real footage instead of AI-generated art.
  *

@@ -1,8 +1,12 @@
 "use client";
 import { ArrowLeft, ArrowUpRight, Play, Sparkles, Star } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AppCopy } from "../../../lib/mevid/copy";
-import { formatTime, MAX_VIDEO_SECONDS } from "../../../lib/mevid/video";
+import {
+  extractVideoPoster,
+  formatTime,
+  MAX_VIDEO_SECONDS,
+} from "../../../lib/mevid/video";
 import { VideoTrimmer } from "./video-trimmer";
 import { PageHeading, Screen } from "../ui/screen";
 import { Sheet } from "../ui/sheet";
@@ -29,7 +33,25 @@ export function ReviewScreen({
   onAnalyse,
 }: ReviewScreenProps) {
   const [preview, setPreview] = useState(false);
+  const [poster, setPoster] = useState<string | null>(null);
   const needsTrim = sourceDuration > maxSeconds + 0.3;
+
+  useEffect(() => {
+    if (needsTrim) return;
+    let active = true;
+    setPoster(null);
+    extractVideoPoster(videoUrl, sourceDuration)
+      .then((image) => {
+        if (active) setPoster(image);
+      })
+      .catch(() => {
+        // Playback remains available even if a device cannot create a poster.
+      });
+    return () => {
+      active = false;
+    };
+  }, [needsTrim, sourceDuration, videoUrl]);
+
   return (
     <Screen className="review-screen">
       <button
@@ -60,7 +82,20 @@ export function ReviewScreen({
           onClick={() => setPreview(true)}
           aria-label={copy.review.preview}
         >
-          <video src={videoUrl} playsInline muted preload="metadata" />
+          <video
+            src={videoUrl}
+            poster={poster ?? undefined}
+            playsInline
+            muted
+            preload="auto"
+            onLoadedData={(event) => {
+              // A tiny seek makes iOS paint a frame even if poster extraction
+              // was unavailable for this codec.
+              if (!poster && event.currentTarget.currentTime === 0) {
+                event.currentTarget.currentTime = Math.min(0.1, duration);
+              }
+            }}
+          />
           <span className="absolute left-4 top-4 rounded-full bg-black/40 px-3 py-1.5 font-mono text-xs text-white">
             {formatTime(duration)}
           </span>
